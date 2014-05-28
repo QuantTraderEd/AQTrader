@@ -11,7 +11,8 @@ class FeedCodeList():
     feed code list from read file
     """
     def __init__(self):
-        self.futuresoptionshcodelst = []
+        self.furureshcodelst = []
+        self.optionshcodelst = []
         self.equityshcodelst = []
         self.indexshcodelst = []
     def ReadCodeListFile(self):
@@ -22,18 +23,24 @@ class FeedCodeList():
             print "There is no feedcodelist.txt file."
             return 
         state = 0
+        
+        # FeedCodeFile Parseing        
+        
         while 1:
             line = feedcodelistfilep.readline()
             if not line: break
-            if line[:-1] == "<Futures&Options/>": state = 1
-            elif line[:-1] == "<Equity/>": state = 2
-            elif line[:-1] == "<Index/>": state = 3
+            if line[:-1] == "<Futures/>": state = 1
+            elif line[:-1] == "<Options/>": state = 2    
+            elif line[:-1] == "<Equity/>": state = 3
+            elif line[:-1] == "<Index/>": state = 4
             
             if state == 1 and line[0] != "<":
-                self.futuresoptionshcodelst.append(line[:-1])
+                self.furureshcodelst.append(line[:-1])
             elif state == 2 and line[0] != "<":
-                self.equityshcodelst.append(line[:-1])
+                self.optionshcodelst.append(line[:-1])
             elif state == 3 and line[0] != "<":
+                self.equityshcodelst.append(line[:-1])
+            elif state == 4 and line[0] != "<":
                 self.indexshcodelst.append(line[:-1])
             
 
@@ -55,14 +62,15 @@ if __name__ == "__main__":
     _feedcodelist = FeedCodeList()
     _feedcodelist.ReadCodeListFile()
     
-    print _feedcodelist.futuresoptionshcodelst
+    print _feedcodelist.furureshcodelst
+    print _feedcodelist.optionshcodelst
     print _feedcodelist.equityshcodelst
     print _feedcodelist.indexshcodelst
     
 #    futuresoptionTAQfeederlst = []
 #    equityTAQfeederlst = []
 #    
-#    for shcode in _feedcodelist.futuresoptionshcodelst:
+#    for shcode in _feedcodelist.furureshcodelst:
 #        if shcode[-3:] == '000': 
 #            newitem = pc.FutureCurOnly(shcode[:-3])
 #            newitem.Attach(viewer)
