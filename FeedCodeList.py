@@ -11,7 +11,7 @@ class FeedCodeList():
     feed code list from read file
     """
     def __init__(self):
-        self.furureshcodelst = []
+        self.futureshcodelst = []
         self.optionshcodelst = []
         self.equityshcodelst = []
         self.indexshcodelst = []
@@ -35,7 +35,7 @@ class FeedCodeList():
             elif line[:-1] == "<Index/>": state = 4
             
             if state == 1 and line[0] != "<":
-                self.furureshcodelst.append(line[:-1])
+                self.futureshcodelst.append(line[:-1])
             elif state == 2 and line[0] != "<":
                 self.optionshcodelst.append(line[:-1])
             elif state == 3 and line[0] != "<":
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     _feedcodelist = FeedCodeList()
     _feedcodelist.ReadCodeListFile()
     
-    print _feedcodelist.furureshcodelst
+    print _feedcodelist.futureshcodelst
     print _feedcodelist.optionshcodelst
     print _feedcodelist.equityshcodelst
     print _feedcodelist.indexshcodelst
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 #    futuresoptionTAQfeederlst = []
 #    equityTAQfeederlst = []
 #    
-#    for shcode in _feedcodelist.furureshcodelst:
+#    for shcode in _feedcodelist.futureshcodelst:
 #        if shcode[-3:] == '000': 
 #            newitem = pc.FutureCurOnly(shcode[:-3])
 #            newitem.Attach(viewer)
