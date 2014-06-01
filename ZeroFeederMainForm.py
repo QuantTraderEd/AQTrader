@@ -141,15 +141,52 @@ class MainForm(QtGui.QMainWindow):
         self.EquityTAQFeederLst.append(NewItemExprect)
         
     def registerFeedItem_FOExpect(self,shcode):
-        if shcode[-3:] = '000': shcode_future = shcode[:-3]
-        NewItemExpectFutures = pc.FOExpectCur()
-        NewItemExpectFutures.Attach(self.ZMQFutureExpectSender)
-        NewItemExpectFutures.SetInputValue(0,shcode_future)
-        NewItemExpectFutures.SetInputValue(1,'F1')
-        NewItemExpectFutures.SetInputValue(2,shcode[3:-3])
-        NewItemExpectFutures.Subscribe()  
-        self.FutureTAQFeederLst.append(NewItemExpectFutures)
-    
+        NewItemExpect = pc.FOExpectCur()
+        if shcode[0] == 1:
+            NewItemExpect.Attach(self.ZMQFutureExpectSender)
+            NewItemExpect.SetInputValue(0,shcode[:-3])
+            NewItemExpect.SetInputValue(1,'F1')
+            NewItemExpect.SetInputValue(2,shcode[3:-3])
+            NewItemExpect.Subscribe()  
+            self.FutureTAQFeederLst.append(NewItemExpect)
+        elif shcode[0] == 2 or shcode[0] == 3:
+            NewItemExpect.Attach(self.ZMQOptionExpectSender)
+            NewItemExpect.SetInputValue(0,shcode)
+            NewItemExpect.SetInputValue(1,'O1')
+            NewItemExpect.SetInputValue(2,shcode[3:-3])
+            NewItemExpect.Subscribe()  
+            self.OptionTAQFeederLst.append(NewItemExpect)
+            
+    def registerFeedItem_FutureJpBid(self,shcode):
+        NewItemQuote = pc.FutureJpBid(shcode[:-3])
+        NewItemQuote.Attach(self.ZMQFuturesQuoteSender)
+        NewItemQuote.Subscribe()                    
+        self.FutureTAQFeederLst.append(NewItemQuote)
+        
+    def registerFeedItem_CMECurr(self,shcode):
+        NewItemQuote = pc.CmeCurr(shcode[:-3])
+        NewItemQuote.Attach(self.ZMQFuturesQuoteSender)
+        NewItemQuote.Subscribe()                    
+        self.FutureTAQFeederLst.append(NewItemQuote)
+        
+    def registerFeedItem_OptionJpBid(self,shcode):
+        NewItemQuote = pc.OptionJpBid(shcode)
+        NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
+        NewItemQuote.Subscribe()                    
+        self.OptionTAQFeederLst.append(NewItemQuote)
+        
+    def registerFeedItem_StockJpBid(self,shcode):
+        NewItemQuote = pc.StockJpBid('A' + shcode)
+        NewItemQuote.Attach(self.ZMQEquityQuoteSender)
+        NewItemQuote.Subscribe()                
+        self.EquityTAQFeederLst.append(NewItemQuote)
+        
+    def registerFeedItem_ExpectIndexS(self,shcode):
+        NewItemExpectIndex  = pc.ExpectIndexS(shcode)
+        NewItemExpectIndex.Attach(self.ZMQIndexExpectSender)
+        NewItemExpectIndex.Subscribe()
+        self.EquityTAQFeederLst.append(NewItemExpectIndex)
+        
              
     def slot_ToggleFeed(self,boolToggle):
         pythoncom.CoInitialize()
@@ -161,12 +198,11 @@ class MainForm(QtGui.QMainWindow):
         
         if self.XASession.IsConnected() and boolToggle:            
             for shcode in self._FeedCodeList.futureshcodelst:
-                if shcode[-3:] == '000':
-                    nowlocaltime = time.localtime()
-                    if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                        self.registerFeedItem_FC0(shcode)
-                    else:
-                        self.registerFeedItem_NC0(shcode)
+                nowlocaltime = time.localtime()
+                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
+                    self.registerFeedItem_FC0(shcode)
+                else:
+                    self.registerFeedItem_NC0(shcode)
                         
             for shcode in self._FeedCodeList.optionshcodelst:
                 nowlocaltime = time.localtime()
@@ -181,53 +217,24 @@ class MainForm(QtGui.QMainWindow):
                               
                 
         if self._CpCybos.IsConnect() and boolToggle:                                    
+            nowlocaltime = time.localtime()
             for shcode in self._FeedCodeList.futureshcodelst:
-                if shcode[-3:] == '000':
-                    nowlocaltime = time.localtime()
-                    if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                        NewItemQuote = pc.FutureJpBid(shcode[:-3])                        
-                    else:
-                        NewItemQuote = pc.CmeCurr(shcode[:-3])
-                    NewItemQuote.Attach(self.ZMQFuturesQuoteSender)
-                    NewItemQuote.Subscribe()                    
-                    self.FutureTAQFeederLst.append(NewItemQuote)
-                                        
-                    NewItemExpectFutures = pc.FOExpectCur()
-                    NewItemExpectFutures.Attach(self.ZMQFutureExpectSender)
-                    NewItemExpectFutures.SetInputValue(0,shcode[:-3])
-                    NewItemExpectFutures.SetInputValue(1,'F1')
-                    NewItemExpectFutures.SetInputValue(2,shcode[3:-3])
-                    NewItemExpectFutures.Subscribe()  
-                    self.FutureTAQFeederLst.append(NewItemExpectFutures)
+                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
+                    self.registerFeedItem_FutureJpBid(shcode)                        
+                else:
+                    self.registerFeedItem_CMECurr(shcode)
+                self.registerFeedItem_FOExpect(shcode)                  
+                    
                     
             for shcode in self._FeedCodeList.optionshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                        NewItemQuote = pc.OptionJpBid(shcode)                        
-                else:
-                    NewItemQuote = pc.OptionJpBid(shcode)
-                NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
-                NewItemQuote.Subscribe()                    
-                self.OptionTAQFeederLst.append(NewItemQuote)
-                                    
-                NewItemExpectOptions = pc.FOExpectCur()
-                NewItemExpectOptions.Attach(self.ZMQOptionsExpectSender)
-                NewItemExpectOptions.SetInputValue(0,shcode)
-                NewItemExpectOptions.SetInputValue(1,'O1')
-                NewItemExpectOptions.SetInputValue(2,shcode[3:-3])
-                NewItemExpectOptions.Subscribe()  
-                self.OptionTAQFeederLst.append(NewItemExpectOptions)
+                self.registerFeedItem_OptionJpBid(shcode)
+                self.registerFeedItem_FOExpect(shcode)                  
                 
             for shcode in self._FeedCodeList.equityshcodelst:                
-                NewItemQuote = pc.StockJpBid('A' + shcode)
-                NewItemQuote.Attach(self.ZMQEquityQuoteSender)
-                NewItemQuote.Subscribe()                
-                self.EquityTAQFeederLst.append(NewItemQuote)
+                self.registerFeedItem_StockJpBid(shcode)
                         
             for shcode in self._FeedCodeList.indexshcodelst:    
-                NewItemExpectIndex  = pc.ExpectIndexS(shcode)
-                NewItemExpectIndex.Attach(self.ZMQIndexExpectSender)
-                NewItemExpectIndex.Subscribe()
-                self.EquityTAQFeederLst.append(NewItemExpectIndex)
+                self.registerFeedItem_ExpectIndexS(shcode)
                                     
         while self.ui.actionFeed.isChecked():
             pythoncom.PumpWaitingMessages()
