@@ -197,15 +197,14 @@ class MainForm(QtGui.QMainWindow):
         self.initTAQFeederLst()
         
         if self.XASession.IsConnected() and boolToggle:            
-            for shcode in self._FeedCodeList.futureshcodelst:
-                nowlocaltime = time.localtime()
+            nowlocaltime = time.localtime()
+            for shcode in self._FeedCodeList.futureshcodelst:                
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
                     self.registerFeedItem_FC0(shcode)
                 else:
                     self.registerFeedItem_NC0(shcode)
                         
             for shcode in self._FeedCodeList.optionshcodelst:
-                nowlocaltime = time.localtime()
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
                     self.registerFeedItem_OC0(shcode)
                 else:
