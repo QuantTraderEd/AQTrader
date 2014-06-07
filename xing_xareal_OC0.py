@@ -15,7 +15,8 @@ class XAReal_OC0(SourceReal):
         super(XAReal_OC0,self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\OC0.res")
         self.shcode = shcode
-        self.DataType = DataType        
+        self.DataType = DataType    
+        if shcode: self.SetFieldData('InBlock','optcode',shcode)
         pass
     def OnSignal(self):
         if self.DataType == 'dictionary':

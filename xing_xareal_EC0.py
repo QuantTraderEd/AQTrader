@@ -16,6 +16,7 @@ class XAReal_EC0(SourceReal):
         self.LoadFromResFile("Res\\EC0.res")
         self.shcode = shcode
         self.DataType = DataType  
+        if shcode: self.SetFieldData('InBlock','optcode',shcode)
         pass
     def OnSignal(self):
         if self.DataType == 'dictionary':
