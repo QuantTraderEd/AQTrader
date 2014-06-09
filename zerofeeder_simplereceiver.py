@@ -18,72 +18,73 @@ socket.setsockopt(zmq.SUBSCRIBE,"")
 while True:
     msg =  socket.recv()
     lst = msg.split(',')
-    print msg
-    if lst[0] == 'xing' and lst[1] == 'T' and lst[2] == 'futures':        
+    if lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':        
         timestamp = lst[0]
-        feedtype = lst[1]
-        securitiestype = lst[2]
-        shcode = lst[31]
+        APItype = lst[1]
+        FeedType = lst[2]
+        ProductType = lst[3]
+        shcode = lst[32]
         bidqty = ''
-        bid = lst[21]
-        offer = lst[20]
+        bid = lst[22]
+        offer = lst[21]
         offerqty = ''
-        price = lst[7]
-        cvolume = lst[12]   
-        cgubun = lst[11]
-        msglst = [timestamp,feedtype,securitiestype,shcode,bidqty,bid,offer,offerqty,price,cvolume,cgubun]                        
+        price = lst[8]
+        cvolume = lst[13]   
+        cgubun = lst[12]
+        msglst = [timestamp,FeedType,ProductType,shcode,bidqty,bid,offer,offerqty,price,cvolume,cgubun]                        
         msg = ','.join(msglst)
         print msg
+        filep.write(msg+'\n')
         pass
-    elif lst[0] == 'cybos' and lst[1] == 'Q' and lst[2] == 'futures':
+    elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
         timestamp = lst[0]
-        feedtype = lst[1]
-        securitiestype = lst[2]
+        APItype = lst[1]
+        FeedType = lst[2]
+        ProductType = lst[3]
         
-        shcode = lst[3]        
+        shcode = lst[4]                
+        ask1 = convert(lst[6])
+        bid1 = convert(lst[23])
+        askqty1 = lst[11]
+        bidqty1 = lst[28]
+        askcnt1 = lst[17]
+        bidcnt1 = lst[34]
         
-        ask1 = lst[5]
-        bid1 = lst[22]
-        askqty1 = lst[10]
-        bidqty1 = lst[27]
-        askcnt1 = lst[16]
-        bidcnt1 = lst[33]
+        ask2 = convert(lst[7])
+        bid2 = convert(lst[24])
+        askqty2 = lst[12]
+        bidqty2 = lst[29]
+        askcnt2 = lst[18]
+        bidcnt2 = lst[35]
         
-        ask2 = lst[6]
-        bid2 = lst[23]
-        askqty2 = lst[11]
-        bidqty2 = lst[28]
-        askcnt2 = lst[17]
-        bidcnt2 = lst[34]
+        ask3 = convert(lst[8])
+        bid3 = convert(lst[25])
+        askqty3 = lst[13]
+        bidqty3 = lst[30]
+        askcnt3 = lst[19]
+        bidcnt3 = lst[36]
         
-        ask3 = lst[7]
-        bid3 = lst[24]
-        askqty3 = lst[12]
-        bidqty3 = lst[29]
-        askcnt3 = lst[18]
-        bidcnt3 = lst[35]
-        
-        ask4 = lst[8]
-        bid4 = lst[25]
-        askqty4 = lst[13]        
-        bidqty4 = lst[30]
-        askcnt4 = lst[19]
-        bidcnt4 = lst[36]
+        ask4 = convert(lst[9])
+        bid4 = convert(lst[26])
+        askqty4 = lst[14]        
+        bidqty4 = lst[31]
+        askcnt4 = lst[20]
+        bidcnt4 = lst[37]
                 
-        ask5 = lst[9]
-        bid5 = lst[26]
-        askqty5 = lst[14]
-        bidqty5 = lst[31]
-        askcnt5 = lst[20]
-        bidcnt5 = lst[37]
+        ask5 = convert(lst[10])
+        bid5 = convert(lst[27])
+        askqty5 = lst[15]
+        bidqty5 = lst[32]
+        askcnt5 = lst[21]
+        bidcnt5 = lst[38]
                         
-        totalaskqty = lst[15]
-        totalbidqty = lst[32]
+        totalaskqty = lst[16]
+        totalbidqty = lst[33]
         
-        totalaskcnt = lst[21]
-        totalbidcnt = lst[38]        
+        totalaskcnt = lst[22]
+        totalbidcnt = lst[39]        
         
-        msglst = [timestamp,feedtype,securitiestype,shcode,
+        msglst = [timestamp,FeedType,ProductType,shcode,
                   bid1,bid2,bid3,bid4,bid5,
                   ask1,ask2,ask3,ask4,ask5,
                   bidqty1,bidqty2,bidqty3,bidqty4,bidqty5,
@@ -94,76 +95,80 @@ while True:
                   ]                          
         
         msg = ','.join(msglst)
-        print msg
+        #print msg
+        filep.write(msg+'\n')
         pass
-    elif lst[0] == 'xing' and lst[1] == 'T' and lst[2] == 'options':
+    elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
         timestamp = lst[0]
-        feedtype = lst[1]
-        securitiestype = lst[2]
+        APItype = lst[1]
+        FeedType = lst[2]
+        ProductType = lst[3]
         
-        shcode = lst[30]
+        shcode = lst[31]
         bidqty = ''
-        bid = lst[21]
-        offer = lst[20]
+        bid = lst[22]
+        offer = lst[21]
         offerqty = ''
-        price = lst[7]
-        cvolume = lst[12]   
-        cgubun = lst[11]
-        msglst = [timestamp,feedtype,securitiestype,shcode,bidqty,bid,offer,offerqty,price,cvolume,cgubun]                        
+        price = lst[8]
+        cvolume = lst[13]   
+        cgubun = lst[12]
+        msglst = [timestamp,FeedType,ProductType,shcode,bidqty,bid,offer,offerqty,price,cvolume,cgubun]                        
         msg = ','.join(msglst)
         print msg
+        filep.write(msg+'\n')
         pass
-    elif lst[0] == 'cybos' and lst[1] == 'Q' and lst[2] == 'options':
+    elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
         timestamp = lst[0]
-        feedtype = lst[1]
-        securitiestype = lst[2]
+        APItype = lst[1]
+        FeedType = lst[2]
+        ProductType = lst[3]
         
-        shcode = lst[3]        
+        shcode = lst[4]        
         
-        ask1 = lst[5]
-        bid1 = lst[22]
-        askqty1 = lst[10]
-        bidqty1 = lst[27]
-        askcnt1 = lst[16]
-        bidcnt1 = lst[33]
+        ask1 = convert(lst[6])
+        bid1 = convert(lst[23])
+        askqty1 = lst[11]
+        bidqty1 = lst[28]
+        askcnt1 = lst[17]
+        bidcnt1 = lst[34]
         
-        ask2 = lst[6]
-        bid2 = lst[23]
-        askqty2 = lst[11]
-        bidqty2 = lst[28]
-        askcnt2 = lst[17]
-        bidcnt2 = lst[34]
+        ask2 = convert(lst[7])
+        bid2 = convert(lst[24])
+        askqty2 = lst[12]
+        bidqty2 = lst[29]
+        askcnt2 = lst[18]
+        bidcnt2 = lst[35]
         
-        ask3 = lst[7]
-        bid3 = lst[24]
-        askqty3 = lst[12]
-        bidqty3 = lst[29]
-        askcnt3 = lst[18]
-        bidcnt3 = lst[35]
+        ask3 = convert(lst[8])
+        bid3 = convert(lst[25])
+        askqty3 = lst[14]
+        bidqty3 = lst[30]
+        askcnt3 = lst[19]
+        bidcnt3 = lst[36]
         
-        ask4 = lst[8]
-        bid4 = lst[25]
-        askqty4 = lst[13]        
-        bidqty4 = lst[30]
-        askcnt4 = lst[19]
-        bidcnt4 = lst[36]
+        ask4 = convert(lst[9])
+        bid4 = convert(lst[26])
+        askqty4 = lst[14]        
+        bidqty4 = lst[31]
+        askcnt4 = lst[20]
+        bidcnt4 = lst[37]
                 
-        ask5 = lst[9]
-        bid5 = lst[26]
-        askqty5 = lst[14]
-        bidqty5 = lst[31]
-        askcnt5 = lst[20]
-        bidcnt5 = lst[37]
+        ask5 = convert(lst[10])
+        bid5 = convert(lst[27])
+        askqty5 = lst[15]
+        bidqty5 = lst[32]
+        askcnt5 = lst[21]
+        bidcnt5 = lst[38]
                         
-        totalaskqty = lst[15]
-        totalbidqty = lst[32]
+        totalaskqty = lst[16]
+        totalbidqty = lst[33]
         
-        totalaskcnt = lst[21]
-        totalbidcnt = lst[38]        
+        totalaskcnt = lst[22]
+        totalbidcnt = lst[39]        
         
         
         
-        msglst = [timestamp,feedtype,securitiestype,shcode,
+        msglst = [timestamp,FeedType,ProductType,shcode,
                   bid1,bid2,bid3,bid4,bid5,
                   ask1,ask2,ask3,ask4,ask5,
                   bidqty1,bidqty2,bidqty3,bidqty4,bidqty5,
@@ -175,8 +180,6 @@ while True:
         
         
         msg = ','.join(msglst)
-        print msg
+        #print msg
+        filep.write(msg+'\n')
         pass
-        
-        
-    
