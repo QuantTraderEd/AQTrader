@@ -175,6 +175,15 @@ class MainForm(QtGui.QMainWindow):
         NewItemQuote.Subscribe()                    
         self.OptionTAQFeederLst.append(NewItemQuote)
         
+    def registerFeedItem_EurexJpBid(self,shcode):
+        NewItemQuote = pc.EurexJpBid(shcode)
+        NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
+        try:
+            NewItemQuote.Subscribe()
+        except pythoncom.pywintypes.com_error as e:
+            pass
+        self.OptionTAQFeederLst.append(NewItemQuote)
+        
     def registerFeedItem_StockJpBid(self,shcode):
         NewItemQuote = pc.StockJpBid('A' + shcode)
         NewItemQuote.Attach(self.ZMQEquityQuoteSender)
@@ -217,6 +226,7 @@ class MainForm(QtGui.QMainWindow):
                 
         if self._CpCybos.IsConnect() and boolToggle:                                    
             nowlocaltime = time.localtime()
+            
             for shcode in self._FeedCodeList.futureshcodelst:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
                     self.registerFeedItem_FutureJpBid(shcode)                        
@@ -224,9 +234,11 @@ class MainForm(QtGui.QMainWindow):
                     self.registerFeedItem_CMECurr(shcode)
                 self.registerFeedItem_FOExpect(shcode)                  
                     
-                    
             for shcode in self._FeedCodeList.optionshcodelst:
-                self.registerFeedItem_OptionJpBid(shcode)
+                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+                    self.registerFeedItem_OptionJpBid(shcode)
+                else:
+                    self.registerFeedItem_EurexJpBid(shcode)
                 self.registerFeedItem_FOExpect(shcode)                  
                 
             for shcode in self._FeedCodeList.equityshcodelst:                
