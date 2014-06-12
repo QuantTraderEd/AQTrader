@@ -202,6 +202,7 @@ class MainForm(QtGui.QMainWindow):
         
         if boolToggle: self.slot_RequestPrevClosePrice()
         
+        self.initFeedCode()
         self.initZMQSender()
         self.initTAQFeederLst()
         
