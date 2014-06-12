@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
+    <width>792</width>
     <height>210</height>
    </rect>
   </property>
@@ -39,7 +39,7 @@
        <number>3</number>
       </property>
       <property name="columnCount">
-       <number>9</number>
+       <number>11</number>
       </property>
       <attribute name="horizontalHeaderVisible">
        <bool>true</bool>
@@ -59,15 +59,94 @@
       <row/>
       <row/>
       <row/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
-      <column/>
+      <column>
+       <property name="text">
+        <string>Shcode</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>AskQty</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Ask</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Bid</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>BidQty</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Strike</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>AskQty</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Ask</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Bid</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>BidQty</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Shcode</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       </property>
+      </column>
      </widget>
     </item>
    </layout>
@@ -77,7 +156,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>656</width>
+     <width>792</width>
      <height>21</height>
     </rect>
    </property>
