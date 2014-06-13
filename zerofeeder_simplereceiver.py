@@ -6,7 +6,7 @@ Created on Mon Jun 02 20:17:20 2014
 """
 
 import zmq
-import time
+import datetime
 
 def convert(strprice):
     return (str(round(float(strprice),2)))
@@ -22,7 +22,7 @@ cvolume = 0
 while True:
     msg =  socket.recv()
     lst = msg.split(',')
-    nowtime = time.localtime()
+    nowtime = datetime.datetime.now()
     if lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':        
         timestamp = lst[0]
         APItype = lst[1]
@@ -50,7 +50,7 @@ while True:
         
         shcode = lst[4]     
         
-        if nowtime.tm_hour >= 7 and nowtime.tm_hour < 18:
+        if nowtime.hour >= 7 and nowtime.hour < 18:
             ask1 = convert(lst[6])
             bid1 = convert(lst[23])
             askqty1 = lst[11]
@@ -255,3 +255,10 @@ while True:
         #print msg
         filep.write(msg+'\n')
         pass
+    
+    strdate = datetime.date.today().strftime('%Y%m%d')
+    nowtime = datetime.datetime.now()
+    endtime = datetime.datetime.strptime(strdate + '15:16:00','%Y%m%d%H:%M:%S')
+    if nowtime > endtime: break
+
+filep.close()
