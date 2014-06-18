@@ -12,7 +12,7 @@ from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
 
 def convert(strprice):
-    return (str(round(float(strprice),2)))
+    return '%.2f' %round(float(strprice),2)
 
 
 class MainForm(QtGui.QMainWindow):
@@ -37,15 +37,22 @@ class MainForm(QtGui.QMainWindow):
         #    print item
         
     def initTableWidget(self):
-        self.ui.tableWidget.resizeRowsToContents()
+        self.ui.tableWidget.resizeRowsToContents()        
         self.ui.tableWidget.resizeColumnToContents(1)
-        self.ui.tableWidget.resizeColumnToContents(3)
+        self.ui.tableWidget.resizeColumnToContents(2)
+        self.ui.tableWidget.resizeColumnToContents(3)        
         self.ui.tableWidget.resizeColumnToContents(6)
         self.ui.tableWidget.resizeColumnToContents(7)
         self.ui.tableWidget.resizeColumnToContents(8)
         self.ui.tableWidget.resizeColumnToContents(11)
+        self.ui.tableWidget.resizeColumnToContents(12)
         self.ui.tableWidget.resizeColumnToContents(13)
         
+        self.ui.tableWidget.setColumnWidth(4,31)
+        self.ui.tableWidget.setColumnWidth(5,31)
+        self.ui.tableWidget.setColumnWidth(9,31)
+        self.ui.tableWidget.setColumnWidth(10,31)
+                                
         self.ui.tableWidget.setItem(0,7,QtGui.QTableWidgetItem("262.5"))
         self.ui.tableWidget.setItem(1,7,QtGui.QTableWidgetItem("260"))
         self.ui.tableWidget.setItem(2,7,QtGui.QTableWidgetItem("257.5"))
@@ -88,16 +95,15 @@ class MainForm(QtGui.QMainWindow):
             BidQty = QtGui.QTableWidgetItem(bidqty1)
             Ask = QtGui.QTableWidgetItem(ask1)
             AskQty = QtGui.QTableWidgetItem(askqty1)
+            pos = self.strikelst.index(shcode[5:8])
             
-            if shcode[:3] == '201':
-                pos = self.strikelst.index(shcode[5:8])
+            if shcode[:3] == '201':                
                 self.ui.tableWidget.setItem(pos,0,SHCode)
                 self.ui.tableWidget.setItem(pos,3,AskQty)
                 self.ui.tableWidget.setItem(pos,4,Ask)
                 self.ui.tableWidget.setItem(pos,5,Bid)
                 self.ui.tableWidget.setItem(pos,6,BidQty)                
-            elif shcode[:3] == '301':
-                pos = self.strikelst.index(shcode[5:8])
+            elif shcode[:3] == '301':                
                 self.ui.tableWidget.setItem(pos,14,SHCode)
                 self.ui.tableWidget.setItem(pos,8,AskQty)
                 self.ui.tableWidget.setItem(pos,9,Ask)
@@ -107,28 +113,29 @@ class MainForm(QtGui.QMainWindow):
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = lst[4]
             SHCode = QtGui.QTableWidgetItem(shcode)
-            ExpectPrice = QtGui.QTableWidgetItem(convert(lst[6],2))
-            if shcode[:3] == '201':
-                pos = self.strikelst.index(shcode[5:8])
+            ExpectPrice = QtGui.QTableWidgetItem(convert(lst[6]))
+            ExpectQty = QtGui.QTableWidgetItem(' ')
+            pos = self.strikelst.index(shcode[5:8])
+            if shcode[:3] == '201':                
                 self.ui.tableWidget.setItem(pos,0,SHCode)
-                self.ui.tableWidget.setItem(pos,1,ExpectPrice)
-            elif shcode[:3] == '301':
-                pos = self.strikelst.index(shcode[5:8])
+                self.ui.tableWidget.setItem(pos,2,ExpectPrice)
+                self.ui.tableWidget.setItem(pos,1,ExpectQty)
+            elif shcode[:3] == '301':                
                 self.ui.tableWidget.setItem(pos,14,SHCode)
                 self.ui.tableWidget.setItem(pos,12,ExpectPrice) 
+                self.ui.tableWidget.setItem(pos,13,ExpectQty)
                 
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'optios':
-            shcode = lst[4]
+        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
+            shcode = lst[31]
             SHCode = QtGui.QTableWidgetItem(shcode)
-            LastPrice = QtGui.QTableWidgetItem(convert(lst[8],2))
+            LastPrice = QtGui.QTableWidgetItem(convert(lst[8]))
             LastQty = QtGui.QTableWidgetItem(lst[13])
-            if shcode[:3] == '201':
-                pos = self.strikelst.index(shcode[5:8])
+            pos = self.strikelst.index(shcode[5:8])
+            if shcode[:3] == '201':                
                 self.ui.tableWidget.setItem(pos,0,SHCode)
-                self.ui.tableWidget.setItem(pos,1,LastPrice)
-                self.ui.tableWidget.setItem(pos,2,LastQty)
-            elif shcode[:3] == '301':
-                pos = self.strikelst.index(shcode[5:8])
+                self.ui.tableWidget.setItem(pos,2,LastPrice)
+                self.ui.tableWidget.setItem(pos,1,LastQty)
+            elif shcode[:3] == '301':                
                 self.ui.tableWidget.setItem(pos,14,SHCode)
                 self.ui.tableWidget.setItem(pos,12,LastPrice)
                 self.ui.tableWidget.setItem(pos,13,LastQty)
