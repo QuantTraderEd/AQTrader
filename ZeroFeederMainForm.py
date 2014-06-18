@@ -1,372 +1,151 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 17 07:59:46 2013
+Created on Tue Jun 10 22:58:29 2014
 
-@author: Administrator
+@author: assa
 """
 
-import os
 import sys
-import time
-import zmq
-import pythoncom
-#import cybos_feeder
-
-import pyxing as px
-import pycybos as pc
+from PyQt4 import QtGui, QtCore
+from zerooptionviewer_thread import OptionViewerThread
+from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
 
-from PyQt4 import QtCore
-from PyQt4 import QtGui
-from ui_zerofeeder import Ui_MainWindow
-from xinglogindlg import LoginForm
-from ZMQTickSender import ZMQTickSender
-
-from weakref import proxy
-
-import psutil
-from subprocess import Popen
-
+def convert(strprice):
+    return '%.2f' %round(float(strprice),2)
 
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
-        super(MainForm,self).__init__()
+        QtGui.QMainWindow.__init__(self,parent)
         self.initUI()
-        self.initTIMER()
-        self.initAPI()
         self.initFeedCode()
-        self.initTAQFeederLst()
-        self.initZMQ()
-        
-        self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
-        self.filename = 'prevclose.txt'
-        
-        
-    def __del__(self):
-        self.XASession.DisconnectServer()
+        self.initStrikeList()
+        self.initTableWidget()
+        self.initThread()
         
         
     def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.conn_cy = QtGui.QTableWidgetItem("conn cy")        
-        self.conn_xi = QtGui.QTableWidgetItem("conn xi")
-        self.status_xi = QtGui.QTableWidgetItem("ready")   
-        self.status_cy = QtGui.QTableWidgetItem("ready")
-        self.ui.tableWidget.setItem(0,2,self.conn_cy)
-        self.ui.tableWidget.setItem(1,2,self.conn_xi)
-        self.ui.tableWidget.setItem(0,1,self.status_cy)   
-        self.ui.tableWidget.setItem(1,1,self.status_xi)        
-        #self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
-        
-    def initTIMER(self):
-        self.ctimer =  QtCore.QTimer()
-        self.ctimer.start(1000)
-        self.ctimer.timeout.connect(self.CtimerUpdate)
-        self.cybostimer = QtCore.QTimer()
-        self.cybostimer.timeout.connect(self.CybosTimerUpdate)
-        self.xingtimer = QtCore.QTimer()
-        self.xingtimer.timeout.connect(self.XingTimerUpdate)
-        self.lbltime = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
-        self.statusBar().addPermanentWidget(self.lbltime)
-        
-    def initAPI(self):
-        self.XASession_observer = XingXASessionUpdate(proxy(self.status_xi))
-        self.XASession = px.XASession()
-        self.XASession.Attach(self.XASession_observer)         
-        self._CpCybos = CpCybosNULL()
+        self.ui.actionStart.triggered.connect(self.onStart)
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
         self._FeedCodeList.ReadCodeListFile()
+        #for item in self._FeedCodeList.optionshcodelst:
+        #    print item
+        
+    def initTableWidget(self):
+        self.ui.tableWidget.resizeRowsToContents()        
+        self.ui.tableWidget.resizeColumnToContents(1)
+        self.ui.tableWidget.resizeColumnToContents(2)
+        self.ui.tableWidget.resizeColumnToContents(3)        
+        self.ui.tableWidget.resizeColumnToContents(6)
+        self.ui.tableWidget.resizeColumnToContents(7)
+        self.ui.tableWidget.resizeColumnToContents(8)
+        self.ui.tableWidget.resizeColumnToContents(11)
+        self.ui.tableWidget.resizeColumnToContents(12)
+        self.ui.tableWidget.resizeColumnToContents(13)
+        
+        self.ui.tableWidget.setColumnWidth(4,31)
+        self.ui.tableWidget.setColumnWidth(5,31)
+        self.ui.tableWidget.setColumnWidth(9,31)
+        self.ui.tableWidget.setColumnWidth(10,31)
+                                
+        self.ui.tableWidget.setItem(0,7,QtGui.QTableWidgetItem("262.5"))
+        self.ui.tableWidget.setItem(1,7,QtGui.QTableWidgetItem("260"))
+        self.ui.tableWidget.setItem(2,7,QtGui.QTableWidgetItem("257.5"))
+        
+    def initThread(self):
+        self.mythread = OptionViewerThread(None)
+        self.mythread.receiveData[str].connect(self.onReceiveData)
+        
+    def initStrikeList(self):
+        self.strikelst = ['262','260','257']
         
         
-    def initZMQ(self):
-        context = zmq.Context()
-        self.socket = context.socket(zmq.PUB)
-        self.socket.bind("tcp://127.0.0.1:5500")
+    def onStart(self):
+        if not self.mythread.isRunning():            
+            self.mythread.start()
+            #print "start"
+        pass
         
-    def initZMQSender(self):
-        self.ZMQFuturesTradeSender = ZMQTickSender(self.socket,'xing','T','futures')
-        self.ZMQFuturesQuoteSender = ZMQTickSender(self.socket,'cybos','Q','futures')
-        self.ZMQFutureExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
-        self.ZMQOptionsTradeSender = ZMQTickSender(self.socket,'xing','T','options')
-        self.ZMQOptionsQuoteSender = ZMQTickSender(self.socket,'cybos','Q','options')
-        self.ZMQOptionsExpectSender = ZMQTickSender(self.socket,'cybos','E','options')
-        self.ZMQEquityTradeSender = ZMQTickSender(self.socket,'xing','T','equity')
-        self.ZMQEquityQuoteSender = ZMQTickSender(self.socket,'cybos','Q','equity')
-        self.ZMQEquityExpectSender = ZMQTickSender(self.socket,'xing','E','equity')
-        self.ZMQIndexExpectSender = ZMQTickSender(self.socket,'cybos','E','index')
         
-    def initTAQFeederLst(self):
-        self.FutureTAQFeederLst = []
-        self.OptionTAQFeederLst = []
-        self.EquityTAQFeederLst = []
-        
-    def registerFeedItem_FC0(self,shcode):
-        NewItemTrade = px.XAReal_FC0(shcode,'list')
-        NewItemTrade.Attach(self.ZMQFuturesTradeSender)                        
-        NewItemTrade.AdviseRealData()                              
-        self.FutureTAQFeederLst.append(NewItemTrade)
-        
-    def registerFeedItem_NC0(self,shcode):
-        NewItemTrade = px.XAReal_NC0(shcode,'list')
-        NewItemTrade.Attach(self.ZMQFuturesTradeSender)                        
-        NewItemTrade.AdviseRealData()                              
-        self.FutureTAQFeederLst.append(NewItemTrade)
-        
-    def registerFeedItem_OC0(self,shcode):
-        NewItemTrade = px.XAReal_OC0(shcode,'list')
-        NewItemTrade.Attach(self.ZMQOptionsTradeSender)                        
-        NewItemTrade.AdviseRealData()                              
-        self.OptionTAQFeederLst.append(NewItemTrade)
-        
-    def registerFeedItem_EC0(self,shcode):
-        NewItemTrade = px.XAReal_EC0(shcode,'list')
-        NewItemTrade.Attach(self.ZMQOptionsTradeSender)                        
-        NewItemTrade.AdviseRealData()                              
-        self.OptionTAQFeederLst.append(NewItemTrade)
-        
-    def registerFeedItem_S3_(self,shcode):
-        NewItemTrade = px.XAReal_S3_(shcode,'list')
-        NewItemTrade.Attach(self.ZMQEquityTradeSender)                
-        NewItemTrade.AdviseRealData()              
-        self.EquityTAQFeederLst.append(NewItemTrade)
-        
-    def registerFeedItem_YS3(self,shcode):
-        NewItemExprect = px.XAReal_YS3(shcode,'list')
-        NewItemExprect.Attach(self.ZMQEquityExpectSender)                
-        NewItemExprect.AdviseRealData()
-        self.EquityTAQFeederLst.append(NewItemExprect)
-        
-    def registerFeedItem_FOExpect(self,shcode):
-        NewItemExpect = pc.FOExpectCur()
-        if shcode[0] == 1:
-            NewItemExpect.Attach(self.ZMQFuturesExpectSender)
-            NewItemExpect.SetInputValue(0,shcode[:-3])
-            NewItemExpect.SetInputValue(1,'F1')
-            NewItemExpect.SetInputValue(2,shcode[3:-3])
-            NewItemExpect.Subscribe()  
-            self.FutureTAQFeederLst.append(NewItemExpect)
-        elif shcode[0] == 2 or shcode[0] == 3:
-            NewItemExpect.Attach(self.ZMQOptionsExpectSender)
-            NewItemExpect.SetInputValue(0,shcode)
-            NewItemExpect.SetInputValue(1,'O1')
-            NewItemExpect.SetInputValue(2,shcode[3:-3])
-            NewItemExpect.Subscribe()  
-            self.OptionTAQFeederLst.append(NewItemExpect)
+    def onReceiveData(self,msg):     
+        lst = msg.split(',')
+        if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
+            shcode = lst[4]                
+            ask1 = convert(lst[6])
+            bid1 = convert(lst[23])
+            askqty1 = lst[11]
+            bidqty1 = lst[28]
+            showmsg = '%s, %s, %s, %s' %(askqty1,ask1,bid1,bidqty1)
+            self.statusBar().showMessage(showmsg)
             
-    def registerFeedItem_FutureJpBid(self,shcode):
-        NewItemQuote = pc.FutureJpBid(shcode[:-3])
-        NewItemQuote.Attach(self.ZMQFuturesQuoteSender)
-        NewItemQuote.Subscribe()                    
-        self.FutureTAQFeederLst.append(NewItemQuote)
-        
-    def registerFeedItem_CMECurr(self,shcode):
-        NewItemQuote = pc.CmeCurr(shcode[:-3])
-        NewItemQuote.Attach(self.ZMQFuturesQuoteSender)
-        NewItemQuote.Subscribe()                    
-        self.FutureTAQFeederLst.append(NewItemQuote)
-        
-    def registerFeedItem_OptionJpBid(self,shcode):
-        NewItemQuote = pc.OptionJpBid(shcode)
-        NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
-        NewItemQuote.Subscribe()                    
-        self.OptionTAQFeederLst.append(NewItemQuote)
-        
-    def registerFeedItem_EurexJpBid(self,shcode):
-        NewItemQuote = pc.EurexJpBid(shcode)
-        NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
-        try:
-            NewItemQuote.Subscribe()
-        except pythoncom.pywintypes.com_error as e:
-            pass
-        self.OptionTAQFeederLst.append(NewItemQuote)
-        
-    def registerFeedItem_StockJpBid(self,shcode):
-        NewItemQuote = pc.StockJpBid('A' + shcode)
-        NewItemQuote.Attach(self.ZMQEquityQuoteSender)
-        NewItemQuote.Subscribe()                
-        self.EquityTAQFeederLst.append(NewItemQuote)
-        
-    def registerFeedItem_ExpectIndexS(self,shcode):
-        NewItemExpectIndex  = pc.ExpectIndexS(shcode)
-        NewItemExpectIndex.Attach(self.ZMQIndexExpectSender)
-        NewItemExpectIndex.Subscribe()
-        self.EquityTAQFeederLst.append(NewItemExpectIndex)
-        
-             
-    def slot_ToggleFeed(self,boolToggle):
-        pythoncom.CoInitialize()
-        
-        if boolToggle: self.slot_RequestPrevClosePrice()
-        
-        self.initFeedCode()
-        self.initZMQSender()
-        self.initTAQFeederLst()
-        
-        if self.XASession.IsConnected() and boolToggle:            
-            nowlocaltime = time.localtime()
-            for shcode in self._FeedCodeList.futureshcodelst:                
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                    self.registerFeedItem_FC0(shcode)
-                else:
-                    self.registerFeedItem_NC0(shcode)
-                        
-            for shcode in self._FeedCodeList.optionshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                    self.registerFeedItem_OC0(shcode)
-                else:
-                    self.registerFeedItem_EC0(shcode)
-                    
-            for shcode in self._FeedCodeList.equityshcodelst:
-                self.registerFeedItem_S3_(shcode)
-                self.registerFeedItem_YS3(shcode)              
-                              
+        elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':                        
+            shcode = lst[4]                    
+            ask1 = convert(lst[6])
+            bid1 = convert(lst[23])
+            askqty1 = lst[11]
+            bidqty1 = lst[28]
+            
+            SHCode = QtGui.QTableWidgetItem(shcode)            
+            Bid = QtGui.QTableWidgetItem(bid1)
+            BidQty = QtGui.QTableWidgetItem(bidqty1)
+            Ask = QtGui.QTableWidgetItem(ask1)
+            AskQty = QtGui.QTableWidgetItem(askqty1)
+            pos = self.strikelst.index(shcode[5:8])
+            
+            if shcode[:3] == '201':                
+                self.ui.tableWidget.setItem(pos,0,SHCode)
+                self.ui.tableWidget.setItem(pos,3,AskQty)
+                self.ui.tableWidget.setItem(pos,4,Ask)
+                self.ui.tableWidget.setItem(pos,5,Bid)
+                self.ui.tableWidget.setItem(pos,6,BidQty)                
+            elif shcode[:3] == '301':                
+                self.ui.tableWidget.setItem(pos,14,SHCode)
+                self.ui.tableWidget.setItem(pos,8,AskQty)
+                self.ui.tableWidget.setItem(pos,9,Ask)
+                self.ui.tableWidget.setItem(pos,10,Bid)
+                self.ui.tableWidget.setItem(pos,11,BidQty)   
                 
-        if self._CpCybos.IsConnect() and boolToggle:                                    
-            nowlocaltime = time.localtime()
-            
-            for shcode in self._FeedCodeList.futureshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
-                    self.registerFeedItem_FutureJpBid(shcode)                        
-                else:
-                    self.registerFeedItem_CMECurr(shcode)
-                self.registerFeedItem_FOExpect(shcode)                  
-                    
-            for shcode in self._FeedCodeList.optionshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
-                    self.registerFeedItem_OptionJpBid(shcode)
-                else:
-                    self.registerFeedItem_EurexJpBid(shcode)
-                self.registerFeedItem_FOExpect(shcode)                  
+        elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
+            shcode = lst[4]
+            SHCode = QtGui.QTableWidgetItem(shcode)
+            ExpectPrice = QtGui.QTableWidgetItem(convert(lst[6]))
+            ExpectQty = QtGui.QTableWidgetItem(' ')
+            pos = self.strikelst.index(shcode[5:8])
+            if shcode[:3] == '201':                
+                self.ui.tableWidget.setItem(pos,0,SHCode)
+                self.ui.tableWidget.setItem(pos,2,ExpectPrice)
+                self.ui.tableWidget.setItem(pos,1,ExpectQty)
+            elif shcode[:3] == '301':                
+                self.ui.tableWidget.setItem(pos,14,SHCode)
+                self.ui.tableWidget.setItem(pos,12,ExpectPrice) 
+                self.ui.tableWidget.setItem(pos,13,ExpectQty)
                 
-            for shcode in self._FeedCodeList.equityshcodelst:                
-                self.registerFeedItem_StockJpBid(shcode)
-                        
-            for shcode in self._FeedCodeList.indexshcodelst:    
-                self.registerFeedItem_ExpectIndexS(shcode)
-                                    
-        while self.ui.actionFeed.isChecked():
-            pythoncom.PumpWaitingMessages()
-        pass
-    
-    
-    def slot_RequestPrevClosePrice(self):
-        if self._CpCybos.IsConnect():
-            filep = open(self.filepath + '\\' + self.filename,'w+')            
-            msglist = []
-            for shcode in self._FeedCodeList.futureshcodelst:
-                _FutureMst = pc.FutureMst(shcode[:-3]) 
-                _FutureMst.Request()
-                while 1:
-                    pythoncom.PumpWaitingMessages()
-                    if _FutureMst.data:   
-                        print shcode
-                        print _FutureMst.data[22]                        
-                        msglist.append(str(_FutureMst.data[22]))
-                        break
+        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
+            shcode = lst[31]
+            SHCode = QtGui.QTableWidgetItem(shcode)
+            LastPrice = QtGui.QTableWidgetItem(convert(lst[8]))
+            LastQty = QtGui.QTableWidgetItem(lst[13])
+            pos = self.strikelst.index(shcode[5:8])
+            if shcode[:3] == '201':                
+                self.ui.tableWidget.setItem(pos,0,SHCode)
+                self.ui.tableWidget.setItem(pos,2,LastPrice)
+                self.ui.tableWidget.setItem(pos,1,LastQty)
+            elif shcode[:3] == '301':                
+                self.ui.tableWidget.setItem(pos,14,SHCode)
+                self.ui.tableWidget.setItem(pos,12,LastPrice)
+                self.ui.tableWidget.setItem(pos,13,LastQty)
+            
+                
                     
-            for shcode in self._FeedCodeList.optionshcodelst:
-                _OptionMst = pc.OptionMst(shcode)
-                _OptionMst.Request()
-                while 1:
-                    pythoncom.PumpWaitingMessages()
-                    if _OptionMst.data:
-                        print shcode
-                        print round(_OptionMst.data[27],2)
-                        break
-                        
-            
-            strshcodelist = 'A' + ',A'.join(self._FeedCodeList.equityshcodelst)                    
-            _StockMst2 = pc.StockMst2(strshcodelist)            
-            _StockMst2.Request()
-            while 1:
-                pythoncom.PumpWaitingMessages()
-                if _StockMst2.data:
-                    for i in xrange(_StockMst2.count):
-                        print _StockMst2.data[19+30*i]                        
-                        msglist.append(str(_StockMst2.data[19+30*i]))
-                    break
-            filep.write(','.join(msglist) + '\n')
-            filep.close()        
-        pass
-    
-    
-    def slot_StartXingDlg(self,row,column):
-        if row == 1 and column == 2:
-            #print("Row %d and Column %d was doblueclicked" % (row,column))
-            myform = LoginForm(XASession=proxy(self.XASession))
-            myform.show()
-            myform.exec_()
-            self.xingtimer.start(1000)
-            
-    def slot_CheckCybosStarter(self,row,column):
-        if row == 0 and column == 2:
-#            if not ("DibServer.exe" in [psutil.Process(i).name for i in psutil.get_pid_list()]):
-#                Popen('C:\\DAISHIN\\starter\\ncStarter.exe /prj:cp')
-#            else:                
-            self._CpCybos = pc.CpCybos()
-            self.status_cy.setText('connect')
-            self.cybostimer.start(1000)                
-            
-        
-    
-    def NotifyMsg(self,msg):
-        timestamp = time.strftime("[%Y-%m-%d %H:%M:%S] ", time.localtime())
-        msg = timestamp + msg        
-        #self.ui.plainTextEditMsg.appendPlainText(msg)
-    
-
-    def CtimerUpdate(self):
-        self.lbltime.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
-        
-    def CybosTimerUpdate(self):
-        if self._CpCybos.IsConnect():            
-            if self.status_cy.text() == 'connect':
-                self.status_cy.setText('connect.')
-            elif self.status_cy.text() == 'connect.':
-                self.status_cy.setText('connect..')
-            elif self.status_cy.text() == 'connect..':
-                self.status_cy.setText('connect...')
-            elif self.status_cy.text() == 'connect...':
-                self.status_cy.setText('connect')
-        else:
-            self.status_cy.setText('disconnect')
-            
-    def XingTimerUpdate(self):
-        if self.XASession.IsConnected():
-            if self.status_xi.text() == 'connect' or self.status_xi.text() == 'connect: 0000':
-                self.status_xi.setText('connect.')
-            elif self.status_xi.text() == 'connect.':
-                self.status_xi.setText('connect..')
-            elif self.status_xi.text() == 'connect..':
-                self.status_xi.setText('connect...')
-            elif self.status_xi.text() == 'connect...':  
-                self.status_xi.setText('connect')
-        else:
-            self.status_xi.setText('disconnect')
-            
-        
-class XingXASessionUpdate():
-    def __init__(self,status_xi=None):
-        self.status_xi = status_xi
-    def Update(self,subject):
-        msg =''
-        for item in subject.data:
-            msg = msg + ' ' + item                        
-        if msg[:5] == ' 0000':
-            self.status_xi.setText('connect:' + msg[:5])    
-        pass
-    
-class CpCybosNULL():
-    def IsConnect(self):
-        return False
-    
-if __name__ == '__main__':    
+if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
-    app.exec_()
-        
+    app.exec_()   
+
+
