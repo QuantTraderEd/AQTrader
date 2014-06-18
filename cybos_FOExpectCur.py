@@ -8,7 +8,7 @@ Created on Thu Nov 07 19:13:19 2013
 from cybos_source import Source
 
 class FOExpectCur(Source):
-    """ subscribe index cme futures trade tick """
+    """ subscribe futures & options expect price tick """
     def __init__(self):
         super(FOExpectCur, self).__init__('CpSysDib.FOExpectCur.1')            
         self.data = None            
