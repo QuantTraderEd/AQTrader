@@ -255,6 +255,23 @@ while True:
         #print msg
         filep.write(msg+'\n')
         pass
+    elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
+        timestamp = lst[0]
+        APItype = lst[1]
+        FeedType = lst[2]
+        ProductType = lst[3]
+        
+        shcode = lst[4]        
+        expect = lst[6]
+        
+        msglst = [timestamp,FeedType,ProductType,shcode,expect]
+        msg = ','.join(msglst)
+        #print msg
+        filep.write(msg+'\n')
+        pass
+        
+        
+        
     
     strdate = datetime.date.today().strftime('%Y%m%d')
     nowtime = datetime.datetime.now()

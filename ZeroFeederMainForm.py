@@ -90,7 +90,7 @@ class MainForm(QtGui.QMainWindow):
     def initZMQSender(self):
         self.ZMQFuturesTradeSender = ZMQTickSender(self.socket,'xing','T','futures')
         self.ZMQFuturesQuoteSender = ZMQTickSender(self.socket,'cybos','Q','futures')
-        self.ZMQFutureExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
+        self.ZMQFuturesExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
         self.ZMQOptionsTradeSender = ZMQTickSender(self.socket,'xing','T','options')
         self.ZMQOptionsQuoteSender = ZMQTickSender(self.socket,'cybos','Q','options')
         self.ZMQOptionsExpectSender = ZMQTickSender(self.socket,'cybos','E','options')
