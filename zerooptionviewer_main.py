@@ -15,6 +15,7 @@ def convert(strprice):
     return '%.2f' %round(float(strprice),2)
 
 
+
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
         QtGui.QMainWindow.__init__(self,parent)
@@ -29,6 +30,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.actionStart.triggered.connect(self.onStart)
+        self.resize(800,200)
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
@@ -48,13 +50,16 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.resizeColumnToContents(12)
         self.ui.tableWidget.resizeColumnToContents(13)
         
+        self.ui.tableWidget.resizeColumnToContents(15)
+        self.ui.tableWidget.resizeColumnToContents(16)
+        
         self.ui.tableWidget.setColumnWidth(4,31)
         self.ui.tableWidget.setColumnWidth(5,31)
         self.ui.tableWidget.setColumnWidth(9,31)
         self.ui.tableWidget.setColumnWidth(10,31)
                                 
         self.ui.tableWidget.setItem(0,7,QtGui.QTableWidgetItem("262.5"))
-        self.ui.tableWidget.setItem(1,7,QtGui.QTableWidgetItem("260"))
+        self.ui.tableWidget.setItem(1,7,QtGui.QTableWidgetItem("260.0"))
         self.ui.tableWidget.setItem(2,7,QtGui.QTableWidgetItem("257.5"))
         
     def initThread(self):
@@ -110,6 +115,10 @@ class MainForm(QtGui.QMainWindow):
                 self.ui.tableWidget.setItem(pos,10,Bid)
                 self.ui.tableWidget.setItem(pos,11,BidQty)   
                 
+            self.makeSyntheticBid(pos)
+            self.makeSyntheticAsk(pos)
+                                
+                
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = lst[4]
             SHCode = QtGui.QTableWidgetItem(shcode)
@@ -124,6 +133,7 @@ class MainForm(QtGui.QMainWindow):
                 self.ui.tableWidget.setItem(pos,14,SHCode)
                 self.ui.tableWidget.setItem(pos,12,ExpectPrice) 
                 self.ui.tableWidget.setItem(pos,13,ExpectQty)
+            self.makeSyntheticExpect(pos)
                 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
             shcode = lst[31]
@@ -139,8 +149,38 @@ class MainForm(QtGui.QMainWindow):
                 self.ui.tableWidget.setItem(pos,14,SHCode)
                 self.ui.tableWidget.setItem(pos,12,LastPrice)
                 self.ui.tableWidget.setItem(pos,13,LastQty)
-            
                 
+        pass
+    
+    def makeSyntheticBid(self,pos):
+        callbid = self.ui.tableWidget.itemAt(pos,5).text()
+        putask = self.ui.tableWidget.itemAt(pos,9).text()
+        strike = self.strikelst[pos]
+        syntheticprice = float(callbid) - float(putask) + float(strike)
+        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+        self.ui.tableWidget.setItem(pos,15,item)
+        pass
+    
+    def makeSyntheticAsk(self,pos):
+        callask = self.ui.tableWidget.itemAt(pos,4).text()
+        putbid = self.ui.tableWidget.itemAt(pos,10).text()
+        strike = self.strikelst[pos]
+        syntheticprice = float(callask) - float(putbid) + float(strike)
+        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+        self.ui.tableWidget.setItem(pos,14,item)
+        pass
+    
+    def makeSyntheticExpect(self,pos):
+        callexpect = self.ui.tableWidget.itemAt(pos,2).text()
+        putexpect = self.ui.tableWidget.itemAt(pos,12).text()
+        strike = self.strikelst[pos]
+        syntheticprice = float(callexpect) - float(putexpect) + float(strike)
+        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+        self.ui.tableWidget.setItem(pos,14,item)
+        self.ui.tableWidget.setItem(pos,15,item)        
+        pass
+        
+        
                     
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

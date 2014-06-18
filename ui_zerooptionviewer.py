@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'zerooptionviewer.ui'
 #
-# Created: Tue Jun 17 21:07:14 2014
+# Created: Wed Jun 18 22:38:01 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setShowGrid(True)
         self.tableWidget.setRowCount(3)
-        self.tableWidget.setColumnCount(15)
+        self.tableWidget.setColumnCount(17)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
         item = QtGui.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter|QtCore.Qt.AlignCenter)
@@ -88,6 +88,12 @@ class Ui_MainWindow(object):
         item = QtGui.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter|QtCore.Qt.AlignCenter)
         self.tableWidget.setHorizontalHeaderItem(14, item)
+        item = QtGui.QTableWidgetItem()
+        item.setTextAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter|QtCore.Qt.AlignCenter)
+        self.tableWidget.setHorizontalHeaderItem(15, item)
+        item = QtGui.QTableWidgetItem()
+        item.setTextAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter|QtCore.Qt.AlignCenter)
+        self.tableWidget.setHorizontalHeaderItem(16, item)
         self.tableWidget.horizontalHeader().setVisible(True)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(70)
@@ -150,6 +156,10 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "LastQty", None))
         item = self.tableWidget.horizontalHeaderItem(14)
         item.setText(_translate("MainWindow", "Shcode", None))
+        item = self.tableWidget.horizontalHeaderItem(15)
+        item.setText(_translate("MainWindow", "SythAsk", None))
+        item = self.tableWidget.horizontalHeaderItem(16)
+        item.setText(_translate("MainWindow", "SythBid", None))
         self.menuStart.setTitle(_translate("MainWindow", "start", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionStart.setText(_translate("MainWindow", "start", None))
