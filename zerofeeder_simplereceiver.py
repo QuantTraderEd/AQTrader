@@ -269,9 +269,6 @@ while True:
         #print msg
         filep.write(msg+'\n')
         pass
-        
-        
-        
     
     strdate = datetime.date.today().strftime('%Y%m%d')
     nowtime = datetime.datetime.now()
