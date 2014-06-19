@@ -153,34 +153,41 @@ class MainForm(QtGui.QMainWindow):
         pass
     
     def makeSyntheticBid(self,pos):
-        callbid = self.ui.tableWidget.itemAt(pos,5).text()
-        putask = self.ui.tableWidget.itemAt(pos,9).text()
-        strike = self.strikelst[pos]
-        syntheticprice = float(callbid) - float(putask) + float(strike)
-        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-        self.ui.tableWidget.setItem(pos,15,item)
+        try:
+            callbid = self.ui.tableWidget.item(pos,5).text()
+            putask = self.ui.tableWidget.item(pos,9).text()
+            strike = self.ui.tableWidget.item(pos,7).text()        
+            #print callbid, putask, strike
+            syntheticprice = float(callbid) - float(putask) + float(strike)
+            item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+            self.ui.tableWidget.setItem(pos,16,item)
+        except:
+            return
         pass
     
     def makeSyntheticAsk(self,pos):
-        callask = self.ui.tableWidget.itemAt(pos,4).text()
-        putbid = self.ui.tableWidget.itemAt(pos,10).text()
-        strike = self.strikelst[pos]
-        syntheticprice = float(callask) - float(putbid) + float(strike)
-        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-        self.ui.tableWidget.setItem(pos,14,item)
+        try:        
+            callask = self.ui.tableWidget.item(pos,4).text()
+            putbid = self.ui.tableWidget.item(pos,10).text()
+            strike = self.ui.tableWidget.item(pos,7).text()
+            #print callask, putbid, strike
+            syntheticprice = float(callask) - float(putbid) + float(strike)
+            item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+            self.ui.tableWidget.setItem(pos,15,item)
+        except:
+            return            
         pass
     
     def makeSyntheticExpect(self,pos):
-        callexpect = self.ui.tableWidget.itemAt(pos,2).text()
-        putexpect = self.ui.tableWidget.itemAt(pos,12).text()
-        strike = self.strikelst[pos]
-        syntheticprice = float(callexpect) - float(putexpect) + float(strike)
-        item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-        self.ui.tableWidget.setItem(pos,14,item)
-        self.ui.tableWidget.setItem(pos,15,item)        
+        callexpect = self.ui.tableWidget.item(pos,2).text()
+        putexpect = self.ui.tableWidget.item(pos,12).text()
+        strike = self.ui.tableWidget.item(pos,7).text()
+        #print callexpect, putexpect, strike
+        #syntheticprice = float(callexpect) - float(putexpect) + float(strike)
+        #item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
+        #self.ui.tableWidget.setItem(pos,14,item)
+        #self.ui.tableWidget.setItem(pos,15,item)        
         pass
-        
-        
                     
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
