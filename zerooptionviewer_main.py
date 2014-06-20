@@ -80,6 +80,15 @@ class MainForm(QtGui.QMainWindow):
             self.mythread.start()
             #print "start"
         pass
+    
+    def updateTableWidgetItem(self,row,col,text):
+        widgetItem = self.ui.tableWidget.item(row,col)
+        if not widgetItem:
+            NewItem = QtGui.QTableWidgetItem(text)
+            self.ui.tableWidget.setItem(row,col,NewItem)
+        else:
+            widgetItem.setText(text)
+        pass
         
         
     def onReceiveData(self,msg):     
@@ -100,25 +109,20 @@ class MainForm(QtGui.QMainWindow):
             askqty1 = lst[11]
             bidqty1 = lst[28]
             
-            SHCode = QtGui.QTableWidgetItem(shcode)            
-            Bid = QtGui.QTableWidgetItem(bid1)
-            BidQty = QtGui.QTableWidgetItem(bidqty1)
-            Ask = QtGui.QTableWidgetItem(ask1)
-            AskQty = QtGui.QTableWidgetItem(askqty1)
             pos = self.strikelst.index(shcode[5:8])
             
             if shcode[:3] == '201':                
-                self.ui.tableWidget.setItem(pos,0,SHCode)
-                self.ui.tableWidget.setItem(pos,3,AskQty)
-                self.ui.tableWidget.setItem(pos,4,Ask)
-                self.ui.tableWidget.setItem(pos,5,Bid)
-                self.ui.tableWidget.setItem(pos,6,BidQty)                
+                self.updateTableWidgetItem(pos,0,shcode)
+                self.updateTableWidgetItem(pos,3,askqty1)
+                self.updateTableWidgetItem(pos,4,ask1)
+                self.updateTableWidgetItem(pos,5,bid1)
+                self.updateTableWidgetItem(pos,6,bidqty1)                
             elif shcode[:3] == '301':                
-                self.ui.tableWidget.setItem(pos,14,SHCode)
-                self.ui.tableWidget.setItem(pos,8,AskQty)
-                self.ui.tableWidget.setItem(pos,9,Ask)
-                self.ui.tableWidget.setItem(pos,10,Bid)
-                self.ui.tableWidget.setItem(pos,11,BidQty)   
+                self.updateTableWidgetItem(pos,14,shcode)
+                self.updateTableWidgetItem(pos,8,askqty1)
+                self.updateTableWidgetItem(pos,9,ask1)
+                self.updateTableWidgetItem(pos,10,bid1)
+                self.updateTableWidgetItem(pos,11,bidqty1)   
                 
             self.makeSyntheticBid(pos)
             self.makeSyntheticAsk(pos)
@@ -126,34 +130,32 @@ class MainForm(QtGui.QMainWindow):
                 
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = lst[4]
-            SHCode = QtGui.QTableWidgetItem(shcode)
-            ExpectPrice = QtGui.QTableWidgetItem(convert(lst[6]))
-            ExpectQty = QtGui.QTableWidgetItem(' ')
+            expectprice = convert(lst[6])
+            expectqty = 'E'
             pos = self.strikelst.index(shcode[5:8])
             if shcode[:3] == '201':                
-                self.ui.tableWidget.setItem(pos,0,SHCode)
-                self.ui.tableWidget.setItem(pos,2,ExpectPrice)
-                self.ui.tableWidget.setItem(pos,1,ExpectQty)
+                self.updateTableWidgetItem(pos,0,shcode)
+                self.updateTableWidgetItem(pos,2,expectprice)
+                self.updateTableWidgetItem(pos,1,expectqty)
             elif shcode[:3] == '301':                
-                self.ui.tableWidget.setItem(pos,14,SHCode)
-                self.ui.tableWidget.setItem(pos,12,ExpectPrice) 
-                self.ui.tableWidget.setItem(pos,13,ExpectQty)
+                self.updateTableWidgetItem(pos,14,shcode)
+                self.updateTableWidgetItem(pos,12,expectprice) 
+                self.updateTableWidgetItem(pos,13,expectqty)
             self.makeSyntheticExpect(pos)
                 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
             shcode = lst[31]
-            SHCode = QtGui.QTableWidgetItem(shcode)
-            LastPrice = QtGui.QTableWidgetItem(convert(lst[8]))
-            LastQty = QtGui.QTableWidgetItem(lst[13])
+            lastprice = convert(lst[8])
+            lastqty = lst[13]
             pos = self.strikelst.index(shcode[5:8])
             if shcode[:3] == '201':                
-                self.ui.tableWidget.setItem(pos,0,SHCode)
-                self.ui.tableWidget.setItem(pos,2,LastPrice)
-                self.ui.tableWidget.setItem(pos,1,LastQty)
+                self.updateTableWidgetItem(pos,0,shcode)
+                self.updateTableWidgetItem(pos,2,lastprice)
+                self.updateTableWidgetItem(pos,1,lastqty)
             elif shcode[:3] == '301':                
-                self.ui.tableWidget.setItem(pos,14,SHCode)
-                self.ui.tableWidget.setItem(pos,12,LastPrice)
-                self.ui.tableWidget.setItem(pos,13,LastQty)
+                self.updateTableWidgetItem(pos,14,shcode)
+                self.updateTableWidgetItem(pos,12,lastprice)
+                self.updateTableWidgetItem(pos,13,lastqty)
                 
         pass
     
@@ -164,8 +166,7 @@ class MainForm(QtGui.QMainWindow):
             strike = self.ui.tableWidget.item(pos,7).text()                    
             syntheticprice = float(callbid) - float(putask) + float(strike)
             if float(callbid) != 0 and float(putask):
-                item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-                self.ui.tableWidget.setItem(pos,16,item)
+                self.updateTableWidgetItem(pos,16,convert(syntheticprice))
         except:
             return
         pass
@@ -177,8 +178,7 @@ class MainForm(QtGui.QMainWindow):
             strike = self.ui.tableWidget.item(pos,7).text()                        
             syntheticprice = float(callask) - float(putbid) + float(strike)
             if float(callask) != 0 and float(putbid):
-                item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-                self.ui.tableWidget.setItem(pos,15,item)
+                self.updateTableWidgetItem(pos,15,convert(syntheticprice))
         except:
             return            
         pass
@@ -190,9 +190,9 @@ class MainForm(QtGui.QMainWindow):
             strike = self.ui.tableWidget.item(pos,7).text()            
             syntheticprice = float(callexpect) - float(putexpect) + float(strike)
             if float(callexpect) !=0 and float(putexpect) != 0:
-                item = QtGui.QTableWidgetItem('%.2f' %round(syntheticprice,2))
-                self.ui.tableWidget.setItem(pos,15,item)
-                self.ui.tableWidget.setItem(pos,16,item)        
+                item = convert(syntheticprice)
+                self.updateTableWidgetItem(pos,15,item)
+                self.updateTableWidgetItem(pos,16,item)        
         except:
             return
         pass
