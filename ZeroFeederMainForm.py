@@ -142,14 +142,14 @@ class MainForm(QtGui.QMainWindow):
         
     def registerFeedItem_FOExpect(self,shcode):
         NewItemExpect = pc.FOExpectCur()
-        if shcode[0] == 1:
+        if shcode[:3] == '101':
             NewItemExpect.Attach(self.ZMQFuturesExpectSender)
             NewItemExpect.SetInputValue(0,shcode[:-3])
             NewItemExpect.SetInputValue(1,'F1')
             NewItemExpect.SetInputValue(2,shcode[3:-3])
             NewItemExpect.Subscribe()  
             self.FutureTAQFeederLst.append(NewItemExpect)
-        elif shcode[0] == 2 or shcode[0] == 3:
+        elif shcode[:3] == '201' or shcode[:3] == '301':
             NewItemExpect.Attach(self.ZMQOptionsExpectSender)
             NewItemExpect.SetInputValue(0,shcode)
             NewItemExpect.SetInputValue(1,'O1')
