@@ -11,8 +11,6 @@ import os
 import pyxing as px
 import sqlite3 as lite
 
-from FeedCodeList import FeedCodeList
-
 from PyQt4 import QtCore, QtGui
 from ui_zeroexecuter import Ui_MainWindow
 from xinglogindlg import LoginForm

@@ -1,0 +1,7 @@
+<RCC>
+  <qresource>
+    <file>resource/book_keeping.png</file>
+    <file>resource/shield.png</file>
+    <file>resource/lightning.png</file>
+  </qresource>
+</RCC>
