@@ -6,6 +6,7 @@ Created on Tue Jun 10 22:58:29 2014
 """
 
 import sys
+from datetime import datetime
 from PyQt4 import QtGui, QtCore
 from zerooptionviewer_thread import OptionViewerThread
 from ui_zerooptionviewer import Ui_MainWindow
@@ -92,6 +93,7 @@ class MainForm(QtGui.QMainWindow):
         
         
     def onReceiveData(self,msg):     
+        nowtime = datetime.now()
         lst = msg.split(',')
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = lst[4]                
@@ -124,8 +126,9 @@ class MainForm(QtGui.QMainWindow):
                 self.updateTableWidgetItem(pos,10,bid1)
                 self.updateTableWidgetItem(pos,11,bidqty1)   
                 
-            self.makeSyntheticBid(pos)
-            self.makeSyntheticAsk(pos)
+            if not (nowtime.hour == 15 and (nowtime.minute >= 5 or nowtime <= 15)):
+                self.makeSyntheticBid(pos)
+                self.makeSyntheticAsk(pos)
                                 
                 
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
