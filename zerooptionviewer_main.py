@@ -126,7 +126,7 @@ class MainForm(QtGui.QMainWindow):
                 self.updateTableWidgetItem(pos,10,bid1)
                 self.updateTableWidgetItem(pos,11,bidqty1)   
                 
-            if not (nowtime.hour == 15 and (nowtime.minute >= 5 or nowtime <= 15)):
+            if not (nowtime.hour == 15 and (nowtime.minute >= 5 or nowtime.minute <= 15)):
                 self.makeSyntheticBid(pos)
                 self.makeSyntheticAsk(pos)
                                 
