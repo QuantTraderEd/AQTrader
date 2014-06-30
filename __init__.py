@@ -22,6 +22,8 @@ from xing_xareal_fc0 import XAReal_FC0
 from xing_xareal_fh0 import XAReal_FH0
 from xing_xareal_OC0 import XAReal_OC0
 from xing_xareal_OH0 import XAReal_OH0
+from xing_xareal_C01 import XAReal_C01
+from xing_xareal_O01 import XAReal_O01
 
 from xing_xareal_NC0 import XAReal_NC0
 from xing_xareal_NH0 import XAReal_NH0
