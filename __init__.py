@@ -6,6 +6,8 @@ from xing_xaquery_t9944 import *
 
 from xing_xaquery_t0424 import *
 from xing_xaquery_t0425 import *
+from xing_xaquery_t0441 import *
+from xing_xaquery_t0434 import *
 from xing_xaquery_t1102 import *
 
 from xing_xareal_S3_ import XAReal_S3_
