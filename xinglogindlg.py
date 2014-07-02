@@ -49,7 +49,7 @@ class LoginForm(QtGui.QDialog):
         
         if user == '':
             user = 'eddy777'
-            password = 'c9792458'
+            password = ''
         if self._XASession == None:
             self._XASession = px.XASession()
         self._XASession.observer = proxy(self)
