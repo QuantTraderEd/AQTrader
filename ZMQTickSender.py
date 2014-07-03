@@ -19,14 +19,11 @@ class ZMQTickSender:
         dt = datetime.now()
         timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]        
         msg = ''
-        msglist = []
-        msglist.append(self.FeedSource)
-        msglist.append(self.FeedType)
-        msglist.append(self.SecuritiesType)        
+        msg = msg + self.FeedSource 
+        msg = msg + ',' + self.FeedType
+        msg = msg + ',' + self.SecuritiesType
         for i in xrange(len(subject.data)):
-            msglist.append(str(subject.data[i]))
-        
-        msg = ",".join(msglist)
+            msg = msg + ',' +  str(subject.data[i])
         msg = timestamp + ',' + msg        
         self.ZMQSocket.send(msg)       
         pass
