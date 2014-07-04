@@ -5,46 +5,65 @@ Created on Sat Oct 19 15:37:25 2013
 @author: Administrator
 """
 
-
-import datetime
 import sqlite3 as lite
 import pyxing as px
 import zmq
 from PyQt4 import QtCore
 from pythoncom import PumpWaitingMessages
+from datetime import datetime
 
+from QtViewerCSPAT00600 import QtViewerCSPAT00600
+from QtViewerCSPAT00800 import QtViewerCSPAT00800
+from QtViewerCFOAT00100 import QtViewerCFOAT00100
+from QtViewerCFOAT00300 import QtViewerCFOAT00300
+from QtViewerSC1 import QtViewerSC1
 
 class ExecuterThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
     def __init__(self,parent=None):
         super(ExecuterThread,self).__init__(parent)
+        self.initThread()
+        self.initViewer()
+        self.initQuery()
+        
+
+        
+        
+    def initThread(self):
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pauseCondition = QtCore.QWaitCondition()
         
-        cviewer = ConsoleViewer()
-        cviewer0 = ConsolViewerSC0()        
         
+    def initViewer(self):
+        self.cviewer = ConsoleViewer()
+        self.cviewer0 = ConsolViewerSC0()        
         self.qtviewer00600 = QtViewerCSPAT00600()
         self.qtviewer00800 = QtViewerCSPAT00800()
+        self.qtviewer00100 = QtViewerCFOAT00100()
+        self.qtviewer00300 = QtViewerCFOAT00300()
         self.qtviewerSC1 = QtViewerSC1()        
         
-        nowtime = datetime.datetime.now()
-        strtime = datetime.datetime.strftime(nowtime,'%Y%m%d')
+        nowtime = datetime.now()
+        strtime = datetime.strftime(nowtime,'%Y%m%d')
         self.strdbname = "orderlist_%s.db" %(strtime)
         
         self.qtviewer00600.dbname = self.strdbname
         self.qtviewer00800.dbname = self.strdbname
+        self.qtviewer00100.dbname = self.strdbname
+        self.qtviewer00300.dbname = self.strdbname
         self.qtviewerSC1.dbname = self.strdbname
         
-        #self.connect(self.qtviewer,QtCore.SIGNAL("OnReceiveData (QString)"),self.UpdateDB)
-        #self.connect(self.qtviewer1,QtCore.SIGNAL("OnReceiveData (QString)"),self.UpdateDB)
         self.qtviewer00600.receive.connect(self.UpdateDB)
         self.qtviewer00800.receive.connect(self.UpdateDB)
+        self.qtviewer00100.receive.connect(self.UpdateDB)
+        self.qtviewer00300.receive.connect(self.UpdateDB)
         self.qtviewerSC1.receive.connect(self.UpdateDB)
-
+        
+    def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
+        self.xaquery_CFOAT00200 = px.XAQuery_CFOAT00200()
         self.xaquery_CFOAT00300 = px.XAQuery_CFOAT00300()
         self.xaquery_CSPAT00600 = px.XAQuery_CSPAT00600()          
         self.xaquery_CSPAT00800 = px.XAQuery_CSPAT00800()          
@@ -52,8 +71,11 @@ class ExecuterThread(QtCore.QThread):
         self.xareal_SC1 = px.XAReal_SC1()
         self.xaquery_CSPAT00600.observer = self.qtviewer00600
         self.xaquery_CSPAT00800.observer = self.qtviewer00800
-        self.xareal_SC0.observer = cviewer0
+        self.xaquery_CFOAT00100.observer = self.qtviewer00100
+        self.xaquery_CFOAT00300.observer = self.qtviewer00300
+        self.xareal_SC0.observer = self.cviewer0
         self.xareal_SC1.observer = self.qtviewerSC1
+        
                 
     
     def run(self):
@@ -68,8 +90,8 @@ class ExecuterThread(QtCore.QThread):
             
         while True:
             msg = self.socket.recv()
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
+            nowtime = datetime.now()
+            strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                        
             print "Got ",strnowtime ,msg
             lst = msg.split(',')
@@ -137,11 +159,9 @@ class ExecuterThread(QtCore.QThread):
 #                        continue
                 self.socket.send('done ' + msg)
                 
-            elif self._XASession.IsConnected() and (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or 
-                shcode[:3] == '201' or shcode[:3] == '301':
+            elif self._XASession.IsConnected() and (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 pass
-            elif self._XASession.IsConnected() and buysell == 'c' and (shcode[:3] == '101' or 
-                shcode[:3] == '201' or shcode[:3] == '301':
+            elif self._XASession.IsConnected() and buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 pass 
             else:
                 self.socket.send('fail: disconnect xsession')
@@ -179,7 +199,7 @@ class ConsolViewerSC0:
     def Update(self, subject):
         print '-' * 20                    
         if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
+            nowtime = datetime.now()
             #print 'szMessage',  subject.data['szMessage']
             #print 'szMessageCode', subject.data['szMessageCode'],             
 #            print 'ordno', subject.data['ordno'],
@@ -189,246 +209,9 @@ class ConsolViewerSC0:
 #            print 'ordqty', subject.data['ordqty'],
 #            print 'etfhogagb', subject.data['etfhogagb'],
 #            print 'hogagb', subject.data['hogagb'],
-#            print 'OrdTime_home', datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]                        
+#            print 'OrdTime_home', datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]                        
         self.flag = False
             
 
 
             
-class QtViewerCSPAT00600(QtCore.QObject):
-    receive = QtCore.pyqtSignal()
-    def __init__(self):
-        super(QtViewerCSPAT00600,self).__init__()
-        self.dbname = None
-        self.flag = True
-        
-    def Update(self, subject):
-        #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]   
-            #print 'szMessage',  subject.data['szMessage']
-            #print 'szMessageCode', subject.data['szMessageCode'],             
-            
-            ordno = subject.data['OrdNo']
-            
-            if subject.data['BnsTpCode'] == '2': buysell = 'buy'
-            elif subject.data['BnsTpCode'] == '1': buysell = 'sell'                
-            else: buysell = None
-        
-            shcode = subject.data['IsuNo']
-            price = subject.data['OrdPrc']
-            qty = subject.data['OrdQty']
-            unexecqty = qty
-            
-            if subject.data['OrdprcPtnCode'] == '00': type1 = 'limit'                
-            elif subject.data['OrdprcPtnCode'] == '03': type1 = 'market'                
-            else: type1 = None
-                                
-            if subject.data['OrdCndiTpCode'] == '0': type2 = 'GFD'                
-            elif subject.data['OrdCndiTpCode'] == '1': type2 = 'IOC'                
-            elif subject.data['OrdCndiTpCode'] == '2': type2 = 'FOK'                
-            else: type2 =None                
-                            
-            chkreq = subject.data['szMessageCode']
-            
-            orderitem = (ordno,strnowtime,buysell,shcode,price,qty,type1,type2,unexecqty,chkreq)
-            #print orderitem          
-            if self.dbname != None:
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,Time,BuySell,ShortCD,Price,Qty,Type1,Type2,UnExecQty,ChkReq) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem)            
-                conn_db.commit()
-                conn_db.close()                
-                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00600')
-                self.receive.emit()
-                
-                
-            
-        self.flag = False    
-        
-        
-class QtViewerCSPAT00800(QtCore.QObject):
-    receive = QtCore.pyqtSignal()
-    def __init__(self):
-        super(QtViewerCSPAT00800,self).__init__()
-        self.dbname = None
-        self.flag = True
-        
-    def Update(self, subject):
-        #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]   
-            print 'szMessage',  subject.data['szMessage']            
-            print 'szMessageCode', subject.data['szMessageCode']             
-            
-            orgordno = subject.data['OrgOrdNo']
-            ordno = subject.data['OrdNo']
-                                    
-            #-------------------------------
-            
-            buysell = 'cancl'
-            shcode = subject.data['IsuNo']
-            #price = subject.data['OrdPrc']
-            canclqty = subject.data['OrdQty']
-            
-            if subject.data['OrdPtnCode'] == '00': type1 = 'limit'                
-            elif subject.data['OrdPtnCode'] == '03': type1 = 'market'                
-            else: type1 = None
-               
-            chkreq = subject.data['szMessageCode']
-            orderitem = (ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)
-            
-            if self.dbname != None and subject.data['szMessageCode'] == '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
-                
-                cursor_db.execute("""Select OrdNo, OrgOrdNo From OrderList 
-                                    WHERE OrdNo = ? and ExecNo is null and BuySell = 'cancl' """,(str(ordno),))
-                rows_cancl = cursor_db.fetchall() 
-                
-                
-                cursor_db.execute("""Select UnExecQty From OrderList 
-                                    WHERE OrdNo = ? and ExecNo is null """,(str(orgordno),))
-                rows = cursor_db.fetchall()
-                unexecqty = 0
-                if len(rows) == 1:
-                    unexecqty = int(rows[0][0])
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?)""",orderitem)  
-                if len(rows_cancl) == 0 and unexecqty > 0:
-                    cursor_db.execute("""Update OrderList Set UnExecQty=? 
-                                                    WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """, 
-                                                    (str(unexecqty - int(canclqty)),orgordno))
-                conn_db.commit()
-                conn_db.close()
-                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00800')
-                self.receive.emit()
-            elif self.dbname != None and subject.data['szMessageCode'] != '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()                                    
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,ExecQty,ChkReq) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?)""",orderitem) 
-            
-        self.flag = False    
-
-        
-        
-class QtViewerSC1(QtCore.QObject):
-    receive = QtCore.pyqtSignal()
-    def __init__(self,parent=None):
-        super(QtViewerSC1,self).__init__(parent)
-        self.dbname = None
-        self.flag = True
-        
-    def Update(self, subject):
-        #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]   
-            #print 'szMessage',  subject.data['szMessage']
-            #print 'szMessageCode', subject.data['szMessageCode'],                 
-            
-            ordno = subject.data['ordno']
-            execno = subject.data['execno']
-            
-            if subject.data['bnstp'] == '2': buysell = 'buy'                
-            elif subject.data['bnstp'] == '1': buysell = 'sell'
-            else: buysell = None                
-                
-            shcode = subject.data['shtnIsuno']
-            ordprice = subject.data['ordprc']
-            ordqty = subject.data['ordqty']
-            execprice = subject.data['execprc']
-            execqty = subject.data['execqty']
-            unexecqty = subject.data['unercqty']            
-            orderitem = (ordno,execno,strnowtime,buysell,shcode,ordprice,ordqty,execprice,execqty,unexecqty)            
-            #print orderitem
-            if self.dbname != None:
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem)  
-                cursor_db.execute("""Update OrderList Set UnExecQty=? 
-                                                WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """, (unexecqty,ordno))
-                conn_db.commit()
-                conn_db.close()
-                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')
-                self.receive.emit()
-                
-        self.flag = False      
-        
-class QtViewerSC0(QtCore.QObject):
-    receive = QtCore.pyqtSignal()
-    def __init__(self,parent=None):
-        super(QtViewerSC0,self).__init__(parent)
-        self.dbname = None
-        self.flag = True
-        
-    def Update(self, subject):
-        #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-            ordno = subject.data['ordno']                    
-        self.flag = False
-        
-class QtViewerSC3(QtCore.QObject):
-    receive = QtCore.pyqtSignal()
-    def __init__(self,parent=None):
-        super(QtViewerSC3,self).__init__(parent)
-        self.dbname = None
-        self.flag = True
-        
-    def Update(self, subject):
-        #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
-            nowtime = datetime.datetime.now()
-            strnowtime = datetime.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]                  
-            
-            orgordno = subject.data['orgordno']
-            ordno = subject.data['ordno']
-                                    
-            #-------------------------------
-                                    
-            if self.dbname != None:
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
-                cursor_db.execute("""Select OrdNo, OrgOrdNo From OrderList 
-                                    WHERE OrdNo = ? and ExecNo is null and BuySell = 'cancl' """,(str(ordno),))
-                rows_cancl = cursor_db.fetchall()                
-                
-                cursor_db.execute("""Select UnExecQty From OrderList 
-                                    WHERE OrdNo = ? and ExecNo is null """,(str(orgordno),))
-                rows_unexecqty = cursor_db.fetchall()
-                unexecqty = 0
-                
-                if len(rows_unexecqty) == 1: unexecqty = int(rows[0][0])
-                if len(rows_cancl) == 0:            
-                    buysell = 'cancl'
-                    shcode = subject.data['Isuno']
-                    canclqty = subject.data['canccnfqty']
-                    
-                    if subject.data['ordptncode'] == '00': type1 = 'limit'                
-                    elif subject.data['ordptncode'] == '03': type1 = 'market'                
-                    else: type1 = None
-                                                           
-                    chkreq = ''
-                    orderitem = (ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)            
-                    cursor_db.execute("""INSERT INTO OrderList(OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?)""",orderitem)  
-                    
-                    if unexecqty > 0:
-                        cursor_db.execute("""Update OrderList Set UnExecQty=? 
-                                                        WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """, 
-                                                        (str(unexecqty - int(canclqty)),orgordno))
-                    conn_db.commit()
-                    conn_db.close()
-                    #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00800')
-                self.receive.emit()
-            
-        self.flag = False
-        
-        

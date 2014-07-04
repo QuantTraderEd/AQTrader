@@ -40,9 +40,6 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(0,2,self.conn_xi)        
         self.ui.tableWidget.setItem(0,1,self.status_xi)
         
-        self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()
-        
         
         self.FuturesOptionTAQFeederLst = []
         self.EquityTAQFeederLst = []
