@@ -62,18 +62,19 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setRowCount(max(len(self.strikelst),3))
         self.ui.tableWidget.resizeRowsToContents()        
                                 
-        self.ui.tableWidget.setItem(0,7,QtGui.QTableWidgetItem("262.5"))
-        self.ui.tableWidget.setItem(1,7,QtGui.QTableWidgetItem("260.0"))
-        self.ui.tableWidget.setItem(2,7,QtGui.QTableWidgetItem("257.5"))
-        self.ui.tableWidget.setItem(3,7,QtGui.QTableWidgetItem("255.0"))
-        self.ui.tableWidget.setItem(4,7,QtGui.QTableWidgetItem("252.5"))
+        for i in xrange(len(self.strikelst)):
+            if self.strikelst[i][-1] == '2' or self.strikelst[i][-1] == '7':
+                strikeprice = self.strikelst[i] + '.5'
+            else:
+                strikeprice = self.strikelst[i] + '.0'             
+            self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))
         
     def initThread(self):
         self.mythread = OptionViewerThread(None)
         self.mythread.receiveData[str].connect(self.onReceiveData)
         
     def initStrikeList(self):
-        self.strikelst = ['262','260','257', '255', '252']
+        self.strikelst = ['267','265','262','260','257', '255', '252']
         
         
     def onStart(self):
