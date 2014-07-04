@@ -44,7 +44,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         showcerterror = 1
         
         user = 'eddy777'
-        password = 'c9792458'
+        password = ''
         certpw = ""        
         
         self.XASession.observer = obs
@@ -55,8 +55,9 @@ class ZeroDigitViewer(QtGui.QWidget):
         self.XASession.flag = True
         while self.XASession.flag:
             pythoncom.PumpWaitingMessages()
-    
-        self.accountlist = self.XASession.GetAccountList()
+        
+        if self.XASession.IsConnected(): self.accountlist = self.XASession.GetAccountList()
+        
         
     def initQuery(self):
         obs = observer_t0441()
@@ -67,16 +68,18 @@ class ZeroDigitViewer(QtGui.QWidget):
         
         
     def initTIMER(self):
-        self.ctimer =  QtCore.QTimer()
-        self.ctimer.start(5000)
-        self.ctimer.timeout.connect(self.OnTimer)
+        if self.XASession.IsConnected():
+            self.ctimer =  QtCore.QTimer()
+            self.ctimer.start(5000)
+            self.ctimer.timeout.connect(self.OnTimer)
         
     def OnTimer(self):
-        self.NewQuery.flag = True
-        ret = self.NewQuery.Request(False)        
-        while self.NewQuery.flag:
-            pythoncom.PumpWaitingMessages()
-        self.ui.lcdNumber.display(self.NewQuery.pnl)
+        if self.XASession.IsConnected():
+            self.NewQuery.flag = True
+            ret = self.NewQuery.Request(False)        
+            while self.NewQuery.flag:
+                pythoncom.PumpWaitingMessages()
+            self.ui.lcdNumber.display(self.NewQuery.pnl)
         
         
         
