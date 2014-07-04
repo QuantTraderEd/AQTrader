@@ -74,7 +74,10 @@ class MainForm(QtGui.QMainWindow):
         self.mythread.receiveData[str].connect(self.onReceiveData)
         
     def initStrikeList(self):
-        self.strikelst = ['267','265','262','260','257', '255', '252']
+        shcodelist = self._FeedCodeList.optionshcodelst
+        self.strikelst = list(set([shcode[-3:] for shcode in shcodelist]))
+        self.strikelst.sort()
+        self.strikelst.reverse()
         
         
     def onStart(self):
