@@ -12,7 +12,7 @@ from PyQt4 import QtGui, QtCore
 from ui_zerodigitviewer import Ui_Form
 
 class observer_cmd:
-    def Update(self,subject):                
+    def Update(self,subject):       
         subject.flag = False
         pass
 class observer_t0441:
@@ -56,15 +56,20 @@ class ZeroDigitViewer(QtGui.QWidget):
         while self.XASession.flag:
             pythoncom.PumpWaitingMessages()
         
+        if self.XASession.data[0] is not u'0000':
+            self.XASession.DisconnectServer()
+            return
+            
         if self.XASession.IsConnected(): self.accountlist = self.XASession.GetAccountList()
         
         
     def initQuery(self):
-        obs = observer_t0441()
-        self.NewQuery = px.XAQuery_t0441()
-        self.NewQuery.observer = obs
-        self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-        self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+        if self.XASession.IsConnected():
+            obs = observer_t0441()
+            self.NewQuery = px.XAQuery_t0441()
+            self.NewQuery.observer = obs
+            self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+            self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
         
         
     def initTIMER(self):
