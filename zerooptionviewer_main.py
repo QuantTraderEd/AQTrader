@@ -60,7 +60,11 @@ class MainForm(QtGui.QMainWindow):
         
                 
         self.ui.tableWidget.setRowCount(max(len(self.strikelst),3))
-        self.ui.tableWidget.resizeRowsToContents()        
+        self.ui.tableWidget.resizeRowsToContents()
+        
+        self.bidaskcolindex = [4,5,9,10]
+        
+        self.ui.tableWidget.cellDoubleClicked[int,int].connect(self.onDoubleClicked)
                                 
         for i in xrange(len(self.strikelst)):
             if self.strikelst[i][-1] == '2' or self.strikelst[i][-1] == '7':
@@ -93,6 +97,26 @@ class MainForm(QtGui.QMainWindow):
             self.ui.tableWidget.setItem(row,col,NewItem)
         else:
             widgetItem.setText(text)
+        pass
+    
+    def onDoubleClicked(self,row,col):   
+        if col in self.bidaskcolindex:            
+            print row, col
+            try:
+                if col in self.bidaskcolindex[0:2]: shcode = self.ui.tableWidget.item(row,0).text()
+                elif col in self.bidaskcolindex[2:4]: shcode = self.ui.tableWidget.item(row,14).text()
+                print shcode
+            except AttributeError:                    
+                return
+            
+            if col == self.bidaskcolindex[0] or col == self.bidaskcolindex[2]:                          
+                price = float(self.ui.tableWidget.item(row,col).text())
+                buysell = True
+                print "buy",shcode,price
+            elif col == self.bidaskcolindex[1] or col == self.bidaskcolindex[4]:                    
+                price = float(self.ui.tableWidget.item(row,col).text())
+                buysell = False
+                print "sell",shcode,price
         pass
         
         
