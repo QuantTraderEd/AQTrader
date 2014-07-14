@@ -76,9 +76,9 @@ class ZeroDigitViewer(QtGui.QWidget):
         if self.XASession.IsConnected():
             self.ctimer =  QtCore.QTimer()
             self.ctimer.start(5000)
-            self.ctimer.timeout.connect(self.OnTimer)
+            self.ctimer.timeout.connect(self.onTimer)
         
-    def OnTimer(self):
+    def onTimer(self):
         if self.XASession.IsConnected():
             self.NewQuery.flag = True
             ret = self.NewQuery.Request(False)        
