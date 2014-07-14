@@ -15,7 +15,7 @@ except AttributeError:
     _fromUtf8 = lambda s: s
 
 
-class ExecuteDlg(QtGui.QDialog):
+class OptionViewerExecuteDlg(QtGui.QDialog):
     def __init__(self,parent=None):
         QtGui.QWidget.__init__(self,parent)
         self.initUI()
@@ -52,7 +52,7 @@ class ExecuteDlg(QtGui.QDialog):
 if __name__ == "__main__":
     import sys    
     app = QtGui.QApplication(sys.argv)
-    mydlg = ExecuteDlg()
+    mydlg = OptionViewerExecuteDlg()
     mydlg.ui.doubleSpinBoxPrice.setValue(1.25)
     mydlg.show()
     app.exec_()  
