@@ -140,7 +140,7 @@ class MainForm(QtGui.QMainWindow):
         else:
             return
         
-        myExecuteDlg = OptionViewerExecuteDlg()
+        myExecuteDlg = OptionViewerExecuteDlg(self)
         myExecuteDlg.initOrder(buysell,shcode,price,1)
         myExecuteDlg.show()
         myExecuteDlg.exec_()
