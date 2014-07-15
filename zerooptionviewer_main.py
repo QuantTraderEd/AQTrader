@@ -9,6 +9,7 @@ import sys
 from datetime import datetime
 from PyQt4 import QtGui, QtCore
 from zerooptionviewer_thread import OptionViewerThread
+from zerooptionviewer_executedlg import OptionViewerExecuteDlg
 from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
 
@@ -100,23 +101,28 @@ class MainForm(QtGui.QMainWindow):
         pass
     
     def onDoubleClicked(self,row,col):   
-        if col in self.bidaskcolindex:            
-            print row, col
+        if col in self.bidaskcolindex:                        
             try:
                 if col in self.bidaskcolindex[0:2]: shcode = self.ui.tableWidget.item(row,0).text()
-                elif col in self.bidaskcolindex[2:4]: shcode = self.ui.tableWidget.item(row,14).text()
-                print shcode
+                elif col in self.bidaskcolindex[2:4]: shcode = self.ui.tableWidget.item(row,14).text()                
             except AttributeError:                    
                 return
             
-            if col == self.bidaskcolindex[0] or col == self.bidaskcolindex[2]:                          
-                price = float(self.ui.tableWidget.item(row,col).text())
-                buysell = True
-                print "buy",shcode,price
-            elif col == self.bidaskcolindex[1] or col == self.bidaskcolindex[4]:                    
-                price = float(self.ui.tableWidget.item(row,col).text())
-                buysell = False
-                print "sell",shcode,price
+        if col == self.bidaskcolindex[0] or col == self.bidaskcolindex[2]:                          
+            price = float(self.ui.tableWidget.item(row,col).text())                
+            buysell = True
+            print "buy",shcode,price                
+        elif col == self.bidaskcolindex[1] or col == self.bidaskcolindex[3]:                    
+            price = float(self.ui.tableWidget.item(row,col).text())
+            buysell = False
+            print "sell",shcode,price                
+        else:
+            return
+        
+        myExecuteDlg = OptionViewerExecuteDlg()
+        myExecuteDlg.initOrder(buysell,shcode,price,1)
+        myExecuteDlg.show()
+        myExecuteDlg.exec_()
         pass
         
         
