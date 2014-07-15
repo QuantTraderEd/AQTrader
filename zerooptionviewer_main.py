@@ -84,6 +84,29 @@ class MainForm(QtGui.QMainWindow):
         self.strikelst.sort()
         self.strikelst.reverse()
         
+    def initData(self):
+        shcode = '201J7267'                    
+        ask1 = '0.64'
+        bid1 = '0.63'
+        askqty1 = '82'
+        bidqty1 = '89'
+        
+        pos = self.strikelst.index(shcode[5:8])
+        
+        if shcode[:3] == '201':                
+            self.updateTableWidgetItem(pos,0,shcode)
+            self.updateTableWidgetItem(pos,3,askqty1)
+            self.updateTableWidgetItem(pos,4,ask1)
+            self.updateTableWidgetItem(pos,5,bid1)
+            self.updateTableWidgetItem(pos,6,bidqty1)                
+        elif shcode[:3] == '301':                
+            self.updateTableWidgetItem(pos,14,shcode)
+            self.updateTableWidgetItem(pos,8,askqty1)
+            self.updateTableWidgetItem(pos,9,ask1)
+            self.updateTableWidgetItem(pos,10,bid1)
+            self.updateTableWidgetItem(pos,11,bidqty1)   
+        pass
+        
         
     def onStart(self):
         if not self.mythread.isRunning():            
@@ -111,11 +134,9 @@ class MainForm(QtGui.QMainWindow):
         if col == self.bidaskcolindex[0] or col == self.bidaskcolindex[2]:                          
             price = float(self.ui.tableWidget.item(row,col).text())                
             buysell = True
-            print "buy",shcode,price                
         elif col == self.bidaskcolindex[1] or col == self.bidaskcolindex[3]:                    
             price = float(self.ui.tableWidget.item(row,col).text())
             buysell = False
-            print "sell",shcode,price                
         else:
             return
         
@@ -240,6 +261,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
+    myform.initData()
     app.exec_()   
 
 
