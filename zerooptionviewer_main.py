@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 from PyQt4 import QtGui, QtCore
 from zerooptionviewer_thread import OptionViewerThread
-from zerooptionviewer_executedlg import OptionViewerExecuteDlg
+from zerooptionviewer_executewidget import OptionViewerExecuteWidget
 from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
 
@@ -139,11 +139,16 @@ class MainForm(QtGui.QMainWindow):
             buysell = False
         else:
             return
-        
-        myExecuteDlg = OptionViewerExecuteDlg(self)
-        myExecuteDlg.initOrder(buysell,shcode,price,1)
-        myExecuteDlg.show()
-        myExecuteDlg.exec_()
+        item = self.ui.tableWidget.item(row,col)
+        rect = self.ui.tableWidget.visualItemRect(item)
+        winPos = self.pos()
+        rect.moveTo(rect.x() + winPos.x() + rect.width()/2, rect.y() + winPos.y() + rect.height() * 5)
+        widget = QtGui.QWidget()
+        widget.setGeometry(rect)
+        print buysell
+        myExecuteWidget = OptionViewerExecuteWidget(self,widget)
+        myExecuteWidget.initOrder(buysell,shcode,price,1)
+        myExecuteWidget.show()
         pass
         
         
