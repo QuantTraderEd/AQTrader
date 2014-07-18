@@ -61,8 +61,9 @@ class MainForm(QtGui.QMainWindow):
         
                 
         self.ui.tableWidget.setRowCount(max(len(self.strikelst),3))
-        self.ui.tableWidget.resizeRowsToContents()
-        
+        self.ui.tableWidget.resizeRowsToContents()        
+
+        self.alignRightColumnList = [1,3,8]        
         self.bidaskcolindex = [4,5,9,10]
         
         self.ui.tableWidget.cellDoubleClicked[int,int].connect(self.onDoubleClicked)
@@ -72,7 +73,8 @@ class MainForm(QtGui.QMainWindow):
                 strikeprice = self.strikelst[i] + '.5'
             else:
                 strikeprice = self.strikelst[i] + '.0'             
-            self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))
+            self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))                
+    
         
     def initThread(self):
         self.mythread = OptionViewerThread(None)
@@ -118,6 +120,7 @@ class MainForm(QtGui.QMainWindow):
         widgetItem = self.ui.tableWidget.item(row,col)
         if not widgetItem:
             NewItem = QtGui.QTableWidgetItem(text)
+            if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
             self.ui.tableWidget.setItem(row,col,NewItem)
         else:
             widgetItem.setText(text)
