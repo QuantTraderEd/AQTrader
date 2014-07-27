@@ -66,9 +66,10 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
         buysell = self.ui.radioButtonBuy.isChecked()
         if buysell:
             self.ui.pushButtonSend.setText('Buy')
+            self.ui.pushButtonSend.setStyleSheet("background-color: blue; color: yellow;")
         elif not buysell:
             self.ui.pushButtonSend.setText('Sell')
-        
+            self.ui.pushButtonSend.setStyleSheet("background-color: red")
 
         
 if __name__ == '__main__':
