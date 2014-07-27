@@ -20,14 +20,12 @@ from QtViewerSC1 import QtViewerSC1
 
 class ExecuterThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
+    
     def __init__(self,parent=None):
         super(ExecuterThread,self).__init__(parent)
         self.initThread()
         self.initViewer()
-        self.initQuery()
-        
-
-        
+        self.initQuery()        
         
     def initThread(self):
         self.mt_stop = False
@@ -90,6 +88,10 @@ class ExecuterThread(QtCore.QThread):
             
         while True:
             msg = self.socket.recv()
+            if not self._XASession.IsConnected():
+                self.socket.send('fail: disconnect xsession')
+                continue
+            
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                        
@@ -106,12 +108,12 @@ class ExecuterThread(QtCore.QThread):
                 buysell = '1'
             elif lst[0] == 'cancl':
                 buysell = 'c'
-                ordno = lst[4]            
+                ordno = lst[4]  
                 
                 
             print buysell,shcode,price,qty,ordno
             
-            if self._XASession.IsConnected() and (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
+            if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
                 # equity new order                       
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[1])    
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,'0000')    
@@ -139,7 +141,7 @@ class ExecuterThread(QtCore.QThread):
 #                    self.xareal_SC0.observer.flag = True
                                         
                     self.socket.send('done ' + msg)
-            elif self._XASession.IsConnected() and buysell == 'c' and shcode == 'A':
+            elif buysell == 'c' and shcode[0] == 'A':
                 # equity cancel order                                   
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(ordno))    
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[1])    
@@ -159,18 +161,31 @@ class ExecuterThread(QtCore.QThread):
 #                        continue
                 self.socket.send('done ' + msg)
                 
-            elif self._XASession.IsConnected() and (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
-                pass
-            elif self._XASession.IsConnected() and buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
-                pass 
+            elif (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
+                # FO new order
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,'0000')
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shcode))
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
+                ret = self.xaquery_CFOAT00100.Request(False)
+                print ret
+            elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
+                # FO cancl order
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,'0000')
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
             else:
-                self.socket.send('fail: disconnect xsession')
+                self.socket.send('fail: other case order')
     
 
             
     def UpdateDB(self):
         print "receive update "
-        #self.emit(QtCore.SIGNAL("OnUpdateDB (QString)"),'1')
         self.threadUpdateDB.emit()
         pass
 
