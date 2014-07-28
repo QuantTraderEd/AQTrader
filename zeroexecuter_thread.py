@@ -5,7 +5,6 @@ Created on Sat Oct 19 15:37:25 2013
 @author: Administrator
 """
 
-import sqlite3 as lite
 import pyxing as px
 import zmq
 from PyQt4 import QtCore
@@ -110,7 +109,6 @@ class ExecuterThread(QtCore.QThread):
                 buysell = 'c'
                 ordno = lst[4]  
                 
-                
             print buysell,shcode,price,qty,ordno
             
             if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
@@ -132,10 +130,9 @@ class ExecuterThread(QtCore.QThread):
                     self.xaquery_CSPAT00600.observer.flag = True
                     szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
                     if szMsgCode != '00039' and szMsgCode != '00040':
-                        self.socket.send('fail: order')
+                        self.socket.send('errCode: ' + str(szMsgCode))
                     else:
-                        self.socket.send('done ' + msg)                                                                
-                    continue                    
+                        self.socket.send('msgCode: ' + str(szMsgCode))                
                     
             elif buysell == 'c' and shcode[0] == 'A':
                 # equity cancel order                                   
@@ -172,12 +169,13 @@ class ExecuterThread(QtCore.QThread):
                     while self.xaquery_CFOAT00100.observer.flag:
                         PumpWaitingMessages()
                     self.xaquery_CFOAT00100.observer.flag = True
-                    szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']                     
+                    szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']     
+                    print szMsgCode
                     if szMsgCode != '00039' and szMsgCode != '00040':
-                        self.socket.send('fail: order')
+                        self.socket.send('errCode: ' + str(szMsgCode))
                     else:
-                        self.socket.send('done ' + msg)
-                    continue    
+                        self.socket.send('msgCode: ' + str(szMsgCode))
+                        
             elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 # FO cancl order
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
@@ -186,7 +184,7 @@ class ExecuterThread(QtCore.QThread):
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
                 ret = self.xaquery_CFOAT00300.Request(False)
-                self.socket.send('done ' + msg)
+                self.socket.send('msgCode: ')
                 print ret
             else:
                 self.socket.send('fail: other case order')
