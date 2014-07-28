@@ -33,15 +33,15 @@ class QtViewerCFOAT00300(QtCore.QObject):
             shcode = subject.data['FnoIsuNo']
             #price = subject.data['OrdPrc']
             canclqty = subject.data['OrdQty']
-            
-            if subject.data['FnoOrdPtnCode'][1] == '0': type1 = 'limit'                
-            elif subject.data['FnoOrdPtnCode'][1] == '3': type1 = 'market'                
-            else: type1 = None
-                                
-            if subject.data['FnoOrdPtnCode'][0] == '0': type2 = 'GFD'                
-            elif subject.data['FnoOrdPtnCode'][0] == '1': type2 = 'IOC'                
-            elif subject.data['FnoOrdPtnCode'][0] == '2': type2 = 'FOK'                
-            else: type2 = None                
+            type1 = None
+            type2 = None
+            if subject.data['FnoOrdPtnCode'] != '':
+                if subject.data['FnoOrdPtnCode'][1] == '0': type1 = 'limit'                
+                elif subject.data['FnoOrdPtnCode'][1] == '3': type1 = 'market'                
+                                    
+                if subject.data['FnoOrdPtnCode'][0] == '0': type2 = 'GFD'                
+                elif subject.data['FnoOrdPtnCode'][0] == '1': type2 = 'IOC'                
+                elif subject.data['FnoOrdPtnCode'][0] == '2': type2 = 'FOK'                
                
             chkreq = subject.data['szMessageCode']
             orderitem = (ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)
