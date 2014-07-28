@@ -42,7 +42,6 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
         pass
     
     def initOrder(self,buysell=True,shcode='',price=0,qty=0):
-        print buysell
         self.ui.radioButtonBuy.setChecked(buysell)
         self.ui.radioButtonSell.setChecked(not buysell)
         self.ui.lineEditShortCode.setText(shcode)
