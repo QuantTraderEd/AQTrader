@@ -148,7 +148,6 @@ class MainForm(QtGui.QMainWindow):
         rect.moveTo(rect.x() + winPos.x() + rect.width()/2, rect.y() + winPos.y() + rect.height() * 5)
         widget = QtGui.QWidget()
         widget.setGeometry(rect)
-        print buysell
         myExecuteWidget = OptionViewerExecuteWidget(self,widget)
         myExecuteWidget.initOrder(buysell,shcode,price,1)
         myExecuteWidget.show()
