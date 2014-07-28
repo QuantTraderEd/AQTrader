@@ -57,10 +57,11 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
         price = self.ui.doubleSpinBoxPrice.value()
         qty = self.ui.spinBoxQty.value()
         msg = str(buysell) + ',' + str(shcode) + ',' + str(price) + ',' + str(qty)
-        #self.socket.send(msg)
-        #msg_in = self.socket.recv()
         print msg
-        #print buysell,price,qty
+        self.socket.send(msg)
+        msg_in = self.socket.recv()        
+        print msg_in
+        self.close()
         
     def onToggled(self):
         buysell = self.ui.radioButtonBuy.isChecked()
