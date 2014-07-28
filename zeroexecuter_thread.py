@@ -131,16 +131,12 @@ class ExecuterThread(QtCore.QThread):
                         PumpWaitingMessages()
                     self.xaquery_CSPAT00600.observer.flag = True
                     szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
-                    #print szMsgCode
                     if szMsgCode != '00039' and szMsgCode != '00040':
                         self.socket.send('fail: order')
-                        continue
+                    else:
+                        self.socket.send('done ' + msg)                                                                
+                    continue                    
                     
-#                    while self.xareal_SC0.observer.flag:
-#                        PumpWaitingMessages()
-#                    self.xareal_SC0.observer.flag = True
-                                        
-                    self.socket.send('done ' + msg)
             elif buysell == 'c' and shcode[0] == 'A':
                 # equity cancel order                                   
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(ordno))    
@@ -170,8 +166,18 @@ class ExecuterThread(QtCore.QThread):
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
-                ret = self.xaquery_CFOAT00100.Request(False)
-                print ret
+                ret = self.xaquery_CFOAT00100.Request(False)         
+                print ret                       
+                if ret == None:
+                    while self.xaquery_CFOAT00100.observer.flag:
+                        PumpWaitingMessages()
+                    self.xaquery_CFOAT00100.observer.flag = True
+                    szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']                     
+                    if szMsgCode != '00039' and szMsgCode != '00040':
+                        self.socket.send('fail: order')
+                    else:
+                        self.socket.send('done ' + msg)
+                    continue    
             elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 # FO cancl order
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
@@ -179,6 +185,9 @@ class ExecuterThread(QtCore.QThread):
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
+                ret = self.xaquery_CFOAT00300.Request(False)
+                self.socket.send('done ' + msg)
+                print ret
             else:
                 self.socket.send('fail: other case order')
     
@@ -188,9 +197,6 @@ class ExecuterThread(QtCore.QThread):
         print "receive update "
         self.threadUpdateDB.emit()
         pass
-
-
-
 
 
             
