@@ -34,15 +34,15 @@ class QtViewerCFOAT00100(QtCore.QObject):
             price = subject.data['OrdPrc']
             qty = subject.data['OrdQty']
             unexecqty = qty
-            
-            if subject.data['FnoOrdPtnCode'][1] == '0': type1 = 'limit'                
-            elif subject.data['FnoOrdPtnCode'][1] == '3': type1 = 'market'                
-            else: type1 = None
-                                
-            if subject.data['FnoOrdPtnCode'][0] == '0': type2 = 'GFD'                
-            elif subject.data['FnoOrdPtnCode'][0] == '1': type2 = 'IOC'                
-            elif subject.data['FnoOrdPtnCode'][0] == '2': type2 = 'FOK'                
-            else: type2 =None                
+            if subject.data['FnoOrdPtnCode'] != '':
+                if subject.data['FnoOrdPtnCode'][1] == '0': type1 = 'limit'                
+                elif subject.data['FnoOrdPtnCode'][1] == '3': type1 = 'market'                
+                else: type1 = None
+                                    
+                if subject.data['FnoOrdPtnCode'][0] == '0': type2 = 'GFD'                
+                elif subject.data['FnoOrdPtnCode'][0] == '1': type2 = 'IOC'                
+                elif subject.data['FnoOrdPtnCode'][0] == '2': type2 = 'FOK'                
+                else: type2 =None                
                             
             chkreq = subject.data['szMessageCode']
             
