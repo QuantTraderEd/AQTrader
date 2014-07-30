@@ -32,7 +32,7 @@ class QtViewerCFOAT00300(QtCore.QObject):
             buysell = 'cancl'
             shcode = subject.data['FnoIsuNo']
             #price = subject.data['OrdPrc']
-            canclqty = subject.data['OrdQty']
+            canclqty = subject.data['CancQty']
             type1 = None
             type2 = None
             if subject.data['FnoOrdPtnCode'] != '':
