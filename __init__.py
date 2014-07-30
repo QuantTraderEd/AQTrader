@@ -1,14 +1,14 @@
 #
-from xing_source import *
+from xing_source import XASession, XASessionEvents
 
-from xing_xaquery_t9943 import *
-from xing_xaquery_t9944 import *
+from xing_xaquery_t9943 import XAQuery_t9943
+from xing_xaquery_t9944 import XAQuery_t9944
 
-from xing_xaquery_t0424 import *
-from xing_xaquery_t0425 import *
-from xing_xaquery_t0441 import *
-from xing_xaquery_t0434 import *
-from xing_xaquery_t1102 import *
+from xing_xaquery_t0424 import XAQuery_t0424
+from xing_xaquery_t0425 import XAQuery_t0425
+from xing_xaquery_t0441 import XAQuery_t0441
+from xing_xaquery_t0434 import XAQuery_t0434
+from xing_xaquery_t1102 import XAQuery_t1102
 
 from xing_xareal_S3_ import XAReal_S3_
 from xing_xareal_H1_ import XAReal_H1_
@@ -33,14 +33,14 @@ from xing_xareal_NH0 import XAReal_NH0
 from xing_xareal_EC0 import XAReal_EC0
 from xing_xareal_EH0 import XAReal_EH0
 
-from xing_xaquery_cfoat00100 import *
-from xing_xaquery_cfoat00200 import *
-from xing_xaquery_cfoat00300 import *
+from xing_xaquery_cfoat00100 import XAQuery_CFOAT00100
+from xing_xaquery_cfoat00200 import XAQuery_CFOAT00200
+from xing_xaquery_cfoat00300 import XAQuery_CFOAT00300
 
-from xing_xaquery_cexat11100 import *
-from xing_xaquery_cexat11300 import *
+from xing_xaquery_cexat11100 import XAQuery_CEXAT11100
+from xing_xaquery_cexat11300 import XAQuery_CEXAT11300
 
-from xing_xaquery_cspat00600 import *
-from xing_xaquery_cspat00700 import *
-from xing_xaquery_cspat00800 import *
+from xing_xaquery_cspat00600 import XAQuery_CSPAT00600
+from xing_xaquery_cspat00700 import XAQuery_CSPAT00700
+from xing_xaquery_cspat00800 import XAQuery_CSPAT00800
 
