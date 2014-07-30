@@ -16,6 +16,7 @@ from QtViewerCSPAT00800 import QtViewerCSPAT00800
 from QtViewerCFOAT00100 import QtViewerCFOAT00100
 from QtViewerCFOAT00300 import QtViewerCFOAT00300
 from QtViewerSC1 import QtViewerSC1
+from QtViewerC01 import QtViewerC01
 
 class ExecuterThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
@@ -40,7 +41,8 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer00800 = QtViewerCSPAT00800()
         self.qtviewer00100 = QtViewerCFOAT00100()
         self.qtviewer00300 = QtViewerCFOAT00300()
-        self.qtviewerSC1 = QtViewerSC1()        
+        self.qtviewerSC1 = QtViewerSC1()       
+        self.qtviewerC01 = QtViewerC01()
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')
@@ -51,12 +53,14 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer00100.dbname = self.strdbname
         self.qtviewer00300.dbname = self.strdbname
         self.qtviewerSC1.dbname = self.strdbname
+        self.qtviewerC01.dbname = self.strdbname
         
         self.qtviewer00600.receive.connect(self.UpdateDB)
         self.qtviewer00800.receive.connect(self.UpdateDB)
         self.qtviewer00100.receive.connect(self.UpdateDB)
         self.qtviewer00300.receive.connect(self.UpdateDB)
         self.qtviewerSC1.receive.connect(self.UpdateDB)
+        self.qtviewerC01.receive.connect(self.UpdateDB)
         
     def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
@@ -66,6 +70,7 @@ class ExecuterThread(QtCore.QThread):
         self.xaquery_CSPAT00800 = px.XAQuery_CSPAT00800()          
         self.xareal_SC0 = px.XAReal_SC0()
         self.xareal_SC1 = px.XAReal_SC1()
+        self.xareal_C01 = px.XAReal_C01()
         self.xaquery_CSPAT00600.observer = self.qtviewer00600
         self.xaquery_CSPAT00800.observer = self.qtviewer00800
         self.xaquery_CFOAT00100.observer = self.qtviewer00100
