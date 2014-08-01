@@ -25,7 +25,7 @@ class QtViewerC01(QtCore.QObject):
             #print 'szMessage',  subject.data['szMessage']
             #print 'szMessageCode', subject.data['szMessageCode'],       
             
-            ordno = subject.data['ordno']
+            ordno = unicode(int(subject.data['ordno']))
             execno = None
             #execno = subject.data['execno']
             
@@ -33,24 +33,23 @@ class QtViewerC01(QtCore.QObject):
             elif subject.data['dosugb'] == '1': buysell = 'sell'
             else: buysell = None                
                 
-            shcode = subject.data['expcode']
+            shcode = subject.data['expcode'][3:11]
             ordprice = None
             ordqty = None
             execprice = subject.data['cheprice']
             execqty = subject.data['chevol']
             unexecqty = None
             orderitem = (ordno,execno,strnowtime,buysell,shcode,ordprice,ordqty,execprice,execqty,unexecqty)            
-            print orderitem
-#            if self.dbname != None:
-#                conn_db = lite.connect(self.dbname)
-#                cursor_db = conn_db.cursor()
-#                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
-#                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem)  
+            print orderitem            
+            if self.dbname != None:
+                conn_db = lite.connect(self.dbname)
+                cursor_db = conn_db.cursor()
+                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
+                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem)  
 #                cursor_db.execute("""Update OrderList Set UnExecQty=? 
 #                                                WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """, (unexecqty,ordno))
-#                conn_db.commit()
-#                conn_db.close()
-#                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')
-#                self.receive.emit()
+                conn_db.commit()
+                conn_db.close()
+                self.receive.emit()
                 
         self.flag = False      
