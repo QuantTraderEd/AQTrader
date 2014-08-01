@@ -77,6 +77,7 @@ class ExecuterThread(QtCore.QThread):
         self.xaquery_CFOAT00300.observer = self.qtviewer00300
         self.xareal_SC0.observer = self.cviewer0
         self.xareal_SC1.observer = self.qtviewerSC1
+        self.xareal_C01.observer = self.qtviewerC01
         
                 
     
