@@ -87,7 +87,7 @@ class ExecuterThread(QtCore.QThread):
         self.socket.bind("tcp://127.0.0.1:6000")
         self.xareal_SC0.AdviseRealData()
         self.xareal_SC1.AdviseRealData()        
-        
+        self.xareal_C01.AdviseRealData()
         #self.conn_db = lite.connect('orderlist.db')
         #self.cursor_db = self.conn_db.cursor()
             
