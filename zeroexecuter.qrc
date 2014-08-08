@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>resource/dollar.png</file>
     <file>resource/book_keeping.png</file>
     <file>resource/shield.png</file>
     <file>resource/lightning.png</file>

@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'zeroexecuter.ui'
 #
-# Created: Tue Oct 29 19:25:54 2013
-#      by: PyQt4 UI code generator 4.8.6
+# Created: Fri Aug 08 22:48:25 2014
+#      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,16 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -24,7 +33,6 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         MainWindow.setMinimumSize(QtCore.QSize(343, 169))
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ZeroExecuter", None, QtGui.QApplication.UnicodeUTF8))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/lightning.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -38,19 +46,14 @@ class Ui_MainWindow(object):
         self.tableWidget.setColumnCount(3)
         self.tableWidget.setRowCount(2)
         item = QtGui.QTableWidgetItem()
-        item.setText(QtGui.QApplication.translate("MainWindow", "1", None, QtGui.QApplication.UnicodeUTF8))
         self.tableWidget.setVerticalHeaderItem(0, item)
         item = QtGui.QTableWidgetItem()
-        item.setText(QtGui.QApplication.translate("MainWindow", "2", None, QtGui.QApplication.UnicodeUTF8))
         self.tableWidget.setVerticalHeaderItem(1, item)
         item = QtGui.QTableWidgetItem()
-        item.setText(QtGui.QApplication.translate("MainWindow", "name", None, QtGui.QApplication.UnicodeUTF8))
         self.tableWidget.setHorizontalHeaderItem(0, item)
         item = QtGui.QTableWidgetItem()
-        item.setText(QtGui.QApplication.translate("MainWindow", "state", None, QtGui.QApplication.UnicodeUTF8))
         self.tableWidget.setHorizontalHeaderItem(1, item)
         item = QtGui.QTableWidgetItem()
-        item.setText(QtGui.QApplication.translate("MainWindow", "starter", None, QtGui.QApplication.UnicodeUTF8))
         self.tableWidget.setHorizontalHeaderItem(2, item)
         self.verticalLayout.addWidget(self.tableWidget)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -58,7 +61,6 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         MainWindow.setStatusBar(self.statusbar)
         self.toolBar = QtGui.QToolBar(MainWindow)
-        self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.actionExecute = QtGui.QAction(MainWindow)
@@ -67,16 +69,20 @@ class Ui_MainWindow(object):
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/shield.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/lightning.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.actionExecute.setIcon(icon1)
-        self.actionExecute.setText(QtGui.QApplication.translate("MainWindow", "Execute", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExecute.setObjectName(_fromUtf8("actionExecute"))
         self.actionOrderlist = QtGui.QAction(MainWindow)
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/book_keeping.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionOrderlist.setIcon(icon2)
-        self.actionOrderlist.setText(QtGui.QApplication.translate("MainWindow", "OrderList", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOrderlist.setObjectName(_fromUtf8("actionOrderlist"))
+        self.actionDigitView = QtGui.QAction(MainWindow)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/dollar.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionDigitView.setIcon(icon3)
+        self.actionDigitView.setObjectName(_fromUtf8("actionDigitView"))
         self.toolBar.addAction(self.actionExecute)
         self.toolBar.addAction(self.actionOrderlist)
+        self.toolBar.addAction(self.actionDigitView)
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.actionExecute, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), MainWindow.slot_ToggleExecute)
@@ -85,10 +91,20 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(_translate("MainWindow", "ZeroExecuter", None))
         item = self.tableWidget.verticalHeaderItem(0)
+        item.setText(_translate("MainWindow", "1", None))
         item = self.tableWidget.verticalHeaderItem(1)
+        item.setText(_translate("MainWindow", "2", None))
         item = self.tableWidget.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "name", None))
         item = self.tableWidget.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "state", None))
         item = self.tableWidget.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "starter", None))
+        self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
+        self.actionExecute.setText(_translate("MainWindow", "Execute", None))
+        self.actionOrderlist.setText(_translate("MainWindow", "OrderList", None))
+        self.actionDigitView.setText(_translate("MainWindow", "DigitView", None))
 
 import zeroexecuter_rc

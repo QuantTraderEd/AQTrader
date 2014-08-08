@@ -78,6 +78,7 @@
    </attribute>
    <addaction name="actionExecute"/>
    <addaction name="actionOrderlist"/>
+   <addaction name="actionDigitView"/>
   </widget>
   <action name="actionExecute">
    <property name="checkable">
@@ -99,6 +100,15 @@
    </property>
    <property name="text">
     <string>OrderList</string>
+   </property>
+  </action>
+  <action name="actionDigitView">
+   <property name="icon">
+    <iconset resource="zeroexecuter.qrc">
+     <normaloff>:/resource/dollar.png</normaloff>:/resource/dollar.png</iconset>
+   </property>
+   <property name="text">
+    <string>DigitView</string>
    </property>
   </action>
  </widget>
