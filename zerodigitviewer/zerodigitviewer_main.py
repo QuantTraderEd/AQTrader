@@ -26,15 +26,20 @@ class ZeroDigitViewer(QtGui.QWidget):
     def __init__(self,parent=None):
         super(ZeroDigitViewer,self).__init__()
         self.initUI()
-        self.initXing()
-        self.initQuery()
-        self.initTIMER()
+        #self.initXing()
+        #self.initQuery()
+        #self.initTIMER()
         
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         
-    def initXing(self):
+    def initXing(self,XASession=None):
+        if XASession != None:
+            self.XASession = XASession
+            if self.XASession.IsConnected(): self.accountlist = self.XASession.GetAccountList()
+            return
+
         self.XASession = px.XASession()
         obs = observer_cmd()        
         
@@ -56,7 +61,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         while self.XASession.flag:
             pythoncom.PumpWaitingMessages()
         
-        if self.XASession.data[0] is not u'0000':
+        if self.XASession.data[0] != u'0000':
             self.XASession.DisconnectServer()
             return
             
@@ -91,6 +96,9 @@ class ZeroDigitViewer(QtGui.QWidget):
 if __name__ == '__main__':    
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
+    myform.initXing()
+    myform.initQuery()
+    myform.initTIMER()
     myform.show()
     app.exec_()
     
