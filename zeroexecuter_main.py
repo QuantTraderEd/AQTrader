@@ -16,6 +16,7 @@ from ui_zeroexecuter import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zeroexecuter_thread import ExecuterThread
 from orderlistdlg_main import OrderListDialog
+from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer
 
 
 from weakref import proxy
@@ -81,6 +82,10 @@ class MainForm(QtGui.QMainWindow):
         
         self.myOrdListDlg = OrderListDialog()
         
+        self.myDigitViewer = ZeroDigitViewer()
+        
+        self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
+        
         
         
     def __del__(self):
@@ -93,9 +98,9 @@ class MainForm(QtGui.QMainWindow):
     def slot_StartXingDlg(self,row,column):
         if row == 0 and column == 2:
             #print("Row %d and Column %d was doblueclicked" % (row,column))
-            myform = LoginForm(XASession=proxy(self.XASession))
+            myform = LoginForm(self,proxy(self.XASession))
             myform.show()
-            myform.exec_()
+            #myform.exec_()
             self.xingTimer.start(1000)
             if self.XASession.IsConnected():
                 self.accountlist = self.XASession.GetAccountList()
@@ -117,9 +122,15 @@ class MainForm(QtGui.QMainWindow):
             
     def slot_ToggleExecute(self,boolToggle):
         if (not self.executerThread.isRunning()) and boolToggle: #and self.XASession.IsConnected():
-            print  self.accountlist
-            self.executerThread.start()
+            if self.XASession.IsConnected():
+                self.accountlist = self.XASession.GetAccountList()
+                self.executerThread._accountlist = self.accountlist
+                print  self.accountlist
+                self.executerThread.start()
+            else:
+                self.ui.actionExecute.setChecked(False)
         elif self.executerThread.isRunning() and (not boolToggle):
+            self.executerThread.terminate()
             print 'thread pause'
         pass
     
@@ -134,8 +145,15 @@ class MainForm(QtGui.QMainWindow):
         print "will update ordlistDB"
         self.myOrdListDlg.OnUpdateList()
         pass
-        
     
+    def triggeredDigitViewer(self):
+        if not self.myDigitViewer.isVisible():
+            self.myDigitViewer.initXing(proxy(self.XASession))
+            self.myDigitViewer.initQuery()
+            self.myDigitViewer.initTIMER()
+            self.myDigitViewer.show()
+        pass
+        
         
 class XingXASessionUpdate():
     def __init__(self,status_xi=None):
