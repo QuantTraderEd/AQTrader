@@ -102,14 +102,17 @@ class MainForm(QtGui.QMainWindow):
             myform.show()
             #myform.exec_()
             self.xingTimer.start(1000)
-            if self.XASession.IsConnected():
+            
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.accountlist = self.XASession.GetAccountList()
                 self.executerThread._accountlist = self.accountlist
                 
             
     def xingTimerUpdate(self):
-        if self.XASession.IsConnected():
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             if self.status_xi.text() == 'connect' or self.status_xi.text() == 'connect: 0000':
+                self.status_xi.setText('connect.')
+            elif self.status_xi.text() == 'disconnect':
                 self.status_xi.setText('connect.')
             elif self.status_xi.text() == 'connect.':
                 self.status_xi.setText('connect..')
@@ -122,7 +125,7 @@ class MainForm(QtGui.QMainWindow):
             
     def slot_ToggleExecute(self,boolToggle):
         if (not self.executerThread.isRunning()) and boolToggle: #and self.XASession.IsConnected():
-            if self.XASession.IsConnected():
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.accountlist = self.XASession.GetAccountList()
                 self.executerThread._accountlist = self.accountlist
                 print  self.accountlist
