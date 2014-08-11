@@ -37,7 +37,8 @@ class ZeroDigitViewer(QtGui.QWidget):
     def initXing(self,XASession=None):
         if XASession != None:
             self.XASession = XASession
-            if self.XASession.IsConnected(): self.accountlist = self.XASession.GetAccountList()
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+                self.accountlist = self.XASession.GetAccountList()
             return
 
         self.XASession = px.XASession()
@@ -65,26 +66,28 @@ class ZeroDigitViewer(QtGui.QWidget):
             self.XASession.DisconnectServer()
             return
             
-        if self.XASession.IsConnected(): self.accountlist = self.XASession.GetAccountList()
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+            self.accountlist = self.XASession.GetAccountList()
         
         
     def initQuery(self):
-        if self.XASession.IsConnected():
-            obs = observer_t0441()
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             self.NewQuery = px.XAQuery_t0441()
+            obs = observer_t0441()
             self.NewQuery.observer = obs
             self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
             self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
         
         
     def initTIMER(self):
-        if self.XASession.IsConnected():
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             self.ctimer =  QtCore.QTimer()
-            self.ctimer.start(5000)
             self.ctimer.timeout.connect(self.onTimer)
+            self.ctimer.start(5000)
+            
         
     def onTimer(self):
-        if self.XASession.IsConnected():
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.NewQuery.flag = True
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
