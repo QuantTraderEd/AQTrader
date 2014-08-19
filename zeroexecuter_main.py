@@ -7,6 +7,7 @@ Created on Sat Oct 19 13:37:02 2013
 import sys
 import time
 import os
+import pythoncom
 
 import pyxing as px
 import sqlite3 as lite
@@ -17,6 +18,7 @@ from xinglogindlg import LoginForm
 from zeroexecuter_thread import ExecuterThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer
+from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 
 from weakref import proxy
@@ -33,6 +35,8 @@ class MainForm(QtGui.QMainWindow):
         self.labelTimer = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
         self.xingTimer = QtCore.QTimer()
         self.xingTimer.timeout.connect(self.xingTimerUpdate)
+        self.queryTimer = QtCore.QTimer()
+        self.queryTimer.timeout.connect(self.queryTimerUpdate)
         self.ui.statusbar.addPermanentWidget(self.labelTimer)
         
         
@@ -83,16 +87,36 @@ class MainForm(QtGui.QMainWindow):
         self.myOrdListDlg = OrderListDialog()
         
         self.myDigitViewer = ZeroDigitViewer()
+        self.myPositionViewer = ZeroPositionViewer()
         
         self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
+        self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
         
         
         
     def __del__(self):
         self.XASession.DisconnectServer()
+    
+    def initT0441Query(self):
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
+            self.NewQuery = px.XAQuery_t0441()
+            obs = observer_t0441()
+            self.NewQuery.observer = obs
+            self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+            self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        
+            
+    def queryTimerUpdate(self):
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and self.NewQuery != None:
+            self.NewQuery.flag = True
+            ret = self.NewQuery.Request(False)        
+            while self.NewQuery.flag:
+                pythoncom.PumpWaitingMessages()
+            self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
+            self.myPositionViewer.onReceiveData(self.NewQuery.data)
                 
         
     def slot_StartXingDlg(self,row,column):
@@ -103,10 +127,6 @@ class MainForm(QtGui.QMainWindow):
             #myform.exec_()
             self.xingTimer.start(1000)
             
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-                self.accountlist = self.XASession.GetAccountList()
-                self.executerThread._accountlist = self.accountlist
-                
             
     def xingTimerUpdate(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -129,6 +149,8 @@ class MainForm(QtGui.QMainWindow):
                 self.accountlist = self.XASession.GetAccountList()
                 self.executerThread._accountlist = self.accountlist
                 print  self.accountlist
+                self.initT0441Query()
+                self.queryTimer.start(5000)
                 self.executerThread.start()
             else:
                 self.ui.actionExecute.setChecked(False)
@@ -151,10 +173,12 @@ class MainForm(QtGui.QMainWindow):
     
     def triggeredDigitViewer(self):
         if not self.myDigitViewer.isVisible():
-            self.myDigitViewer.initXing(proxy(self.XASession))
-            self.myDigitViewer.initQuery()
-            self.myDigitViewer.initTIMER()
             self.myDigitViewer.show()
+        pass
+    
+    def trigeredPositionViewer(self):
+        if not self.myPositionViewer.isVisible():
+            self.myPositionViewer.show()
         pass
         
         
@@ -168,6 +192,13 @@ class XingXASessionUpdate():
         if msg[:5] == ' 0000':
             self.status_xi.setText('connect:' + msg[:5])    
         pass
+    
+class observer_t0441:
+    def Update(self,subject):        
+        item = subject.data[0]        
+        subject.pnl = int(int(item['tsunik']) * 0.001)
+        subject.flag = False
+        pass    
         
         
 if __name__ == "__main__":
