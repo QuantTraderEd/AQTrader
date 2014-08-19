@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'zeroexecuter.ui'
 #
-# Created: Fri Aug 08 22:48:25 2014
+# Created: Tue Aug 19 23:40:47 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -80,9 +80,15 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/dollar.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionDigitView.setIcon(icon3)
         self.actionDigitView.setObjectName(_fromUtf8("actionDigitView"))
+        self.actionPositionView = QtGui.QAction(MainWindow)
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/Settings-Location-icon.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionPositionView.setIcon(icon4)
+        self.actionPositionView.setObjectName(_fromUtf8("actionPositionView"))
         self.toolBar.addAction(self.actionExecute)
         self.toolBar.addAction(self.actionOrderlist)
         self.toolBar.addAction(self.actionDigitView)
+        self.toolBar.addAction(self.actionPositionView)
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.actionExecute, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), MainWindow.slot_ToggleExecute)
@@ -106,5 +112,6 @@ class Ui_MainWindow(object):
         self.actionExecute.setText(_translate("MainWindow", "Execute", None))
         self.actionOrderlist.setText(_translate("MainWindow", "OrderList", None))
         self.actionDigitView.setText(_translate("MainWindow", "DigitView", None))
+        self.actionPositionView.setText(_translate("MainWindow", "PositionView", None))
 
 import zeroexecuter_rc

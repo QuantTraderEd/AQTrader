@@ -79,6 +79,7 @@
    <addaction name="actionExecute"/>
    <addaction name="actionOrderlist"/>
    <addaction name="actionDigitView"/>
+   <addaction name="actionPositionView"/>
   </widget>
   <action name="actionExecute">
    <property name="checkable">
@@ -109,6 +110,15 @@
    </property>
    <property name="text">
     <string>DigitView</string>
+   </property>
+  </action>
+  <action name="actionPositionView">
+   <property name="icon">
+    <iconset resource="zeroexecuter.qrc">
+     <normaloff>:/resource/Settings-Location-icon.png</normaloff>:/resource/Settings-Location-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>PositionView</string>
    </property>
   </action>
  </widget>
