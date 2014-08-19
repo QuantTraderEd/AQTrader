@@ -48,7 +48,7 @@ class ZeroPositionViewer(QtGui.QWidget):
         showcerterror = 1
         
         user = 'eddy777'
-        password = 'c9792458'
+        password = ''
         certpw = ""        
         
         self.XASession.observer = obs
