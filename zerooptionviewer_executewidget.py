@@ -25,15 +25,20 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
         self.resize(220,40)
         
         self.setWindowFlags(QtCore.Qt.Popup)
-        
-        point = widget.rect().bottomRight()
-        
-        global_point = widget.mapToGlobal(point)
-        self.move(global_point - QtCore.QPoint(self.width(), 0))
-        
+        self.initMove(widget)
+                
         self.ui.pushButtonSend.clicked.connect(self.onSend)
         self.ui.radioButtonBuy.toggled.connect(self.onToggled)
         pass
+    
+    def initMove(self,widget):
+        if widget != None:
+            point = widget.rect().bottomRight()
+            
+            global_point = widget.mapToGlobal(point)
+            self.move(global_point - QtCore.QPoint(self.width(), 0))
+        pass
+        
     
     def initZMQ(self):
         context = zmq.Context()
