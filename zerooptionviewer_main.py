@@ -33,6 +33,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.actionStart.triggered.connect(self.onStart)
         self.resize(800,200)
+        self.myExecuteWidget = OptionViewerExecuteWidget(self)
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
@@ -65,6 +66,7 @@ class MainForm(QtGui.QMainWindow):
 
         self.alignRightColumnList = [1,3,8]        
         self.bidaskcolindex = [4,5,9,10]
+        self.synthbidaskcolindex = [15,16]
         
         self.ui.tableWidget.cellDoubleClicked[int,int].connect(self.onDoubleClicked)
                                 
@@ -111,7 +113,7 @@ class MainForm(QtGui.QMainWindow):
         
         
     def onStart(self):
-        if not self.mythread.isRunning():            
+        if not self.mythread.isRunning():                        
             self.mythread.start()
             #print "start"
         pass
@@ -133,6 +135,12 @@ class MainForm(QtGui.QMainWindow):
                 elif col in self.bidaskcolindex[2:4]: shcode = self.ui.tableWidget.item(row,14).text()                
             except AttributeError:                    
                 return
+        elif col in self.synthbidaskcolindex:
+            try:
+                callShCode = self.ui.tableWidget.item(row,0).text()
+                putShCode = self.ui.tableWidget.item(row,14).text()                
+            except AttributeError:
+                return
             
         if col == self.bidaskcolindex[0] or col == self.bidaskcolindex[2]:                          
             price = float(self.ui.tableWidget.item(row,col).text())                
@@ -140,17 +148,35 @@ class MainForm(QtGui.QMainWindow):
         elif col == self.bidaskcolindex[1] or col == self.bidaskcolindex[3]:                    
             price = float(self.ui.tableWidget.item(row,col).text())
             buysell = False
+        elif col == self.synthbidaskcolindex[0]:
+            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
+            callBuySell = True
+            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
+            putBuySell = False
+            print callBuySell, callShCode, callPrice
+            print putBuySell, putShCode,putPrice
+            return
+        elif col == self.synthbidaskcolindex[1]:
+            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
+            callBuySell = False
+            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
+            putBuySell = True
+            print callBuySell, callShCode, callPrice
+            print putBuySell, putShCode,putPrice
+            return
         else:
             return
+            
         item = self.ui.tableWidget.item(row,col)
         rect = self.ui.tableWidget.visualItemRect(item)
         winPos = self.pos()
         rect.moveTo(rect.x() + winPos.x() + rect.width()/2, rect.y() + winPos.y() + rect.height() * 5)
         widget = QtGui.QWidget()
         widget.setGeometry(rect)
-        myExecuteWidget = OptionViewerExecuteWidget(self,widget)
-        myExecuteWidget.initOrder(buysell,shcode,price,1)
-        myExecuteWidget.show()
+        
+        self.myExecuteWidget.initMove(widget)
+        self.myExecuteWidget.initOrder(buysell,shcode,price,1)
+        self.myExecuteWidget.show()
         pass
         
         
