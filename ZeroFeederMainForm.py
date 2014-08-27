@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import zmq
+import ctypes
 import pythoncom
 #import cybos_feeder
 
@@ -27,7 +28,11 @@ from weakref import proxy
 import psutil
 from subprocess import Popen
 
-
+class ConsoleObserver:
+    def Update(self,subject):
+        for i in xrange(len(subject.data)):
+            print subject.data[i], 
+        print
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
@@ -45,6 +50,7 @@ class MainForm(QtGui.QMainWindow):
         
     def __del__(self):
         self.XASession.DisconnectServer()
+        ctypes.windll.user32.PostQuitMessage(0)
         
         
     def initUI(self):
@@ -98,6 +104,8 @@ class MainForm(QtGui.QMainWindow):
         self.ZMQEquityQuoteSender = ZMQTickSender(self.socket,'cybos','Q','equity')
         self.ZMQEquityExpectSender = ZMQTickSender(self.socket,'xing','E','equity')
         self.ZMQIndexExpectSender = ZMQTickSender(self.socket,'cybos','E','index')
+        self.ZMQETFNAVSender = ZMQTickSender(self.socket,'xing','N','equity')
+        self.obs = ConsoleObserver()
         
     def initTAQFeederLst(self):
         self.FutureTAQFeederLst = []
@@ -135,14 +143,20 @@ class MainForm(QtGui.QMainWindow):
         self.EquityTAQFeederLst.append(NewItemTrade)
         
     def registerFeedItem_YS3(self,shcode):
-        NewItemExprect = px.XAReal_YS3(shcode,'list')
-        NewItemExprect.Attach(self.ZMQEquityExpectSender)                
-        NewItemExprect.AdviseRealData()
-        self.EquityTAQFeederLst.append(NewItemExprect)
+        NewItemExpect = px.XAReal_YS3(shcode,'list')
+        NewItemExpect.Attach(self.ZMQEquityExpectSender)                
+        NewItemExpect.AdviseRealData()
+        self.EquityTAQFeederLst.append(NewItemExpect)
         
-    def registerFeedItem_FOExpect(self,shcode):
-        NewItemExpect = pc.FOExpectCur()
+    def registerFeedItem_I5_(self,shcode):
+        NewItemNAV = px.XAReal_I5_(shcode,'list')
+        NewItemNAV.Attach(self.ZMQETFNAVSender)                
+        NewItemNAV.AdviseRealData()
+        self.EquityTAQFeederLst.append(NewItemNAV)
+        
+    def registerFeedItem_FOExpect(self,shcode):        
         if shcode[:3] == '101':
+            NewItemExpect = pc.FOExpectCur()
             NewItemExpect.Attach(self.ZMQFuturesExpectSender)
             NewItemExpect.SetInputValue(0,shcode[:-3])
             NewItemExpect.SetInputValue(1,'F1')
@@ -150,12 +164,13 @@ class MainForm(QtGui.QMainWindow):
             NewItemExpect.Subscribe()  
             self.FutureTAQFeederLst.append(NewItemExpect)
         elif shcode[:3] == '201' or shcode[:3] == '301':
-            NewItemExpect.Attach(self.ZMQOptionsExpectSender)
-            NewItemExpect.SetInputValue(0,shcode)
-            NewItemExpect.SetInputValue(1,'O1')
-            NewItemExpect.SetInputValue(2,shcode[3:-3])
-            NewItemExpect.Subscribe()  
-            self.OptionTAQFeederLst.append(NewItemExpect)
+            NewItemOptionExpect = pc.FOExpectCur()
+            NewItemOptionExpect.Attach(self.ZMQOptionsExpectSender)            
+            NewItemOptionExpect.SetInputValue(0,shcode)
+            NewItemOptionExpect.SetInputValue(1,'O1')
+            NewItemOptionExpect.SetInputValue(2,shcode[3:-3])
+            NewItemOptionExpect.Subscribe()  
+            self.OptionTAQFeederLst.append(NewItemOptionExpect)
             
     def registerFeedItem_FutureJpBid(self,shcode):
         NewItemQuote = pc.FutureJpBid(shcode[:-3])
@@ -175,15 +190,6 @@ class MainForm(QtGui.QMainWindow):
         NewItemQuote.Subscribe()                    
         self.OptionTAQFeederLst.append(NewItemQuote)
         
-    def registerFeedItem_EurexJpBid(self,shcode):
-        NewItemQuote = pc.EurexJpBid(shcode)
-        NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
-        try:
-            NewItemQuote.Subscribe()
-        except pythoncom.pywintypes.com_error as e:
-            pass
-        self.OptionTAQFeederLst.append(NewItemQuote)
-        
     def registerFeedItem_StockJpBid(self,shcode):
         NewItemQuote = pc.StockJpBid('A' + shcode)
         NewItemQuote.Attach(self.ZMQEquityQuoteSender)
@@ -200,8 +206,7 @@ class MainForm(QtGui.QMainWindow):
     def slot_ToggleFeed(self,boolToggle):
         pythoncom.CoInitialize()
         
-        if boolToggle: self.slot_RequestPrevClosePrice()
-        
+        #if boolToggle: self.slot_RequestPrevClosePrice()
         self.initFeedCode()
         self.initZMQSender()
         self.initTAQFeederLst()
@@ -222,12 +227,12 @@ class MainForm(QtGui.QMainWindow):
                     
             for shcode in self._FeedCodeList.equityshcodelst:
                 self.registerFeedItem_S3_(shcode)
-                self.registerFeedItem_YS3(shcode)              
+                self.registerFeedItem_YS3(shcode)   
+                self.registerFeedItem_I5_(shcode)
                               
                 
         if self._CpCybos.IsConnect() and boolToggle:                                    
             nowlocaltime = time.localtime()
-            
             for shcode in self._FeedCodeList.futureshcodelst:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
                     self.registerFeedItem_FutureJpBid(shcode)                        
@@ -235,21 +240,21 @@ class MainForm(QtGui.QMainWindow):
                     self.registerFeedItem_CMECurr(shcode)
                 self.registerFeedItem_FOExpect(shcode)                  
                     
+                    
             for shcode in self._FeedCodeList.optionshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
-                    self.registerFeedItem_OptionJpBid(shcode)
-                else:
-                    self.registerFeedItem_EurexJpBid(shcode)
-                self.registerFeedItem_FOExpect(shcode)                  
+                self.registerFeedItem_OptionJpBid(shcode)
+                self.registerFeedItem_FOExpect(shcode)
+                                  
                 
             for shcode in self._FeedCodeList.equityshcodelst:                
                 self.registerFeedItem_StockJpBid(shcode)
                         
             for shcode in self._FeedCodeList.indexshcodelst:    
                 self.registerFeedItem_ExpectIndexS(shcode)
-                                    
-        while self.ui.actionFeed.isChecked():
-            pythoncom.PumpWaitingMessages()
+                                            
+        if boolToggle:
+            pythoncom.PumpMessages()
+
         pass
     
     
