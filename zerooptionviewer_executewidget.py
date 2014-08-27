@@ -12,9 +12,14 @@ from ui_executewidget import Ui_Form
 class OptionViewerExecuteWidget(QtGui.QWidget):
     def __init__(self,parent = None, widget = None):
         QtGui.QWidget.__init__(self,parent)
+        self.initVar()
         self.initUI(widget)
-        self.initZMQ()
+        #self.initZMQ()
         
+        
+    def initVar(self):
+        self.synthfutures_dict = {}
+        self.socket = None
         
     def initUI(self,widget=None):
         self.ui = Ui_Form()
@@ -34,7 +39,6 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
     def initMove(self,widget):
         if widget != None:
             point = widget.rect().bottomRight()
-            
             global_point = widget.mapToGlobal(point)
             self.move(global_point - QtCore.QPoint(self.width(), 0))
         pass
@@ -54,17 +58,43 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
         self.ui.spinBoxQty.setValue(qty)
         self.onToggled()
         pass
+    
+    def initSynthOrder(self,buysell=True,price=0,callShCode='',callPrice=0,putShCode='',putPrice=0,qty=0):
+        self.ui.radioButtonBuy.setCheckable(buysell)
+        self.ui.radioButtonSell.setChecked(not buysell)
+        self.ui.lineEditShortCode.setText('SNTH'+callShCode[-5:])
+        self.ui.doubleSpinBoxPrice.setValue(price)
+        self.ui.spinBoxQty.setValue(qty)
+        self.onToggled()
+        self.synthfutures_dict[callShCode] = callPrice
+        self.synthfutures_dict[putShCode] = putPrice
+        pass
+        
         
     def onSend(self):
         buysell = self.ui.radioButtonBuy.isChecked()
         shcode = self.ui.lineEditShortCode.text()
         price = self.ui.doubleSpinBoxPrice.value()
         qty = self.ui.spinBoxQty.value()
-        msg = str(buysell) + ',' + str(shcode) + ',' + str(price) + ',' + str(qty)
-        print msg
-        self.socket.send(msg)
-        msg_in = self.socket.recv()        
-        print msg_in
+        if shcode[:3] == '201' or shcode[3:] == '301':
+            msg = str(buysell) + ',' + str(shcode) + ',' + str(price) + ',' + str(qty)
+            print msg
+            if type(self.socket).__name__ == 'Socket':
+                self.socket.send(msg)
+                msg_in = self.socket.recv()        
+                print msg_in
+        elif shcode[:4] == 'SNTH':
+            for key in self.synthfutures_dict.iterkeys():
+                price = self.synthfutures_dict[key]
+                if key[:3] == '301': bs = not buysell
+                elif key[:3] == '201': bs = buysell
+                msg = str(bs) + ',' + key + ',' + str(price) + ',' + str(qty)
+                print msg
+                if type(self.socket).__name__ == 'Socket':
+                    self.socket.send(msg)
+                    msg_in = self.socket.recv()        
+                    print msg_in
+            
         self.close()
         
     def onToggled(self):
@@ -90,7 +120,8 @@ if __name__ == '__main__':
         def handleOpenDialog(self):
             self.popup = OptionViewerExecuteWidget(self, self.button)
             self.popup.show()    
-            self.popup.initOrder(False,'201J8260',0.60,1)
+            #self.popup.initOrder(False,'201J8260',0.91,1)
+            self.popup.initSynthOrder(True,267,'201J9267',0.91,'301J9267',0.81,1)
         
     app = QtGui.QApplication(sys.argv)
     win = Window()
