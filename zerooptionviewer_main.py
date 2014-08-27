@@ -149,21 +149,19 @@ class MainForm(QtGui.QMainWindow):
             price = float(self.ui.tableWidget.item(row,col).text())
             buysell = False
         elif col == self.synthbidaskcolindex[0]:
+            price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[0]).text())
             callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
             callBuySell = True
             putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
             putBuySell = False
-            print callBuySell, callShCode, callPrice
-            print putBuySell, putShCode,putPrice
-            return
+            buysell = callBuySell
         elif col == self.synthbidaskcolindex[1]:
+            price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[1]).text())
             callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
             callBuySell = False
             putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
             putBuySell = True
-            print callBuySell, callShCode, callPrice
-            print putBuySell, putShCode,putPrice
-            return
+            buysell = callBuySell
         else:
             return
             
@@ -174,9 +172,14 @@ class MainForm(QtGui.QMainWindow):
         widget = QtGui.QWidget()
         widget.setGeometry(rect)
         
-        self.myExecuteWidget.initMove(widget)
-        self.myExecuteWidget.initOrder(buysell,shcode,price,1)
-        self.myExecuteWidget.show()
+        if col in self.bidaskcolindex:                        
+            self.myExecuteWidget.initMove(widget)
+            self.myExecuteWidget.initOrder(buysell,shcode,price,1)
+            self.myExecuteWidget.show()
+        elif col in self.synthbidaskcolindex:
+            self.myExecuteWidget.initMove(widget)
+            self.myExecuteWidget.initSynthOrder(buysell,price,callShCode,callPrice,putShCode,putPrice,1)
+            self.myExecuteWidget.show()
         pass
         
         
