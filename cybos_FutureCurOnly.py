@@ -17,7 +17,7 @@ class FutureCurOnly(Source):
         pass
     def OnSignal(self):
         self.data = []
-        for i in xrange(31): self.data.append(self.com.GetHeaderValue(i))
+        for i in xrange(34): self.data.append(self.com.GetHeaderValue(i))
         #for debug
         self.Notify()
         pass
