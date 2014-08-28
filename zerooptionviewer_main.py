@@ -34,6 +34,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.actionStart.triggered.connect(self.onStart)
         self.resize(800,200)
         self.myExecuteWidget = OptionViewerExecuteWidget(self)
+        self.myExecuteWidget.initZMQ()
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
@@ -150,18 +151,14 @@ class MainForm(QtGui.QMainWindow):
             buysell = False
         elif col == self.synthbidaskcolindex[0]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[0]).text())
-            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
-            callBuySell = True
-            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
-            putBuySell = False
-            buysell = callBuySell
+            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
+            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+            buysell = True
         elif col == self.synthbidaskcolindex[1]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[1]).text())
-            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
-            callBuySell = False
-            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
-            putBuySell = True
-            buysell = callBuySell
+            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
+            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+            buysell = False
         else:
             return
             
@@ -176,7 +173,7 @@ class MainForm(QtGui.QMainWindow):
             self.myExecuteWidget.initMove(widget)
             self.myExecuteWidget.initOrder(buysell,shcode,price,1)
             self.myExecuteWidget.show()
-        elif col in self.synthbidaskcolindex:
+        elif col in self.synthbidaskcolindex:            
             self.myExecuteWidget.initMove(widget)
             self.myExecuteWidget.initSynthOrder(buysell,price,callShCode,callPrice,putShCode,putPrice,1)
             self.myExecuteWidget.show()
