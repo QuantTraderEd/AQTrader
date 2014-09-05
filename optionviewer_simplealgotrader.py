@@ -25,6 +25,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
     
     def initVar(self):
         self.counter = 0
+        self.callShCode = '201J9262'
+        self.putShCode = '301J9262'
         self.entry_counter1 = 0
         self.entry_counter2 = 0
         
@@ -49,32 +51,32 @@ class SimpleAlgoTrader(QtGui.QWidget):
     
     def onXTimerUpdate(self):        
         nowtime = time.localtime()
-        if nowtime.tm_hour == 9 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entryc_counter1 < 5:
+        if nowtime.tm_hour == 9 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entry_counter1 < 5:
             buysell = False
-            shcode = '201J9262'
+            shcode = self.callShCode
             price = 0.40
             qty = 1     
             
             self.sendOrder(buysell,shcode,price,qty)            
                             
             buysell = False
-            shcode = '301J9262'
+            shcode = self.putShCode
             price = 0.40
             qty = 1
             
             if self.sendOrder(buysell,shcode,price,qty):            
                 self.entry_counter+=1
                 
-        elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entryc_counter2 < 5:
+        elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entry_counter2 < 5:
             buysell = False
-            shcode = '201J9262'
+            shcode = self.callShCode
             price = 0.40
             qty = 1     
             
             self.sendOrder(buysell,shcode,price,qty)            
                             
             buysell = False
-            shcode = '301J9262'
+            shcode = self.putShCode
             price = 0.40
             qty = 1
             
@@ -84,14 +86,14 @@ class SimpleAlgoTrader(QtGui.QWidget):
         elif nowtime.tm_hour == 14 and nowtime.tm_min > 39 and nowtime.tm_min < 42 and self.counter < 10:            
             #time.sleep(random.randint(0,2000) * 0.001)            
             buysell = True 
-            shcode = '201J9262'
+            shcode = self.callShCode
             price = 1.90
             qty = 1
             
             self.sendOrder(buysell,shcode,price,qty)            
                             
             buysell = True
-            shcode = '301J9262'
+            shcode = self.putShCode
             price = 1.90
             qty = 1
             
