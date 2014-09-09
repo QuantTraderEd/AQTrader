@@ -13,9 +13,9 @@ import pyxing as px
 import sqlite3 as lite
 
 from PyQt4 import QtCore, QtGui
-from ui_zeroexecuter import Ui_MainWindow
+from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
-from zeroexecuter_thread import ExecuterThread
+from zerooms_thread import ExecuterThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer

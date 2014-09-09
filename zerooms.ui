@@ -26,7 +26,7 @@
    <string>ZeroExecuter</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="zeroexecuter.qrc">
+   <iconset resource="zerooms.qrc">
     <normaloff>:/resource/lightning.png</normaloff>:/resource/lightning.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -86,7 +86,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="zeroexecuter.qrc">
+    <iconset resource="zerooms.qrc">
      <normaloff>:/resource/shield.png</normaloff>
      <normalon>:/resource/lightning.png</normalon>:/resource/shield.png</iconset>
    </property>
@@ -96,7 +96,7 @@
   </action>
   <action name="actionOrderlist">
    <property name="icon">
-    <iconset resource="zeroexecuter.qrc">
+    <iconset resource="zerooms.qrc">
      <normaloff>:/resource/book_keeping.png</normaloff>:/resource/book_keeping.png</iconset>
    </property>
    <property name="text">
@@ -105,7 +105,7 @@
   </action>
   <action name="actionDigitView">
    <property name="icon">
-    <iconset resource="zeroexecuter.qrc">
+    <iconset resource="zerooms.qrc">
      <normaloff>:/resource/dollar.png</normaloff>:/resource/dollar.png</iconset>
    </property>
    <property name="text">
@@ -114,7 +114,7 @@
   </action>
   <action name="actionPositionView">
    <property name="icon">
-    <iconset resource="zeroexecuter.qrc">
+    <iconset resource="zerooms.qrc">
      <normaloff>:/resource/Settings-Location-icon.png</normaloff>:/resource/Settings-Location-icon.png</iconset>
    </property>
    <property name="text">
@@ -123,7 +123,7 @@
   </action>
  </widget>
  <resources>
-  <include location="zeroexecuter.qrc"/>
+  <include location="zerooms.qrc"/>
  </resources>
  <connections>
   <connection>

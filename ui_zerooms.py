@@ -114,4 +114,4 @@ class Ui_MainWindow(object):
         self.actionDigitView.setText(_translate("MainWindow", "DigitView", None))
         self.actionPositionView.setText(_translate("MainWindow", "PositionView", None))
 
-import zeroexecuter_rc
+import zerooms_rc
