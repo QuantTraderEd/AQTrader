@@ -65,7 +65,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             qty = 1
             
             if self.sendOrder(buysell,shcode,price,qty):            
-                self.entry_counter+=1
+                self.entry_counter1+=1
                 
         elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entry_counter2 < 5:
             buysell = False
