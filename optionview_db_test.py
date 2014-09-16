@@ -99,25 +99,25 @@ class OptionsDBTest(QtGui.QWidget):
         lst = msg.split(',')
         chk = False
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
-            shcode = lst[4]
+            shcode = str(lst[4]) + '000'
             ask1 = convert(lst[6])
             bid1 = convert(lst[23])
-            askqty1 = lst[11]
-            bidqty1 = lst[28]
-            taqitem = (shcode,lst[1],lst[2],lst[3],strnowtime,bid1,ask1,bidqty1,askqty1)
+            askqty1 = str(lst[11])
+            bidqty1 = str(lst[28])
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = True
             print taqitem
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
-            shcode = lst[4]                    
-#            ask1 = convert(lst[6])
-#            bid1 = convert(lst[23])
-#            askqty1 = lst[11]
-#            bidqty1 = lst[28]
-            askqty1 = lst[5]
-            ask1 = lst[6]
-            bid1 = lst[7]
-            bidqty1 = lst[8]
-            taqitem = (shcode,lst[1],lst[2],lst[3],strnowtime,bid1,ask1,bidqty1,askqty1)
+            shcode = str(lst[4])                    
+            ask1 = convert(lst[6])
+            bid1 = convert(lst[23])
+            askqty1 = str(lst[11])
+            bidqty1 = str(lst[28])
+#            askqty1 = lst[5]
+#            ask1 = lst[6]
+#            bid1 = lst[7]
+#            bidqty1 = lst[8]
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = True
             print taqitem
             
@@ -130,9 +130,9 @@ class OptionsDBTest(QtGui.QWidget):
     
     def onClick(self):
         if not self.mythread.isRunning():                        
-            #self.mythread.start()
-            self.onReceiveData('Test,cybos,Q,options,201JA265,23,0.64,0.63,22')
-            self.onReceiveData('Test,cybos,Q,options,301JA255,12,0.96,0.95,33')
+            self.mythread.start()
+            #self.onReceiveData('Test,cybos,Q,options,201JA265,23,0.64,0.63,22')
+            #self.onReceiveData('Test,cybos,Q,options,301JA255,12,0.96,0.95,33')
         pass
     
 if __name__ == '__main__':
