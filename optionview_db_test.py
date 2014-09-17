@@ -51,7 +51,7 @@ class OptionsDBTest(QtGui.QWidget):
                                            Time TEXT,                  
                                            BuySell TEXT,                                                                           
                                            LastPrice TEXT,
-                                           Qty TEXT,
+                                           LastQty TEXT,
                                            Bid1 TEXT,
                                            Ask1 TEXT,
                                            Bid2 TEXT,
@@ -97,42 +97,51 @@ class OptionsDBTest(QtGui.QWidget):
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')
         lst = msg.split(',')
-        chk = False
+        chk = ''
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = str(lst[4]) + '000'
-            ask1 = convert(lst[6])
-            bid1 = convert(lst[23])
-            askqty1 = str(lst[11])
-            bidqty1 = str(lst[28])
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
-            chk = True
-            print taqitem
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                ask1 = convert(lst[18])
+                bid1 = convert(lst[23])
+                askqty1 = str(lst[11])
+                bidqty1 = str(lst[28])
+            else:
+                ask1 = convert(lst[29])
+                bid1 = convert(lst[18])
+                askqty1 = str(lst[30])
+                bidqty1 = str(lst[19])
+                totalaskqty = str(lst[28])
+                totalbidqty = str(lst[17])[:-2]
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,totalbidqty,totalaskqty)
+            chk = 'Q'
+            print taqitem            
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])                    
-            ask1 = convert(lst[6])
-            bid1 = convert(lst[23])
-            askqty1 = str(lst[11])
-            bidqty1 = str(lst[28])
-#            askqty1 = lst[5]
-#            ask1 = lst[6]
-#            bid1 = lst[7]
-#            bidqty1 = lst[8]
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
-            chk = True
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                ask1 = convert(lst[6])
+                bid1 = convert(lst[23])
+                askqty1 = str(lst[11])
+                bidqty1 = str(lst[28])
+                totalaskqty = None
+                totalbidqty = None
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,totalbidqty,totalaskqty)
+            chk = 'Q'
             print taqitem
             
-        if chk:
-            self.cursor_db.execute("""INSERT INTO TickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)""",taqitem)
+        if chk == 'Q':
+            self.cursor_db.execute("""INSERT INTO TickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1,TotalBidQty,TotalAskQty) 
+                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)""",taqitem)
             self.conn_db.commit()
+        elif chk == 'T':
+            
+            self.conn_db.commit()    
         
         pass
     
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            #self.onReceiveData('Test,cybos,Q,options,201JA265,23,0.64,0.63,22')
-            #self.onReceiveData('Test,cybos,Q,options,301JA255,12,0.96,0.95,33')
+            self.button.setText('Running')
         pass
     
 if __name__ == '__main__':
