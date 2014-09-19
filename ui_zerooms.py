@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'zeroexecuter.ui'
+# Form implementation generated from reading ui file 'zerooms.ui'
 #
-# Created: Tue Aug 19 23:40:47 2014
+# Created: Fri Sep 19 19:14:17 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "ZeroExecuter", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "ZeroOMS", None))
         item = self.tableWidget.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "1", None))
         item = self.tableWidget.verticalHeaderItem(1)

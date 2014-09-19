@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>ZeroExecuter</string>
+   <string>ZeroOMS</string>
   </property>
   <property name="windowIcon">
    <iconset resource="zerooms.qrc">
