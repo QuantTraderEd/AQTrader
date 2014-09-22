@@ -21,6 +21,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
         QtGui.QWidget.__init__(self,parent)
         self.initUI()
         self.initVar()
+        self.initDB()
         self.initFeedCode()
         self.initStrikeList()        
         self.initThread()
@@ -30,7 +31,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.button = QtGui.QPushButton('Start', self)
         self.button.clicked.connect(self.onClick)
         self.button.move(60, 50)
-        self.setWindowTitle('SpAgTder')
+        self.setWindowTitle('SpAgTder2')
         self.resize(200, 120)
         pass
     
