@@ -11,6 +11,7 @@ import sqlite3 as lite
 from PyQt4 import QtCore, QtGui
 from zerooptionviewer_thread import OptionViewerThread
 from FeedCodeList import FeedCodeList
+from datetime import datetime
 
 def convert(strprice):
     return '%.2f' %round(float(strprice),2)
@@ -38,8 +39,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def initVar(self):
         self.counter = 0
         self.counter1 = 0
-        self.callShCode = '201JA267'
-        self.putShCode = '301JA257'
+        self.callShCode = '201JA260'
+        self.putShCode = '301JA255'
         self.entry_counter1 = 0
         self.entry_counter2 = 0
         pass
@@ -47,7 +48,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def initDB(self):
         self.conn = lite.connect(":memory:")
         self.cur = self.conn.cursor()
-        self.cur.execute("""CREATE TABLE options
+        self.cur.execute("""CREATE TABLE TickData
              (Time text, ShCode text, AskQty1 text, Ask1 text, Bid1 text, BidQty1 text)""")
         pass
         
@@ -92,7 +93,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
     
     def onReceiveData(self,msg):
         nowtime = datetime.now()
-        strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')
+        strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
         lst = msg.split(',')
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])
@@ -103,7 +104,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
             if shcode in [self.callShCode,self.putShCode]:
                 taqitem = (strnowtime,shcode,askqty1,ask1,bid1,bidqty1)
-                print lst[0],taqitem
+                #print lst[0],taqitem
                 self.cur.execute("""INSERT INTO TickData(Time,ShCode,AskQty1,Ask1,Bid1,BidQty1)
                                                 VALUES(?, ?, ?, ? ,?, ?)""",taqitem)
                 self.conn.commit()
@@ -111,17 +112,18 @@ class SimpleAlgoTrader(QtGui.QWidget):
     
     def onXTimerUpdate(self):        
         nowtime = time.localtime()
-        if nowtime.tm_hour == 9 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entry_counter1 < 10:
+        if nowtime.tm_hour == 9 and nowtime.tm_min > 22 and nowtime.tm_min < 25 and self.entry_counter1 < 15:
 
             buysell = False
             shcode = self.callShCode
             price = 0.40
             qty = 1
 
-            self.cur.execute("""SELECT Bid1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
 
+            #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
             self.sendOrder(buysell,shcode,price,qty)
 
             buysell = False
@@ -129,23 +131,25 @@ class SimpleAlgoTrader(QtGui.QWidget):
             price = 0.40
             qty = 1
 
-            self.cur.execute("""SELECT Bid1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
 
+            #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
             if self.sendOrder(buysell,shcode,price,qty):
                 self.entry_counter1+=1
 
-        elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 26 and self.entry_counter2 < 10:
+        elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < 15:
             buysell = False
             shcode = self.callShCode
             price = 0.40
             qty = 1
 
-            self.cur.execute("""SELECT Bid1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
 
+            #print buysell,shcode,price,qty
             self.sendOrder(buysell,shcode,price,qty)
 
             buysell = False
@@ -153,24 +157,25 @@ class SimpleAlgoTrader(QtGui.QWidget):
             price = 0.40
             qty = 1
 
-            self.cur.execute("""SELECT Bid1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
 
+            #print buysell,shcode,price,qty
             if self.sendOrder(buysell,shcode,price,qty):
                 self.entry_counter2+=1
 
-        elif nowtime.tm_hour == 14 and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 20:
+        elif nowtime.tm_hour == 14 and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 30:
             #time.sleep(random.randint(0,2000) * 0.001)
             buysell = True
             shcode = self.callShCode
             price = 1.90
             qty = 1
 
-            self.cur.execute("""SELECT Ask1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Ask1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
-
+            #print buysell,shcode,price,qty
             self.sendOrder(buysell,shcode,price,qty)
 
             buysell = True
@@ -178,10 +183,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
             price = 1.90
             qty = 1
 
-            self.cur.execute("""SELECT Ask1 From options WHERE ShCode = ? ORDER BY TIME LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Ask1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
             price = float(row[0])
 
+            #print buysell,shcode,price,qty
             if self.sendOrder(buysell,shcode,price,qty):
                 self.counter+=1
 
@@ -191,9 +197,9 @@ class SimpleAlgoTrader(QtGui.QWidget):
         if type(self.socket).__name__ == 'Socket':
             msg = str(buysell) + ',' + str(shcode) + ',' + str(price) + ',' + str(qty)
             print msg
-            #self.socket.send(msg)
-            #msg_in = self.socket.recv()
-            #print msg_in
+            self.socket.send(msg)
+            msg_in = self.socket.recv()
+            print msg_in
             return True
         else:
             print 'not define socket..'
