@@ -47,6 +47,7 @@ class OptionsDBTest(QtGui.QWidget):
         strtime = time.strftime('%Y%m%d',time.localtime())
         self.strdbname = "TAQ_%s.db" %(strtime)
         self.initMemoryDB()
+        self.initBufferDB()
         if not os.path.isfile(self.strdbname):        
             self.initFileDB()
         else:
@@ -62,6 +63,38 @@ class OptionsDBTest(QtGui.QWidget):
         self.cursor_memory = self.conn_memory.cursor()
         self.cursor_memory.execute("DROP TABLE IF EXISTS FutOptTickData")
         self.cursor_memory.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                       ShortCD TEXT,
+                                       FeedSource TEXT,
+                                       TAQ TEXT,
+                                       SecuritiesType TEXT,
+                                       Time TEXT,
+                                       BuySell TEXT,
+                                       LastPrice TEXT, LastQty TEXT,
+                                       Bid1 TEXT, Ask1 TEXT,
+                                       Bid2 TEXT, Ask2 TEXT,
+                                       Bid3 TEXT, Ask3 TEXT,
+                                       Bid4 TEXT, Ask4 TEXT,
+                                       Bid5 TEXT, Ask5 TEXT,
+                                       BidQty1 TEXT, AskQty1 TEXT,
+                                       BidQty2 TEXT, AskQty2 TEXT,
+                                       BidQty3 TEXT, AskQty3 TEXT,
+                                       BidQty4 TEXT, AskQty4 TEXT,
+                                       BidQty5 TEXT, AskQty5 TEXT,
+                                       BidCnt1 TEXT, AskCnt1 TEXT,
+                                       BidCnt2 TEXT, AskCnt2 TEXT,
+                                       BidCnt3 TEXT, AskCnt3 TEXT,
+                                       BidCnt4 TEXT, AskCnt4 TEXT,
+                                       BidCnt5 TEXT, AskCnt5 TEXT,
+                                       TotalBidQty TEXT, TotalAskQty TEXT,
+                                       TotalBidCnt TEXT, TotalAskCnt TEXT
+                                       )""")
+        pass
+
+    def initBufferDB(self):
+        self.conn_buffer = lite.connect(":memory:")
+        self.cursor_buffer = self.conn_buffer.cursor()
+        self.cursor_buffer.execute("DROP TABLE IF EXISTS FutOptTickData")
+        self.cursor_buffer.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -195,17 +228,20 @@ class OptionsDBTest(QtGui.QWidget):
             chk = 'T'
             
         if chk == 'Q':
-           self.cursor_memory.execute("""INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1)
-                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)""",taqitem)
-           self.conn_memory.commit()
+            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)"""
         elif chk == 'E':
-           self.cursor_memory.execute("""INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
-                                               VALUES(?, ?, ?, ? ,?, ?, ?)""",taqitem)
-           self.conn_memory.commit()
+            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?)"""
         elif chk == 'T':
-           self.cursor_memory.execute("""INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell)
-                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?)""",taqitem)
-           self.conn_memory.commit()
+            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
+
+        if chk != '':
+            self.cursor_memory.execute(sqltext,taqitem)
+            self.cursor_buffer.execute(sqltext,taqitem)
+            self.conn_memory.commit()
+            self.conn_buffer.commit()
 
         
         pass
@@ -213,8 +249,10 @@ class OptionsDBTest(QtGui.QWidget):
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
             #self.cursor_memory.execute("""SELECT * From FutOptTickData""")
-            df = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
-            pd.io.sql.write_frame(df, "FutOptTickData", self.conn_file,'sqlite','replace')
+            df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
+            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
+            self.cursor_buffer.execute("""DELECT FROM FutOptTickData""")
+            self.conn_buffer.commit()
         else:
             # make new file db
             print "make new file db"
