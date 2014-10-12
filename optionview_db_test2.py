@@ -231,10 +231,10 @@ class OptionDBThread(OptionViewerThread):
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
-            #self.cursor_memory.execute("""SELECT * From FutOptTickData""")
+            df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
             df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
-
-            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
+            #pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
+            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','replace')
             self.cursor_buffer.execute("""DELECT FROM FutOptTickData""")
             self.conn_buffer.commit()
         else:
