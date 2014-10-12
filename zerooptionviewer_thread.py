@@ -34,7 +34,12 @@ class OptionViewerThread(QtCore.QThread):
         while True:
             msg =  self.socket.recv()
             self.receiveData.emit(msg)
+            self.onReceiveData(msg)
                                 
             self.mutex.lock()
             if self.mt_stop: break    
             self.mutex.unlock()
+        pass
+
+    def onReceiveData(self,msg):
+        pass
