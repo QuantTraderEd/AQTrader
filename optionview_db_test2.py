@@ -17,38 +17,21 @@ def convert(strprice):
     return '%.2f' %round(float(strprice),2)
 
 
-class OptionsDBTest(QtGui.QWidget):
+class OptionDBThread(OptionViewerThread):
     def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self,parent)
-        self.initUI()
-        self.initDB()
-        self.initTimer()
-        self.initThread()
-        
-    def initUI(self):
-        self.button = QtGui.QPushButton('Start', self)
-        self.button.clicked.connect(self.onClick)
-        self.button.move(60, 50)
-        self.setWindowTitle('TAQ_DB')
-        self.resize(200, 120)
-        pass
-    
-    def initThread(self):
-        self.mythread = OptionViewerThread(None)
-        self.mythread.receiveData[str].connect(self.onReceiveData)
-        pass
+        OptionViewerThread.__init__(self,parent)
 
     def initTimer(self):
         self.XTimer = QtCore.QTimer()
         self.XTimer.timeout.connect(self.onXTimerUpdate)
         pass
-        
+
     def initDB(self):
         strtime = time.strftime('%Y%m%d',time.localtime())
         self.strdbname = "TAQ_%s.db" %(strtime)
         self.initMemoryDB()
         self.initBufferDB()
-        if not os.path.isfile(self.strdbname):        
+        if not os.path.isfile(self.strdbname):
             self.initFileDB()
         else:
             print 'loading from file DB to memory DB'
@@ -153,16 +136,16 @@ class OptionsDBTest(QtGui.QWidget):
                                        TotalBidCnt TEXT, TotalAskCnt TEXT
                                        )""")
         pass
-    
+
     def onReceiveData(self,msg):
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
         lst = msg.split(',')
         chk = ''
-        buysell = ''     
+        buysell = ''
         taqitem = ()
-        
-        if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':            
+
+        if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = str(lst[4]) + '000'
             if nowtime.hour >= 7 and nowtime.hour < 17:
                 ask1 = convert(lst[6])
@@ -178,30 +161,30 @@ class OptionsDBTest(QtGui.QWidget):
                 totalbidqty = str(lst[17])[:-2]
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = 'Q'
-            print lst[0], shcode, taqitem            
-            
+            print lst[0], shcode, taqitem
+
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
-            shcode = str(lst[4])                    
+            shcode = str(lst[4])
             ask1 = convert(lst[6])
             bid1 = convert(lst[23])
             askqty1 = str(lst[11])
             bidqty1 = str(lst[28])
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
-            chk = 'Q'   
-            print lst[0], shcode, taqitem  
-            
+            chk = 'Q'
+            print lst[0], shcode, taqitem
+
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = str(lst[4])
             expectprice = convert(lst[6])
             expectqty = 'E'
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,expectprice,expectqty)
             chk = 'E'
-            print lst[0], shcode, taqitem  
-            
+            print lst[0], shcode, taqitem
+
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
             shcode = str(lst[31])
             lastprice = convert(lst[8])
-            lastqty = str(lst[13])            
+            lastqty = str(lst[13])
             if lst[12] == '+':
                 buysell = 'B'
             elif lst[12] == '-':
@@ -209,10 +192,10 @@ class OptionsDBTest(QtGui.QWidget):
             else:
                 buysell = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
-            print lst[0], shcode, taqitem       
-            #print msg                   
+            print lst[0], shcode, taqitem
+            #print msg
             chk = 'T'
-            
+
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
             shcode = str(lst[32])
             lastprice = convert(lst[8])
@@ -224,9 +207,9 @@ class OptionsDBTest(QtGui.QWidget):
             else:
                 buysell = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
-            print lst[0], shcode, taqitem                        
+            print lst[0], shcode, taqitem
             chk = 'T'
-            
+
         if chk == 'Q':
             sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)"""
@@ -243,13 +226,14 @@ class OptionsDBTest(QtGui.QWidget):
             self.conn_memory.commit()
             self.conn_buffer.commit()
 
-        
+
         pass
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
             #self.cursor_memory.execute("""SELECT * From FutOptTickData""")
             df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
+
             pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
             self.cursor_buffer.execute("""DELECT FROM FutOptTickData""")
             self.conn_buffer.commit()
@@ -258,14 +242,34 @@ class OptionsDBTest(QtGui.QWidget):
             print "make new file db"
         pass
 
+
+
+class OptionsDBTest(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self,parent)
+        self.initUI()
+        self.initThread()
+        
+    def initUI(self):
+        self.button = QtGui.QPushButton('Start', self)
+        self.button.clicked.connect(self.onClick)
+        self.button.move(60, 50)
+        self.setWindowTitle('TAQ_DB')
+        self.resize(200, 120)
+        pass
+    
+    def initThread(self):
+        self.mythread = OptionDBThread(None)
+        #self.mythread.receiveData[str].connect(self.onReceiveData)
+        pass
+
+
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            self.XTimer.start(60000)
             self.button.setText('Stop')
         else:
             self.mythread.terminate()
-            self.XTimer.stop()
             self.button.setText('Start')
         pass
     
