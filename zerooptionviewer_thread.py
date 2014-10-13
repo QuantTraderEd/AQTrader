@@ -2,7 +2,7 @@
 """
 Created on Thu Jun 12 10:27:17 2014
 
-@author: MJWOO
+@author: assa
 """
 
 import zmq
