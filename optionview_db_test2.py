@@ -20,6 +20,8 @@ def convert(strprice):
 class OptionDBThread(OptionViewerThread):
     def __init__(self,parent = None):
         OptionViewerThread.__init__(self,parent)
+        self.initTimer()
+        self.initDB()
 
     def initTimer(self):
         self.XTimer = QtCore.QTimer()
@@ -137,6 +139,7 @@ class OptionDBThread(OptionViewerThread):
                                        )""")
         pass
 
+
     def onReceiveData(self,msg):
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
@@ -234,8 +237,8 @@ class OptionDBThread(OptionViewerThread):
             df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
             df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
             #pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
-            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','replace')
-            self.cursor_buffer.execute("""DELECT FROM FutOptTickData""")
+            pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','replace')
+            self.cursor_buffer.execute("""DELETE FROM FutOptTickData""")
             self.conn_buffer.commit()
         else:
             # make new file db
@@ -267,8 +270,10 @@ class OptionsDBTest(QtGui.QWidget):
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
+            #self.mythread.XTimer.start(6000)
             self.button.setText('Stop')
         else:
+            #self.mythread.XTimer.stop()
             self.mythread.terminate()
             self.button.setText('Start')
         pass
