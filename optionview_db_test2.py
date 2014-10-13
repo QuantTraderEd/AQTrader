@@ -18,10 +18,11 @@ def convert(strprice):
 
 
 class OptionDBThread(OptionViewerThread):
-    def __init__(self,parent = None):
+    def __init__(self,parent=None):
         OptionViewerThread.__init__(self,parent)
         self.initTimer()
         self.initDB()
+
 
     def initTimer(self):
         self.XTimer = QtCore.QTimer()
@@ -44,10 +45,10 @@ class OptionDBThread(OptionViewerThread):
         pass
 
     def initMemoryDB(self):
-        self.conn_memory = lite.connect(":memory:")
+        self.conn_memory = lite.connect(":memory:",check_same_thread=False)
         self.cursor_memory = self.conn_memory.cursor()
         self.cursor_memory.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_memory.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        self.cursor_memory.execute("""CREATE TABLE FutOptTickData(
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -76,10 +77,10 @@ class OptionDBThread(OptionViewerThread):
         pass
 
     def initBufferDB(self):
-        self.conn_buffer = lite.connect(":memory:")
+        self.conn_buffer = lite.connect(":memory:",check_same_thread=False)
         self.cursor_buffer = self.conn_buffer.cursor()
         self.cursor_buffer.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_buffer.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        self.cursor_buffer.execute("""CREATE TABLE FutOptTickData(
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -108,10 +109,10 @@ class OptionDBThread(OptionViewerThread):
         pass
 
     def initFileDB(self):
-        self.conn_file = lite.connect(self.strdbname)
+        self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
         self.cursor_file = self.conn_file.cursor()
         self.cursor_file.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_file.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        self.cursor_file.execute("""CREATE TABLE FutOptTickData(
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -213,6 +214,7 @@ class OptionDBThread(OptionViewerThread):
             print lst[0], shcode, taqitem
             chk = 'T'
 
+
         if chk == 'Q':
             sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)"""
@@ -228,16 +230,15 @@ class OptionDBThread(OptionViewerThread):
             self.cursor_buffer.execute(sqltext,taqitem)
             self.conn_memory.commit()
             self.conn_buffer.commit()
-
-
+        #pdb.set_trace()
         pass
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
-            df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
+            #df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
             df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
-            #pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
-            pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','replace')
+            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
+            #pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','replace')
             self.cursor_buffer.execute("""DELETE FROM FutOptTickData""")
             self.conn_buffer.commit()
         else:
@@ -248,7 +249,7 @@ class OptionDBThread(OptionViewerThread):
 
 
 class OptionsDBTest(QtGui.QWidget):
-    def __init__(self,parent = None):
+    def __init__(self,parent=None):
         QtGui.QWidget.__init__(self,parent)
         self.initUI()
         self.initThread()
@@ -262,7 +263,7 @@ class OptionsDBTest(QtGui.QWidget):
         pass
     
     def initThread(self):
-        self.mythread = OptionDBThread(None)
+        self.mythread = OptionDBThread()
         #self.mythread.receiveData[str].connect(self.onReceiveData)
         pass
 
@@ -270,10 +271,10 @@ class OptionsDBTest(QtGui.QWidget):
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            #self.mythread.XTimer.start(6000)
+            self.mythread.XTimer.start(6000)
             self.button.setText('Stop')
         else:
-            #self.mythread.XTimer.stop()
+            self.mythread.XTimer.stop()
             self.mythread.terminate()
             self.button.setText('Start')
         pass
