@@ -32,12 +32,12 @@ class OptionViewerThread(QtCore.QThread):
         self.socket.setsockopt(zmq.SUBSCRIBE,"")  
         
         while True:
-            msg =  self.socket.recv()
+            msg = self.socket.recv()
             self.receiveData.emit(msg)
             self.onReceiveData(msg)
-                                
+
             self.mutex.lock()
-            if self.mt_stop: break    
+            if self.mt_stop: break
             self.mutex.unlock()
         pass
 
