@@ -8,10 +8,10 @@ Created on Fri Oct 25 16:45:57 2013
 import sqlite3 as lite
 import pandas as pd
 
-conn = lite.connect('OptionsTAQ_20140917.db')
+conn = lite.connect('TAQ_20141013.db')
 
 cursor = conn.cursor()
-cursor.execute('SELECT * FROM TickData')
+cursor.execute('SELECT * FROM FutOptTickData')
 #cursor.execute("""Select OrdNo, ExecNo, ShortCD,UnExecQty From OrderList 
 #                                    WHERE OrdNo = ? and ExecNo is null """,('3640',))
 
@@ -20,14 +20,14 @@ rows = cursor.fetchall()
 
 sqltext = """ 
 SELECT ShortCD, FeedSource, TAQ, SecuritiesType, Time, AskQty1, Ask1, Bid1, BidQty1  
-FROM TickData
+FROM FutOptTickData
 WHERE TAQ = 'Q'
-AND ShortCD = '201JA265'
+AND ShortCD = '201JB255'
 """
 
 df = pd.read_sql(sqltext, conn)
 
-print df.head(100)
+print df.tail(10)
 
 #print col_names
 #for row in rows:
