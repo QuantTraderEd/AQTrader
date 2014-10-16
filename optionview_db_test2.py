@@ -22,6 +22,7 @@ class OptionDBThread(OptionViewerThread):
         OptionViewerThread.__init__(self,parent)
         self.initTimer()
         self.initDB()
+        self.time_tag = '14:22:15.000'
 
 
     def initTimer(self):
@@ -165,7 +166,7 @@ class OptionDBThread(OptionViewerThread):
                 totalbidqty = str(lst[17])[:-2]
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = 'Q'
-            print lst[0], shcode, taqitem
+            #print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])
@@ -175,12 +176,12 @@ class OptionDBThread(OptionViewerThread):
             bidqty1 = str(lst[28])
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = 'Q'
-            print lst[0], shcode, taqitem
+            #print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = str(lst[4])
             expectprice = convert(lst[6])
-            expectqty = 'E'
+            expectqty = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,expectprice,expectqty)
             chk = 'E'
             print lst[0], shcode, taqitem
@@ -196,7 +197,7 @@ class OptionDBThread(OptionViewerThread):
             else:
                 buysell = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
-            print lst[0], shcode, taqitem
+            #print lst[0], shcode, taqitem
             #print msg
             chk = 'T'
 
@@ -227,20 +228,39 @@ class OptionDBThread(OptionViewerThread):
 
         if chk != '':
             self.cursor_memory.execute(sqltext,taqitem)
-            self.cursor_buffer.execute(sqltext,taqitem)
+            #self.cursor_buffer.execute(sqltext,taqitem)
             self.conn_memory.commit()
-            self.conn_buffer.commit()
-        #pdb.set_trace()
+            #self.conn_buffer.commit()
+
+        if nowtime.second % 60 == 15 and self.time_chk:
+            self.onXTimerUpdate()
+            self.time_chk = False
+        elif nowtime.second % 60 != 15:
+            self.time_chk = True
+
         pass
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
-            #df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
-            df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
-            pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
+            print 'read memomry db...'
+            try:
+                #df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
+                df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE TIME > '%s' """%self.time_tag,self.conn_memory)
+                #df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
+                #self.cursor_memory.execute("""SELECT Time, ShortCD, AskQty1,Ask1,Bid1,BidQty1,LastPrice,LastQty,BuySell From FutOptTickData WHERE TIME > '%s' ORDER BY Time"""%self.time_tag)
+                #rows = self.cursor_memory.fetchall()
+                #self.time_tag = rows[len(rows)-1][0]
+                #print rows[0], rows[len(rows)-1]
+                self.time_tag = df_memory['Time'].irow(-1)
+            except lite.Error as e:
+                print "An error occurred:", e.args[0]
+                return
+            print 'test: write file db...'
+            #pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
             #pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','replace')
-            self.cursor_buffer.execute("""DELETE FROM FutOptTickData""")
-            self.conn_buffer.commit()
+            pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
+            #self.cursor_buffer.execute("""DELETE FROM FutOptTickData""")
+            #self.conn_buffer.commit()
         else:
             # make new file db
             print "make new file db"
@@ -271,10 +291,10 @@ class OptionsDBTest(QtGui.QWidget):
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            self.mythread.XTimer.start(6000)
+            #self.mythread.XTimer.start(60000)
             self.button.setText('Stop')
         else:
-            self.mythread.XTimer.stop()
+            #self.mythread.XTimer.stop()
             self.mythread.terminate()
             self.button.setText('Start')
         pass
