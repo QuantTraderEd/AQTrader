@@ -20,21 +20,15 @@ def convert(strprice):
 class OptionDBThread(OptionViewerThread):
     def __init__(self,parent=None):
         OptionViewerThread.__init__(self,parent)
-        self.initTimer()
         self.initDB()
-        self.time_tag = '14:22:15.000'
-
-
-    def initTimer(self):
-        self.XTimer = QtCore.QTimer()
-        self.XTimer.timeout.connect(self.onXTimerUpdate)
-        pass
+        nowtime = datetime.now()
+        strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
+        self.time_tag = strnowtime
 
     def initDB(self):
         strtime = time.strftime('%Y%m%d',time.localtime())
         self.strdbname = "TAQ_%s.db" %(strtime)
         self.initMemoryDB()
-        self.initBufferDB()
         if not os.path.isfile(self.strdbname):
             self.initFileDB()
         else:
@@ -77,37 +71,6 @@ class OptionDBThread(OptionViewerThread):
                                        )""")
         pass
 
-    def initBufferDB(self):
-        self.conn_buffer = lite.connect(":memory:",check_same_thread=False)
-        self.cursor_buffer = self.conn_buffer.cursor()
-        self.cursor_buffer.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_buffer.execute("""CREATE TABLE FutOptTickData(
-                                       ShortCD TEXT,
-                                       FeedSource TEXT,
-                                       TAQ TEXT,
-                                       SecuritiesType TEXT,
-                                       Time TEXT,
-                                       BuySell TEXT,
-                                       LastPrice TEXT, LastQty TEXT,
-                                       Bid1 TEXT, Ask1 TEXT,
-                                       Bid2 TEXT, Ask2 TEXT,
-                                       Bid3 TEXT, Ask3 TEXT,
-                                       Bid4 TEXT, Ask4 TEXT,
-                                       Bid5 TEXT, Ask5 TEXT,
-                                       BidQty1 TEXT, AskQty1 TEXT,
-                                       BidQty2 TEXT, AskQty2 TEXT,
-                                       BidQty3 TEXT, AskQty3 TEXT,
-                                       BidQty4 TEXT, AskQty4 TEXT,
-                                       BidQty5 TEXT, AskQty5 TEXT,
-                                       BidCnt1 TEXT, AskCnt1 TEXT,
-                                       BidCnt2 TEXT, AskCnt2 TEXT,
-                                       BidCnt3 TEXT, AskCnt3 TEXT,
-                                       BidCnt4 TEXT, AskCnt4 TEXT,
-                                       BidCnt5 TEXT, AskCnt5 TEXT,
-                                       TotalBidQty TEXT, TotalAskQty TEXT,
-                                       TotalBidCnt TEXT, TotalAskCnt TEXT
-                                       )""")
-        pass
 
     def initFileDB(self):
         self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
@@ -154,9 +117,43 @@ class OptionDBThread(OptionViewerThread):
             shcode = str(lst[4]) + '000'
             if nowtime.hour >= 7 and nowtime.hour < 17:
                 ask1 = convert(lst[6])
+                ask2 = convert(lst[7])
+                ask3 = convert(lst[8])
+                ask4 = convert(lst[9])
+                ask5 = convert(lst[10])
                 bid1 = convert(lst[23])
+                bid2 = convert(lst[24])
+                bid3 = convert(lst[25])
+                bid4 = convert(lst[26])
+                bid5 = convert(lst[27])
                 askqty1 = str(lst[11])
+                askqty2 = str(lst[12])
+                askqty3 = str(lst[13])
+                askqty4 = str(lst[14])
+                askqty5 = str(lst[15])
+                totalaskqty = str(lst[16])
+                askcnt1 = str(lst[17])
+                askcnt2 = str(lst[18])
+                askcnt3 = str(lst[19])
+                askcnt4 = str(lst[20])
+                askcnt5 = str(lst[21])
+                totalaskcnt = str(lst[22])
                 bidqty1 = str(lst[28])
+                bidqty2 = str(lst[29])
+                bidqty3 = str(lst[30])
+                bidqty4 = str(lst[31])
+                bidqty5 = str(lst[32])
+                totalbidqty = str(lst[33])
+                bidcnt1 = str(lst[34])
+                bidcnt2 = str(lst[35])
+                bidcnt3 = str(lst[36])
+                bidcnt4 = str(lst[37])
+                bidcnt5 = str(lst[38])
+                totalbidcnt = str(lst[39])
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bid2,ask2,bid3,ask3,bid4,ask4,bid5,ask5,
+                           bidqty1,askqty1,bidqty2,askqty2,bidqty3,askqty3,bidqty4,askqty4,bidqty5,askqty5,
+                           bidcnt1,askcnt1,bidcnt2,askcnt2,bidcnt3,askcnt3,bidcnt4,askcnt4,bidcnt5,askcnt5,
+                           totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
             else:
                 ask1 = convert(lst[29])
                 bid1 = convert(lst[18])
@@ -164,17 +161,50 @@ class OptionDBThread(OptionViewerThread):
                 bidqty1 = str(lst[19])
                 totalaskqty = str(lst[28])
                 totalbidqty = str(lst[17])[:-2]
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
             chk = 'Q'
             #print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])
             ask1 = convert(lst[6])
+            ask2 = convert(lst[7])
+            ask3 = convert(lst[8])
+            ask4 = convert(lst[9])
+            ask5 = convert(lst[10])
             bid1 = convert(lst[23])
+            bid2 = convert(lst[24])
+            bid3 = convert(lst[25])
+            bid4 = convert(lst[26])
+            bid5 = convert(lst[27])
             askqty1 = str(lst[11])
+            askqty2 = str(lst[12])
+            askqty3 = str(lst[13])
+            askqty4 = str(lst[14])
+            askqty5 = str(lst[15])
+            totalaskqty = str(lst[16])
+            askcnt1 = str(lst[17])
+            askcnt2 = str(lst[18])
+            askcnt3 = str(lst[19])
+            askcnt4 = str(lst[20])
+            askcnt5 = str(lst[21])
+            totalaskcnt = str(lst[22])
             bidqty1 = str(lst[28])
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
+            bidqty2 = str(lst[29])
+            bidqty3 = str(lst[30])
+            bidqty4 = str(lst[31])
+            bidqty5 = str(lst[32])
+            totalbidqty = str(lst[33])
+            bidcnt1 = str(lst[34])
+            bidcnt2 = str(lst[35])
+            bidcnt3 = str(lst[36])
+            bidcnt4 = str(lst[37])
+            bidcnt5 = str(lst[38])
+            totalbidcnt = str(lst[39])
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bid2,ask2,bid3,ask3,bid4,ask4,bid5,ask5,
+                       bidqty1,askqty1,bidqty2,askqty2,bidqty3,askqty3,bidqty4,askqty4,bidqty5,askqty5,
+                       bidcnt1,askcnt1,bidcnt2,askcnt2,bidcnt3,askcnt3,bidcnt4,askcnt4,bidcnt5,askcnt5,
+                       totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
             chk = 'Q'
             #print lst[0], shcode, taqitem
 
@@ -217,8 +247,15 @@ class OptionDBThread(OptionViewerThread):
 
 
         if chk == 'Q':
-            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1)
-                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)"""
+            wildcard = ','.join('?'*39)
+            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1,BidCnt1,AskCnt1,
+                                                    Bid2,Ask2,BidQty2,AskQty2,BidCnt2,AskCnt2,
+                                                    Bid3,Ask3,BidQty3,AskQty3,BidCnt3,AskCnt3,
+                                                    Bid4,Ask4,BidQty4,AskQty4,BidCnt4,AskCnt4,
+                                                    Bid5,Ask5,BidQty5,AskQty5,BidCnt5,AskCnt5,
+                                                    TotalBidQty, TotalAskQty,TotalBidCnt, TotalAskCnt
+                                                    )
+                                               VALUES(%s)"""%wildcard
         elif chk == 'E':
             sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
                                                VALUES(?, ?, ?, ? ,?, ?, ?)"""
@@ -228,9 +265,8 @@ class OptionDBThread(OptionViewerThread):
 
         if chk != '':
             self.cursor_memory.execute(sqltext,taqitem)
-            #self.cursor_buffer.execute(sqltext,taqitem)
             self.conn_memory.commit()
-            #self.conn_buffer.commit()
+
 
         if nowtime.second % 60 == 15 and self.time_chk:
             self.onXTimerUpdate()
@@ -244,23 +280,15 @@ class OptionDBThread(OptionViewerThread):
         if os.path.isfile(self.strdbname):
             print 'read memomry db...'
             try:
-                #df_memory = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_memory)
                 df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE TIME > '%s' """%self.time_tag,self.conn_memory)
-                #df_buffer = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_buffer)
-                #self.cursor_memory.execute("""SELECT Time, ShortCD, AskQty1,Ask1,Bid1,BidQty1,LastPrice,LastQty,BuySell From FutOptTickData WHERE TIME > '%s' ORDER BY Time"""%self.time_tag)
-                #rows = self.cursor_memory.fetchall()
-                #self.time_tag = rows[len(rows)-1][0]
-                #print rows[0], rows[len(rows)-1]
                 self.time_tag = df_memory['Time'].irow(-1)
             except lite.Error as e:
                 print "An error occurred:", e.args[0]
                 return
             print 'test: write file db...'
-            #pd.io.sql.write_frame(df_buffer, "FutOptTickData", self.conn_file,'sqlite','append')
-            #pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','replace')
+
             pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
-            #self.cursor_buffer.execute("""DELETE FROM FutOptTickData""")
-            #self.conn_buffer.commit()
+
         else:
             # make new file db
             print "make new file db"
@@ -291,10 +319,8 @@ class OptionsDBTest(QtGui.QWidget):
     def onClick(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            #self.mythread.XTimer.start(60000)
             self.button.setText('Stop')
         else:
-            #self.mythread.XTimer.stop()
             self.mythread.terminate()
             self.button.setText('Start')
         pass
