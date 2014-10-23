@@ -150,10 +150,12 @@ class OptionDBThread(OptionViewerThread):
                 bidcnt4 = str(lst[37])
                 bidcnt5 = str(lst[38])
                 totalbidcnt = str(lst[39])
-                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bid2,ask2,bid3,ask3,bid4,ask4,bid5,ask5,
-                           bidqty1,askqty1,bidqty2,askqty2,bidqty3,askqty3,bidqty4,askqty4,bidqty5,askqty5,
-                           bidcnt1,askcnt1,bidcnt2,askcnt2,bidcnt3,askcnt3,bidcnt4,askcnt4,bidcnt5,askcnt5,
-                           totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
+                       bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
+                       bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
+                       bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
+                       bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
+                       totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
             else:
                 ask1 = convert(lst[29])
                 bid1 = convert(lst[18])
@@ -201,9 +203,11 @@ class OptionDBThread(OptionViewerThread):
             bidcnt4 = str(lst[37])
             bidcnt5 = str(lst[38])
             totalbidcnt = str(lst[39])
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bid2,ask2,bid3,ask3,bid4,ask4,bid5,ask5,
-                       bidqty1,askqty1,bidqty2,askqty2,bidqty3,askqty3,bidqty4,askqty4,bidqty5,askqty5,
-                       bidcnt1,askcnt1,bidcnt2,askcnt2,bidcnt3,askcnt3,bidcnt4,askcnt4,bidcnt5,askcnt5,
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
+                       bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
+                       bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
+                       bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
+                       bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
                        totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
             chk = 'Q'
             #print lst[0], shcode, taqitem
