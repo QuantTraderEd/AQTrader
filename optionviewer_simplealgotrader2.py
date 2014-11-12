@@ -5,9 +5,11 @@ Created on Fri Sep 12 09:01:06 2014
 @author: assa
 """
 
+import os
 import time
 import zmq
 import sqlite3 as lite
+import pandas as pd
 from PyQt4 import QtCore, QtGui
 from zerooptionviewer_thread import OptionViewerThread
 from FeedCodeList import FeedCodeList
@@ -39,10 +41,12 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def initVar(self):
         self.counter = 0
         self.counter1 = 0
-        self.callShCode = '201JA260'
-        self.putShCode = '301JA255'
+        self.callShCode = ''
+        self.putShCode = ''
         self.entry_counter1 = 0
         self.entry_counter2 = 0
+        self.starthourshift = 1
+        self.endhourshift = 1
         pass
 
     def initDB(self):
@@ -86,12 +90,14 @@ class SimpleAlgoTrader(QtGui.QWidget):
             self.XTimer.start(3222)
             self.button.setText('Stop')
         else:
-            self.mythread.terminate()
             self.XTimer.stop()
+            self.mythread.terminate()
             self.button.setText('Start')
         pass
     
     def onReceiveData(self,msg):
+        if self.callShCode == '' or self.putShCode == '':
+            return
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
         lst = msg.split(',')
@@ -112,8 +118,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
     
     def onXTimerUpdate(self):        
         nowtime = time.localtime()
-        if nowtime.tm_hour == 9 and nowtime.tm_min > 22 and nowtime.tm_min < 25 and self.entry_counter1 < 15:
-
+        if self.callShCode == '' or self.putShCode == '':
+            if nowtime.tm_hour == 8 + self.starthourshift and nowtime.tm_min > 59 and nowtime.tm_min > 30:
+                self.getTargetShortCD()
+            return
+        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 22 and nowtime.tm_min < 25 and self.entry_counter1 < 15:
             buysell = False
             shcode = self.callShCode
             price = 0.40
@@ -139,7 +148,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             if self.sendOrder(buysell,shcode,price,qty):
                 self.entry_counter1+=1
 
-        elif nowtime.tm_hour == 11 and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < 15:
+        elif nowtime.tm_hour == 11 + self.starthourshift and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < 15:
             buysell = False
             shcode = self.callShCode
             price = 0.40
@@ -165,7 +174,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             if self.sendOrder(buysell,shcode,price,qty):
                 self.entry_counter2+=1
 
-        elif nowtime.tm_hour == 14 and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 30:
+        elif nowtime.tm_hour == 14 + self.endhourshift and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 30:
             #time.sleep(random.randint(0,2000) * 0.001)
             buysell = True
             shcode = self.callShCode
@@ -205,6 +214,82 @@ class SimpleAlgoTrader(QtGui.QWidget):
             print 'not define socket..'
             return False
         pass
+
+    def getTargetShortCD(self):
+        target_min = 9999
+        target_cd = ''
+        target_price = '1.5'
+
+        starttime = '%.2d:55:00.000'%(8+self.starthourshift)
+        endtime = '%.2d:59:30.000'%(8+self.starthourshift)
+
+        nowtime = time.localtime()
+        filedbname = time.strftime('TAQ_%Y%m%d.db',nowtime)
+
+        if not os.path.isfile(filedbname):
+            return
+
+        conn = lite.connect(filedbname)
+
+        for shortcd in self._FeedCodeList.optionshcodelst:
+            sqltext = """
+            SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
+            FROM FutOptTickData
+            WHERE TAQ IN ('E')
+            and Time between '%s' and '%s'
+            and ShortCD = '%s'
+            and SUBSTR(ShortCD,1,3) = '201'
+            Order by Time DESC LIMIT 1
+            """%(starttime,endtime,shortcd)
+
+            df = pd.read_sql(sqltext, conn)
+
+            #print shortcd, len(df)
+            if len(df) > 0:
+                row = df.irow(0)
+                #print row['ShortCD'], row['Time'],row['LastPrice']
+                diff = abs(float(row['LastPrice']) - 1.5)
+                if diff < target_min:
+                    target_min = diff
+                    target_cd = shortcd
+                    target_price = row['LastPrice']
+
+        #print target_cd, target_price
+        self.callShCode = target_cd
+
+        target_min = 9999
+        target_cd = ''
+        target_price = '1.5'
+
+        for shortcd in self._FeedCodeList.optionshcodelst:
+            sqltext = """
+            SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
+            FROM FutOptTickData
+            WHERE TAQ IN ('E')
+            and Time between '%s' and '%s'
+            and ShortCD = '%s'
+            and SUBSTR(ShortCD,1,3) = '301'
+            Order by Time DESC LIMIT 1
+            """%(starttime,endtime,shortcd)
+
+            df = pd.read_sql(sqltext, conn)
+
+            #print shortcd, len(df)
+            if len(df) > 0:
+                row = df.irow(0)
+                #print row['ShortCD'], row['Time'],row['LastPrice']
+                diff = abs(float(row['LastPrice']) - 1.5)
+                if diff < target_min:
+                    target_min = diff
+                    target_cd = shortcd
+                    target_price = row['LastPrice']
+
+        #print target_cd, target_price
+        self.putShCode = target_cd
+
+        conn.close()
+
+
 
 if __name__ == '__main__':
     import sys
