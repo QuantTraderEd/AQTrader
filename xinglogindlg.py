@@ -39,9 +39,9 @@ class LoginForm(QtGui.QDialog):
         
     def slot_login(self):
         #server = str(self.ui.lineEditEtradeServerName.text())
-        server = 'demo.etrade.co.kr'
+        server = 'hts.etrade.co.kr' #'demo.etrade.co.kr'
         port = 20001
-        servertype = 1      # demo server      
+        servertype = 0      # demo server 1, real server 0
         showcerterror = 1
         user = str(self.ui.lineEditId.text())
         password = str(self.ui.lineEditPassword.text())
