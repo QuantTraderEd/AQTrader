@@ -25,6 +25,10 @@ class LoginForm(QtGui.QDialog):
         self.ui = Ui_dialog()
         self.ui.setupUi(self)
         self._XASession = XASession
+        self.ui.lineEditEtradeServerName.setEchoMode(QtGui.QLineEdit.Password)
+        self.ui.comboBoxServerType.activated[str].connect(self.onActivated)
+        self.server = 'hts.etrade.co.kr'
+        self.servertype = 0
         
     def __del__(self):        
         self._XASession.observer = None
@@ -35,21 +39,30 @@ class LoginForm(QtGui.QDialog):
             msg = msg + ' ' + item                
         self.ui.lineEditMessage.setText(msg)
         pass
-    
+
+    def onActivated(self, text):
+        if text == 'real server':
+            self.server = 'hts.etrade.co.kr'
+            self.servertype = 0
+        elif text == 'demo server':
+            self.server = 'demo.etrade.co.kr'
+            self.servertype = 1
+        pass
+
         
     def slot_login(self):
         #server = str(self.ui.lineEditEtradeServerName.text())
-        server = 'demo.etrade.co.kr'
+        server = self.server
         port = 20001
-        servertype = 1      # demo server      
+        servertype = self.servertype
         showcerterror = 1
         user = str(self.ui.lineEditId.text())
         password = str(self.ui.lineEditPassword.text())
-        certpw = ""
+        certpw = str(self.ui.lineEditEtradeServerName.text())
         
         if user == '':
-            user = 'eddy777'
-            password = ''
+            user = 'eddy7777'
+            password = 'c9792458'
         if self._XASession == None:
             self._XASession = px.XASession()
         self._XASession.observer = proxy(self)
@@ -73,9 +86,8 @@ class LoginForm(QtGui.QDialog):
             for item in accountlist:                
                 msg = msg + ' ' +  item
             self.ui.lineEditMessage.setText(msg)
-                
-
-        
+            print msg
+            
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)        
