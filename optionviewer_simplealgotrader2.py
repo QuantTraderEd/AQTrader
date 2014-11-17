@@ -45,8 +45,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.putShCode = ''
         self.entry_counter1 = 0
         self.entry_counter2 = 0
-        self.starthourshift = 1
-        self.endhourshift = 1
+        self.starthourshift = 0
+        self.endhourshift = 0
         pass
 
     def initDB(self):
@@ -122,7 +122,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             if nowtime.tm_hour == 8 + self.starthourshift and nowtime.tm_min > 59 and nowtime.tm_min > 30:
                 self.getTargetShortCD()
             return
-        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 22 and nowtime.tm_min < 25 and self.entry_counter1 < 15:
+        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 28 and nowtime.tm_min < 32 and self.entry_counter1 < 15:
             buysell = False
             shcode = self.callShCode
             price = 0.40
@@ -216,10 +216,6 @@ class SimpleAlgoTrader(QtGui.QWidget):
         pass
 
     def getTargetShortCD(self):
-        target_min = 9999
-        target_cd = ''
-        target_price = '1.5'
-
         starttime = '%.2d:55:00.000'%(8+self.starthourshift)
         endtime = '%.2d:59:30.000'%(8+self.starthourshift)
 
@@ -231,23 +227,26 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
         conn = lite.connect(filedbname)
 
+        target_min = 9999
+        target_cd = ''
+        target_price = '1.5'
+
+        sqltext = """
+        SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
+        FROM FutOptTickData
+        WHERE TAQ IN ('E')
+        and Time between '%s' and '%s'
+        and SUBSTR(ShortCD,1,3) = '201'
+        Order by Time DESC
+        """%(starttime,endtime)
+
+        df = pd.read_sql(sqltext, conn)
+
         for shortcd in self._FeedCodeList.optionshcodelst:
-            sqltext = """
-            SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
-            FROM FutOptTickData
-            WHERE TAQ IN ('E')
-            and Time between '%s' and '%s'
-            and ShortCD = '%s'
-            and SUBSTR(ShortCD,1,3) = '201'
-            Order by Time DESC LIMIT 1
-            """%(starttime,endtime,shortcd)
-
-            df = pd.read_sql(sqltext, conn)
-
-            #print shortcd, len(df)
-            if len(df) > 0:
-                row = df.irow(0)
-                #print row['ShortCD'], row['Time'],row['LastPrice']
+            df_buffer = df[df['ShortCD'] == shortcd]
+            if len(df_buffer) > 0:
+                row = df_buffer.irow(-1)
+                print row['ShortCD'], row['Time'],row['LastPrice']
                 diff = abs(float(row['LastPrice']) - 1.5)
                 if diff < target_min:
                     target_min = diff
@@ -261,23 +260,22 @@ class SimpleAlgoTrader(QtGui.QWidget):
         target_cd = ''
         target_price = '1.5'
 
+        sqltext = """
+        SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
+        FROM FutOptTickData
+        WHERE TAQ IN ('E')
+        and Time between '%s' and '%s'
+        and SUBSTR(ShortCD,1,3) = '301'
+        Order by Time DESC
+        """%(starttime,endtime)
+
+        df = pd.read_sql(sqltext, conn)
+
         for shortcd in self._FeedCodeList.optionshcodelst:
-            sqltext = """
-            SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
-            FROM FutOptTickData
-            WHERE TAQ IN ('E')
-            and Time between '%s' and '%s'
-            and ShortCD = '%s'
-            and SUBSTR(ShortCD,1,3) = '301'
-            Order by Time DESC LIMIT 1
-            """%(starttime,endtime,shortcd)
-
-            df = pd.read_sql(sqltext, conn)
-
-            #print shortcd, len(df)
-            if len(df) > 0:
-                row = df.irow(0)
-                #print row['ShortCD'], row['Time'],row['LastPrice']
+            df_buffer = df[df['ShortCD'] == shortcd]
+            if len(df_buffer) > 0:
+                row = df_buffer.irow(-1)
+                print row['ShortCD'], row['Time'],row['LastPrice']
                 diff = abs(float(row['LastPrice']) - 1.5)
                 if diff < target_min:
                     target_min = diff
