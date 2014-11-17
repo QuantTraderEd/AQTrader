@@ -119,7 +119,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def onXTimerUpdate(self):        
         nowtime = time.localtime()
         if self.callShCode == '' or self.putShCode == '':
-            if nowtime.tm_hour == 8 + self.starthourshift and nowtime.tm_min > 59 and nowtime.tm_min > 30:
+            if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 0 and nowtime.tm_min < 4:
                 self.getTargetShortCD()
             return
         if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 28 and nowtime.tm_min < 32 and self.entry_counter1 < 15:
