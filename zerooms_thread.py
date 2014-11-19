@@ -23,9 +23,14 @@ class ExecuterThread(QtCore.QThread):
     
     def __init__(self,parent=None):
         super(ExecuterThread,self).__init__(parent)
+        self.initVar()
         self.initThread()
         self.initViewer()
-        self.initQuery()        
+        self.initQuery()
+
+    def initVar(self):
+        self._accountlist = []
+        self.servername = ''
         
     def initThread(self):
         self.mt_stop = False
@@ -78,10 +83,22 @@ class ExecuterThread(QtCore.QThread):
         self.xareal_SC0.observer = self.cviewer0
         self.xareal_SC1.observer = self.qtviewerSC1
         self.xareal_C01.observer = self.qtviewerC01
-        
-                
+
     
     def run(self):
+        if len(self._accountlist) == 0 :
+            print 'fail: no account'
+            return
+
+        if self.servername[:3] == 'MIS':
+            accountpwd = ['0000','0000']
+        elif self.servername[0] == 'X':
+            accountpwd = ['0302','']
+        else:
+            print 'fail: not available servername'
+            accountpwd = []
+            return
+
         context = zmq.Context()
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://127.0.0.1:6000")
@@ -120,7 +137,7 @@ class ExecuterThread(QtCore.QThread):
             if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
                 # equity new order                       
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[1])    
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,'0000')    
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[1])
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shcode)) #demo
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(qty))
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(price))
@@ -144,7 +161,7 @@ class ExecuterThread(QtCore.QThread):
                 # equity cancel order                                   
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(ordno))    
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[1])    
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,'0000')    
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[1])
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shcode)) #demo
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(qty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)    
@@ -163,7 +180,7 @@ class ExecuterThread(QtCore.QThread):
             elif (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 # FO new order
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,'0000')
+                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[0])
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shcode))
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
                 self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
@@ -185,7 +202,7 @@ class ExecuterThread(QtCore.QThread):
             elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
                 # FO cancl order
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,'0000')
+                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[0])
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
                 self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
