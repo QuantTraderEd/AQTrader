@@ -53,6 +53,7 @@ class MainForm(QtGui.QMainWindow):
         self.XASession = px.XASession()
         self.XASession.Attach(self.XASession_observer)
         self.accountlist = []
+        self.servername = ''
         
         strtime = time.strftime('%Y%m%d',time.localtime())
         strdbname = "orderlist_%s.db" %(strtime)
@@ -103,7 +104,11 @@ class MainForm(QtGui.QMainWindow):
             obs = observer_t0441()
             self.NewQuery.observer = obs
             self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-            self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+            if self.servername[:3] == 'MIS':
+                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+            elif self.servername[0] == 'X':
+                # it need the real account pw
+                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
@@ -146,11 +151,13 @@ class MainForm(QtGui.QMainWindow):
     def slot_ToggleExecute(self,boolToggle):
         if (not self.executerThread.isRunning()) and boolToggle: #and self.XASession.IsConnected():
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+                self.servername = self.XASession.GetServerName()
                 self.accountlist = self.XASession.GetAccountList()
                 self.executerThread._accountlist = self.accountlist
-                print  self.accountlist
+                self.executerThread._servername = self.servername
+                print  self.servername, self.accountlist
                 self.initT0441Query()
-                self.queryTimer.start(5000)
+                self.queryTimer.start(10000)
                 self.executerThread.start()
             else:
                 self.ui.actionExecute.setChecked(False)
