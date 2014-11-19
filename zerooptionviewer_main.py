@@ -184,36 +184,47 @@ class MainForm(QtGui.QMainWindow):
         nowtime = datetime.now()
         lst = msg.split(',')
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
-            shcode = lst[4]                
-            ask1 = convert(lst[6])
-            bid1 = convert(lst[23])
-            askqty1 = lst[11]
-            bidqty1 = lst[28]
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                shcode = lst[4]
+                ask1 = convert(lst[6])
+                bid1 = convert(lst[23])
+                askqty1 = lst[11]
+                bidqty1 = lst[28]
+            else:
+                shcode = lst[4]
+                ask1 = convert(lst[29])
+                bid1 = convert(lst[18])
+                askqty1 = lst[30]
+                bidqty1 = lst[19]
+
             showmsg = '%s, %s, %s, %s' %(askqty1,ask1,bid1,bidqty1)
             self.statusBar().showMessage(showmsg)
             
-        elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':                        
-            shcode = lst[4]                    
-            ask1 = convert(lst[6])
-            bid1 = convert(lst[23])
-            askqty1 = lst[11]
-            bidqty1 = lst[28]
-            
+        elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
+            if nowtime.hour >= 7 and nowtime.hour <= 16:
+                shcode = lst[4]
+                ask1 = convert(lst[6])
+                bid1 = convert(lst[23])
+                askqty1 = lst[11]
+                bidqty1 = lst[28]
+            else:
+                return
+
             pos = self.strikelst.index(shcode[5:8])
-            
-            if shcode[:3] == '201':                
+
+            if shcode[:3] == '201':
                 self.updateTableWidgetItem(pos,0,shcode)
                 self.updateTableWidgetItem(pos,3,askqty1)
                 self.updateTableWidgetItem(pos,4,ask1)
                 self.updateTableWidgetItem(pos,5,bid1)
-                self.updateTableWidgetItem(pos,6,bidqty1)                
-            elif shcode[:3] == '301':                
+                self.updateTableWidgetItem(pos,6,bidqty1)
+            elif shcode[:3] == '301':
                 self.updateTableWidgetItem(pos,14,shcode)
                 self.updateTableWidgetItem(pos,8,askqty1)
                 self.updateTableWidgetItem(pos,9,ask1)
                 self.updateTableWidgetItem(pos,10,bid1)
-                self.updateTableWidgetItem(pos,11,bidqty1)   
-                
+                self.updateTableWidgetItem(pos,11,bidqty1)
+
             if not (nowtime.hour == 15 and (nowtime.minute >= 5 or nowtime.minute <= 15)):
                 self.makeSyntheticBid(pos)
                 self.makeSyntheticAsk(pos)
@@ -235,9 +246,15 @@ class MainForm(QtGui.QMainWindow):
             self.makeSyntheticExpect(pos)
                 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
-            shcode = lst[31]
-            lastprice = convert(lst[8])
-            lastqty = lst[13]
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                shcode = lst[31]
+                lastprice = convert(lst[8])
+                lastqty = lst[13]
+            else:
+                shcode = lst[len(lst)-1]
+                lastprice = convert(lst[9])
+                lastqty = lst[14]
+
             pos = self.strikelst.index(shcode[5:8])
             if shcode[:3] == '201':                
                 self.updateTableWidgetItem(pos,0,shcode)
@@ -247,6 +264,35 @@ class MainForm(QtGui.QMainWindow):
                 self.updateTableWidgetItem(pos,14,shcode)
                 self.updateTableWidgetItem(pos,12,lastprice)
                 self.updateTableWidgetItem(pos,13,lastqty)
+
+        elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
+            if nowtime.hour >= 7 and nowtime.hour <= 16:
+                return
+            else:
+                shcode = lst[len(lst)-1]
+                ask1 = convert(lst[6])
+                bid1 = convert(lst[7])
+                askqty1 = lst[8]
+                bidqty1 = lst[9]
+
+            pos = self.strikelst.index(shcode[5:8])
+
+            if shcode[:3] == '201':
+                self.updateTableWidgetItem(pos,0,shcode)
+                self.updateTableWidgetItem(pos,3,askqty1)
+                self.updateTableWidgetItem(pos,4,ask1)
+                self.updateTableWidgetItem(pos,5,bid1)
+                self.updateTableWidgetItem(pos,6,bidqty1)
+            elif shcode[:3] == '301':
+                self.updateTableWidgetItem(pos,14,shcode)
+                self.updateTableWidgetItem(pos,8,askqty1)
+                self.updateTableWidgetItem(pos,9,ask1)
+                self.updateTableWidgetItem(pos,10,bid1)
+                self.updateTableWidgetItem(pos,11,bidqty1)
+
+            if not (nowtime.hour == 17 and (nowtime.minute >= 0 or nowtime.minute <= 59)):
+                self.makeSyntheticBid(pos)
+                self.makeSyntheticAsk(pos)
                 
         pass
     
