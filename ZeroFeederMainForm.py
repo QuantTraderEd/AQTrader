@@ -99,6 +99,7 @@ class MainForm(QtGui.QMainWindow):
         self.ZMQFuturesExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
         self.ZMQOptionsTradeSender = ZMQTickSender(self.socket,'xing','T','options')
         self.ZMQOptionsQuoteSender = ZMQTickSender(self.socket,'cybos','Q','options')
+        self.ZMQOptionsNightQuoteSender = ZMQTickSender(self.socket,'xing','Q','options')
         self.ZMQOptionsExpectSender = ZMQTickSender(self.socket,'cybos','E','options')
         self.ZMQEquityTradeSender = ZMQTickSender(self.socket,'xing','T','equity')
         self.ZMQEquityQuoteSender = ZMQTickSender(self.socket,'cybos','Q','equity')
@@ -189,6 +190,12 @@ class MainForm(QtGui.QMainWindow):
         NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
         NewItemQuote.Subscribe()                    
         self.OptionTAQFeederLst.append(NewItemQuote)
+
+    def registerFeedItem_EH0(self,shcode):
+        NewItemQuote = px.XAReal_EH0(shcode,'list')
+        NewItemQuote.Attach(self.ZMQOptionsNightQuoteSender)
+        NewItemQuote.AdviseRealData()
+        self.OptionTAQFeederLst.append(NewItemQuote)
         
     def registerFeedItem_StockJpBid(self,shcode):
         NewItemQuote = pc.StockJpBid('A' + shcode)
@@ -224,6 +231,7 @@ class MainForm(QtGui.QMainWindow):
                     self.registerFeedItem_OC0(shcode)
                 else:
                     self.registerFeedItem_EC0(shcode)
+                    self.registerFeedItem_EH0(shcode)
                     
             for shcode in self._FeedCodeList.equityshcodelst:
                 self.registerFeedItem_S3_(shcode)
