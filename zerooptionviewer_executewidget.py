@@ -46,6 +46,7 @@ class OptionViewerExecuteWidget(QtGui.QWidget):
     def initZMQ(self):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
+        self.socket.setsockopt(zmq.RCVTIMEO,2000)
         self.socket.connect("tcp://127.0.0.1:6000")
         pass
     
