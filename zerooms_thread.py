@@ -5,6 +5,7 @@ Created on Sat Oct 19 15:37:25 2013
 @author: Administrator
 """
 
+import pdb
 import pyxing as px
 import zmq
 from PyQt4 import QtCore
@@ -30,7 +31,7 @@ class ExecuterThread(QtCore.QThread):
 
     def initVar(self):
         self._accountlist = []
-        self.servername = ''
+        self._servername = ''
         
     def initThread(self):
         self.mt_stop = False
@@ -90,9 +91,9 @@ class ExecuterThread(QtCore.QThread):
             print 'fail: no account'
             return
 
-        if self.servername[:3] == 'MIS':
+        if self._servername[:3] == 'MIS':
             accountpwd = ['0000','0000']
-        elif self.servername[0] == 'X':
+        elif self._servername[:1] == 'X':
             accountpwd = ['0302','']
         else:
             print 'fail: not available servername'
