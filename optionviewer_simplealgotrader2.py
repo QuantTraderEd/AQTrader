@@ -123,81 +123,72 @@ class SimpleAlgoTrader(QtGui.QWidget):
                 self.getTargetShortCD()
             return
         if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 28 and nowtime.tm_min < 32 and self.entry_counter1 < 15:
-            buysell = False
-            shcode = self.callShCode
-            price = 0.40
-            qty = 1
+            callbuysell = False
+            callprice = 0.40
+            callqty = 1
+
+            putbuysell = False
+            putprice = 0.40
+            putqty = 1
+
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
+            row = self.cur.fetchone()
+            callprice = float(row[0])
 
             self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
-            price = float(row[0])
+            putprice = float(row[0])
 
             #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
-            self.sendOrder(buysell,shcode,price,qty)
 
-            buysell = False
-            shcode = self.putShCode
-            price = 0.40
-            qty = 1
-
-            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
-            row = self.cur.fetchone()
-            price = float(row[0])
-
-            #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
-            if self.sendOrder(buysell,shcode,price,qty):
-                self.entry_counter1+=1
+            if callprice < 2.8 and putprice < 2.8:
+                if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
+                    self.entry_counter1 += 1
 
         elif nowtime.tm_hour == 11 + self.starthourshift and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < 15:
-            buysell = False
-            shcode = self.callShCode
-            price = 0.40
-            qty = 1
+            callbuysell = False
+            callprice = 0.40
+            callqty = 1
 
-            self.cur.execute("""SELECT Bid1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            putbuysell = False
+            putprice = 0.40
+            putqty = 1
+
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
             row = self.cur.fetchone()
-            price = float(row[0])
+            callprice = float(row[0])
 
-            #print buysell,shcode,price,qty
-            self.sendOrder(buysell,shcode,price,qty)
-
-            buysell = False
-            shcode = self.putShCode
-            price = 0.40
-            qty = 1
-
-            self.cur.execute("""SELECT Bid1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
-            price = float(row[0])
+            putprice = float(row[0])
 
-            #print buysell,shcode,price,qty
-            if self.sendOrder(buysell,shcode,price,qty):
-                self.entry_counter2+=1
+            #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
+
+            if callprice < 2.8 and putprice < 2.8:
+                if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
+                    self.entry_counter2 += 1
 
         elif nowtime.tm_hour == 14 + self.endhourshift and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 30:
             #time.sleep(random.randint(0,2000) * 0.001)
-            buysell = True
-            shcode = self.callShCode
-            price = 1.90
-            qty = 1
+            callbuysell = False
+            callprice = 0.40
+            callqty = 1
 
-            self.cur.execute("""SELECT Ask1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            putbuysell = False
+            putprice = 0.40
+            putqty = 1
+
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
             row = self.cur.fetchone()
-            price = float(row[0])
-            #print buysell,shcode,price,qty
-            self.sendOrder(buysell,shcode,price,qty)
+            callprice = float(row[0])
 
-            buysell = True
-            shcode = self.putShCode
-            price = 1.90
-            qty = 1
-
-            self.cur.execute("""SELECT Ask1 From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
             row = self.cur.fetchone()
-            price = float(row[0])
+            putprice = float(row[0])
 
-            #print buysell,shcode,price,qty
-            if self.sendOrder(buysell,shcode,price,qty):
+            #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
+
+            if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
                 self.counter+=1
 
         pass
@@ -284,6 +275,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
         #print target_cd, target_price
         self.putShCode = target_cd
+
+        print self.callShCode, self.putShCode
 
         conn.close()
 
