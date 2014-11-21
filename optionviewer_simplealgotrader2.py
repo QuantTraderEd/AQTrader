@@ -43,6 +43,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.counter1 = 0
         self.callShCode = ''
         self.putShCode = ''
+        self.target_price = 1.5
+        self.max_position = 15        
         self.entry_counter1 = 0
         self.entry_counter2 = 0
         self.starthourshift = 0
@@ -122,7 +124,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 0 and nowtime.tm_min < 4:
                 self.getTargetShortCD()
             return
-        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 28 and nowtime.tm_min < 32 and self.entry_counter1 < 15:
+        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 28 and nowtime.tm_min < 32 and self.entry_counter1 < self.max_position:
             callbuysell = False
             callprice = 0.40
             callqty = 1
@@ -135,7 +137,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             row = self.cur.fetchone()
             callprice = float(row[0])
 
-            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.putShCode,))
             row = self.cur.fetchone()
             putprice = float(row[0])
 
@@ -145,7 +147,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
                 if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
                     self.entry_counter1 += 1
 
-        elif nowtime.tm_hour == 11 + self.starthourshift and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < 15:
+        elif nowtime.tm_hour == 11 + self.starthourshift and nowtime.tm_min > 23 and nowtime.tm_min < 27 and self.entry_counter2 < self.max_position:
             callbuysell = False
             callprice = 0.40
             callqty = 1
@@ -158,7 +160,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             row = self.cur.fetchone()
             callprice = float(row[0])
 
-            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(shcode,))
+            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.putShCode,))
             row = self.cur.fetchone()
             putprice = float(row[0])
 
@@ -168,13 +170,13 @@ class SimpleAlgoTrader(QtGui.QWidget):
                 if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
                     self.entry_counter2 += 1
 
-        elif nowtime.tm_hour == 14 + self.endhourshift and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < 30:
+        elif nowtime.tm_hour == 14 + self.endhourshift and nowtime.tm_min > 42 and nowtime.tm_min < 45 and self.counter < self.max_position * 2:
             #time.sleep(random.randint(0,2000) * 0.001)
-            callbuysell = False
+            callbuysell = True
             callprice = 0.40
             callqty = 1
 
-            putbuysell = False
+            putbuysell = True
             putprice = 0.40
             putqty = 1
 
@@ -220,7 +222,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
         target_min = 9999
         target_cd = ''
-        target_price = '1.5'
+        target_price = '%.1f'%self.target_price
 
         sqltext = """
         SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
@@ -249,7 +251,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
         target_min = 9999
         target_cd = ''
-        target_price = '1.5'
+        target_price = '%.1f'%self.target_price
 
         sqltext = """
         SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
