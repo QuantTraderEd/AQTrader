@@ -163,11 +163,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
             putprice = 0.40
             putqty = 1
 
-            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
+            self.cur.execute("""SELECT Ask1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
             row = self.cur.fetchone()
             callprice = float(row[0])
 
-            self.cur.execute("""SELECT Bid1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.putShCode,))
+            self.cur.execute("""SELECT Ask1,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.putShCode,))
             row = self.cur.fetchone()
             putprice = float(row[0])
 
