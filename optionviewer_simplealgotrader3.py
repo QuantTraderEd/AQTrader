@@ -44,7 +44,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.max_position = 1
         self.callShCode = ''
         self.putShCode = ''
-        self.target_price = 0.22
+        self.target_price = 0.75
         self.entry_counter1 = 0
         self.entry_counter2 = 0
         self.starthourshift = 0
@@ -124,11 +124,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def onXTimerUpdate(self):
         nowtime = time.localtime()
         if self.callShCode == '' or self.putShCode == '':
-            #if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 0 and nowtime.tm_min < 50:
-            if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 20 and nowtime.tm_min < 22:
+            if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 0 and nowtime.tm_min < 50:
+            #if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 20 and nowtime.tm_min < 22:
                 self.getTargetShortCD()
             return
-        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 22 and nowtime.tm_min < 26 and self.entry_counter1 < self.max_position:
+        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 21 and nowtime.tm_min < 25 and self.entry_counter1 < self.max_position:
             callbuysell = False
             callprice = 0.40
             callqty = 1
@@ -193,11 +193,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
         pass
 
     def getTargetShortCD(self):
-        #starttime = '%.2d:57:30.000'%(8+self.starthourshift)
-        #endtime = '%.2d:59:59.000'%(8+self.starthourshift)
+        starttime = '%.2d:57:30.000'%(8+self.starthourshift)
+        endtime = '%.2d:59:59.000'%(8+self.starthourshift)
 
-        starttime = '%.2d:18:30.000'%(9+self.starthourshift)
-        endtime = '%.2d:21:00.000'%(9+self.starthourshift)
+        #starttime = '%.2d:18:30.000'%(9+self.starthourshift)
+        #endtime = '%.2d:21:00.000'%(9+self.starthourshift)
 
         nowtime = time.localtime()
         filedbname = time.strftime('TAQ_%Y%m%d.db',nowtime)
@@ -239,13 +239,20 @@ class SimpleAlgoTrader(QtGui.QWidget):
             df_buffer = df_call[df_call['ShortCD'] == shortcd]
             if len(df_buffer) > 0:
                 row = df_buffer.irow(-1)
-                print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
-                midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
-                diff = abs(midprice - self.target_price)
-                if diff < target_min and midprice < self.target_price:
-                    target_min = diff
-                    target_cd = shortcd
-
+                if row['TAQ'] == 'Q':
+                    print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
+                    midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
+                    diff = abs(midprice - self.target_price)
+                    if diff < target_min and midprice < self.target_price:
+                        target_min = diff
+                        target_cd = shortcd
+                elif row['TAQ'] == 'E':
+                    print row['ShortCD'], row['Time'],row['LastPrice']
+                    midprice =  float(row['LastPrice'])
+                    diff = abs(midprice - self.target_price)
+                    if diff < target_min and midprice < self.target_price:
+                        target_min = diff
+                        target_cd = shortcd
 
 
         self.callShCode = target_cd
@@ -254,17 +261,24 @@ class SimpleAlgoTrader(QtGui.QWidget):
         target_cd = ''
 
 
-
         for shortcd in self._FeedCodeList.optionshcodelst:
-            df_buffer = df_put[df_put['ShortCD'] == shortcd]
+            df_buffer = df_call[df_call['ShortCD'] == shortcd]
             if len(df_buffer) > 0:
                 row = df_buffer.irow(-1)
-                print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
-                midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
-                diff = abs(midprice - self.target_price)
-                if diff < target_min and midprice < self.target_price:
-                    target_min = diff
-                    target_cd = shortcd
+                if row['TAQ'] == 'Q':
+                    print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
+                    midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
+                    diff = abs(midprice - self.target_price)
+                    if diff < target_min and midprice < self.target_price:
+                        target_min = diff
+                        target_cd = shortcd
+                elif row['TAQ'] == 'E':
+                    print row['ShortCD'], row['Time'],row['LastPrice']
+                    midprice =  float(row['LastPrice'])
+                    diff = abs(midprice - self.target_price)
+                    if diff < target_min and midprice < self.target_price:
+                        target_min = diff
+                        target_cd = shortcd
 
 
 
