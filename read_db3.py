@@ -82,7 +82,7 @@ df = pd.read_sql(sqltext, conn)
 df_call = df[df['ShortCD']=='201JC250']
 df_put = df[df['ShortCD']=='301JC250']
 
-df_mid = pd.merge(df_call,df_put,on='Time',how='outer')
+df_mid = pd.merge(df_call,df_put,on='Time',how='outer',sort=True)
 df_mid = df_mid.fillna(method='pad')
 
 df_mid = df_mid[['Time','ShortCD_x','AskQty1_x','Ask1_x','Bid1_x','BidQty1_x','ShortCD_y','AskQty1_y','Ask1_y','Bid1_y','BidQty1_y']]
@@ -113,7 +113,7 @@ df = pd.read_sql(sqltext, conn)
 df_call = df[df['ShortCD']=='201JC252']
 df_put = df[df['ShortCD']=='301JC252']
 
-df_up = pd.merge(df_call,df_put,on='Time',how='outer')
+df_up = pd.merge(df_call,df_put,on='Time',how='outer',sort=True)
 df_up = df_up.fillna(method='pad')
 
 df_up = df_up[['Time','ShortCD_x','AskQty1_x','Ask1_x','Bid1_x','BidQty1_x','ShortCD_y','AskQty1_y','Ask1_y','Bid1_y','BidQty1_y']]
@@ -121,17 +121,51 @@ df_up = df_up[df_up['Bid1_y'].notnull()]
 
 
 df_up[['Ask1_x','Bid1_x','Ask1_y','Bid1_y']] = df_up[['Ask1_x','Bid1_x','Ask1_y','Bid1_y']].astype(float)
-df_up['Syth_Bid'] = 252 + df_up['Bid1_x'] - df_up['Ask1_y']
-df_up['Syth_Ask'] = 252 + df_up['Ask1_x'] - df_up['Bid1_y']
+df_up['Syth_Bid'] = 252.5 + df_up['Bid1_x'] - df_up['Ask1_y']
+df_up['Syth_Ask'] = 252.5 + df_up['Ask1_x'] - df_up['Bid1_y']
 
 
 #df_up[['Time','Syth_Bid','Syth_Ask']].plot(x=df_up['Time'])
-#matplotlib.show()
 
 
-df_syth = pd.merge(df_mid[['Time','Syth_Ask','Syth_Bid']],df_up[['Time','Syth_Ask','Syth_Bid']],on='Time',how='outer')
+sqltext = """
+SELECT ShortCD, FeedSource, TAQ, SecuritiesType, Time, AskQty1, Ask1, Bid1, BidQty1
+FROM FutOptTickData
+WHERE TAQ = 'Q'
+AND Time Between '09:00:00.000' and '10:00:00.000'
+AND Bid1 > '0.00'
+AND ShortCD IN ('201JC247','301JC247')
+Order by Time
+"""
+
+df = pd.read_sql(sqltext, conn)
+
+df_call = df[df['ShortCD']=='201JC247']
+df_put = df[df['ShortCD']=='301JC247']
+
+df_dn = pd.merge(df_call,df_put,on='Time',how='outer',sort=True)
+df_dn = df_dn.fillna(method='pad')
+
+df_dn = df_dn[['Time','ShortCD_x','AskQty1_x','Ask1_x','Bid1_x','BidQty1_x',
+                        'ShortCD_y','AskQty1_y','Ask1_y','Bid1_y','BidQty1_y']]
+
+df_dn = df_dn[df_dn['Bid1_y'].notnull()]
+
+
+df_dn[['Ask1_x','Bid1_x','Ask1_y','Bid1_y']] = df_dn[['Ask1_x','Bid1_x','Ask1_y','Bid1_y']].astype(float)
+df_dn['Syth_Bid'] = 247.5 + df_dn['Bid1_x'] - df_dn['Ask1_y']
+df_dn['Syth_Ask'] = 247.5 + df_dn['Ask1_x'] - df_dn['Bid1_y']
+
+
+
+
+
+df_syth = pd.merge(df_dn[['Time','Syth_Ask','Syth_Bid']],df_mid[['Time','Syth_Ask','Syth_Bid']],on='Time',how='outer',sort=True)
 df_syth = df_syth.fillna(method='pad')
 df_syth = df_syth[df_syth['Syth_Ask_y'].notnull()]
 
 df_syth['Arb1'] = df_syth['Syth_Bid_x'] - df_syth['Syth_Ask_y']
 df_syth['Arb2'] = df_syth['Syth_Bid_y'] - df_syth['Syth_Ask_x']
+
+#df_syth[['Syth_Bid_x','Syth_Ask_x', 'Syth_Bid_y', 'Syth_Ask_y']].plot()
+#pylab.show()
