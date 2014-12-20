@@ -20,14 +20,24 @@ def convert(strprice):
 class OptionDBThread(OptionViewerThread):
     def __init__(self,parent=None):
         OptionViewerThread.__init__(self,parent)
+        self.strdbname = ''
         self.initDB()
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
         self.time_tag = strnowtime
 
+
     def initDB(self):
         strtime = time.strftime('%Y%m%d',time.localtime())
-        self.strdbname = "TAQ_%s.db" %(strtime)
+        nowtime = time.localtime()
+        if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+            self.strdbname = "TAQ_%s.db" %(strtime)
+        elif nowtime.tm_hour >= 16:
+            self.strdbname = "TAQ_Night_%s.db" %(strtime)
+        elif nowtime.tm_hour < 6:
+            strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
+            self.strdbname = "TAQ_Night_%s.db" %(strtime)
+
         self.initMemoryDB()
         if not os.path.isfile(self.strdbname):
             self.initFileDB()
@@ -221,12 +231,18 @@ class OptionDBThread(OptionViewerThread):
             print lst[0], shcode, taqitem
 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
-            shcode = str(lst[31])
-            lastprice = convert(lst[8])
-            lastqty = str(lst[13])
-            if lst[12] == '+':
+            nightshift = 0
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                nightshift = 0
+            else:
+                nightshift = 1
+
+            shcode = str(lst[31 + nightshift])
+            lastprice = convert(lst[8 + nightshift])
+            lastqty = str(lst[13 + nightshift])
+            if lst[12 + nightshift] == '+':
                 buysell = 'B'
-            elif lst[12] == '-':
+            elif lst[12 + nightshift] == '-':
                 buysell = 'S'
             else:
                 buysell = ''
@@ -236,19 +252,29 @@ class OptionDBThread(OptionViewerThread):
             chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
+            nightshift = 0
+            if nowtime.hour >= 7 and nowtime.hour < 17:
+                nightshift = 0
+            else:
+                nightshift = 1
             shcode = str(lst[32])
-            lastprice = convert(lst[8])
-            lastqty = str(lst[13])
-            if lst[12] == '+':
+            lastprice = convert(lst[8 + nightshift])
+            lastqty = str(lst[13 + nightshift])
+            if lst[12 + nightshift] == '+':
                 buysell = 'B'
-            elif lst[12] == '-':
+            elif lst[12 + nightshift] == '-':
                 buysell = 'S'
             else:
                 buysell = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
+
             print lst[0], shcode, taqitem
             chk = 'T'
 
+        # elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
+        #     chk = 'Q'
+        # elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'futures':
+        #     chk = 'Q'
 
         if chk == 'Q':
             wildcard = ','.join('?'*39)
