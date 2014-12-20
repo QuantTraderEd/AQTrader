@@ -97,6 +97,7 @@ class MainForm(QtGui.QMainWindow):
         self.ZMQFuturesTradeSender = ZMQTickSender(self.socket,'xing','T','futures')
         self.ZMQFuturesQuoteSender = ZMQTickSender(self.socket,'cybos','Q','futures')
         self.ZMQFuturesExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
+        self.ZMQFuturesNightQuoteSender = ZMQTickSender(self.socket,'xing','Q','futures')
         self.ZMQOptionsTradeSender = ZMQTickSender(self.socket,'xing','T','options')
         self.ZMQOptionsQuoteSender = ZMQTickSender(self.socket,'cybos','Q','options')
         self.ZMQOptionsNightQuoteSender = ZMQTickSender(self.socket,'xing','Q','options')
@@ -191,6 +192,12 @@ class MainForm(QtGui.QMainWindow):
         NewItemQuote.Subscribe()                    
         self.OptionTAQFeederLst.append(NewItemQuote)
 
+    def registerFeedItem_NH0(self,shcode):
+        NewItemQuote = px.XAReal_NH0(shcode,'list')
+        NewItemQuote.Attach(self.ZMQFuturesNightQuoteSender)
+        NewItemQuote.AdviseRealData()
+        self.FutureTAQFeederLst.append(NewItemQuote)
+
     def registerFeedItem_EH0(self,shcode):
         NewItemQuote = px.XAReal_EH0(shcode,'list')
         NewItemQuote.Attach(self.ZMQOptionsNightQuoteSender)
@@ -225,6 +232,7 @@ class MainForm(QtGui.QMainWindow):
                     self.registerFeedItem_FC0(shcode)
                 else:
                     self.registerFeedItem_NC0(shcode)
+                    self.registerFeedItem_NH0(shcode)
                         
             for shcode in self._FeedCodeList.optionshcodelst:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:                      
