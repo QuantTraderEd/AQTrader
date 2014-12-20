@@ -21,12 +21,15 @@ def convert(strprice):
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
         QtGui.QMainWindow.__init__(self,parent)
+        self.initVar()
         self.initUI()
         self.initFeedCode()
         self.initStrikeList()
         self.initTableWidget()
         self.initThread()
-        
+
+    def initVar(self):
+        self.expireMonthCode = 'K1'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -41,6 +44,13 @@ class MainForm(QtGui.QMainWindow):
         self._FeedCodeList.ReadCodeListFile()
         #for item in self._FeedCodeList.optionshcodelst:
         #    print item
+
+    def initStrikeList(self):
+        shcodelist = self._FeedCodeList.optionshcodelst
+        self.strikelst = list(set([shcode[-3:] for shcode in shcodelist
+                                   if shcode[3:5] == self.expireMonthCode]))
+        self.strikelst.sort()
+        self.strikelst.reverse()
         
     def initTableWidget(self):        
         self.ui.tableWidget.resizeColumnToContents(1)
@@ -82,12 +92,6 @@ class MainForm(QtGui.QMainWindow):
     def initThread(self):
         self.mythread = OptionViewerThread(None)
         self.mythread.receiveData[str].connect(self.onReceiveData)
-        
-    def initStrikeList(self):
-        shcodelist = self._FeedCodeList.optionshcodelst
-        self.strikelst = list(set([shcode[-3:] for shcode in shcodelist]))
-        self.strikelst.sort()
-        self.strikelst.reverse()
         
     def initData(self):
         shcode = '201J7267'                    
@@ -340,7 +344,6 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
-    myform.initData()
     app.exec_()   
 
 
