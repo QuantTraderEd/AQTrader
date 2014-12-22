@@ -122,6 +122,12 @@ class OptionDBThread(OptionViewerThread):
         chk = ''
         buysell = ''
         taqitem = ()
+        nightshift = 0
+        if nowtime.hour >= 7 and nowtime.hour < 17:
+            nightshift = 0
+        else:
+            nightshift = 1
+
 
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = str(lst[4]) + '000'
@@ -231,12 +237,7 @@ class OptionDBThread(OptionViewerThread):
             print lst[0], shcode, taqitem
 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
-            nightshift = 0
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                nightshift = 0
-            else:
-                nightshift = 1
-
+            #pdb.set_trace()
             shcode = str(lst[31 + nightshift])
             lastprice = convert(lst[8 + nightshift])
             lastqty = str(lst[13 + nightshift])
@@ -247,16 +248,12 @@ class OptionDBThread(OptionViewerThread):
             else:
                 buysell = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
-            #print lst[0], shcode, taqitem
+            print lst[0], shcode, taqitem
             #print msg
             chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
-            nightshift = 0
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                nightshift = 0
-            else:
-                nightshift = 1
+            #pdb.set_trace()
             shcode = str(lst[32])
             lastprice = convert(lst[8 + nightshift])
             lastqty = str(lst[13 + nightshift])
@@ -271,10 +268,97 @@ class OptionDBThread(OptionViewerThread):
             print lst[0], shcode, taqitem
             chk = 'T'
 
-        # elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
-        #     chk = 'Q'
-        # elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'futures':
-        #     chk = 'Q'
+        elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
+            if nightshift == 1:
+                shcode = str(lst[22])
+
+                ask1 = convert(lst[6])
+                ask2 = convert(lst[10])
+                ask3 = convert(lst[14])
+
+                bid1 = convert(lst[7])
+                bid2 = convert(lst[11])
+                bid3 = convert(lst[15])
+
+                askqty1 = str(lst[8])
+                askqty2 = str(lst[12])
+                askqty3 = str(lst[16])
+
+                bidqty1 = str(lst[9])
+                bidqty2 = str(lst[13])
+                bidqty3 = str(lst[17])
+
+
+                totalaskqty = str(lst[18])
+                totalbidqty = str(lst[19])
+
+                totalaskcnt = str(lst[20])
+                totalbidcnt = str(lst[21])
+
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,'','',
+                           bid2,ask2,bidqty2,askqty2,'','',
+                           bid3,ask3,bidqty3,askqty3,'','',
+                           '','','','','','',
+                           '','','','','','',
+                           totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
+                chk = 'Q'
+
+                print lst[0], shcode, taqitem
+
+        elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'futures':
+            if nightshift == 1:
+                shcode = str(lst[40])
+
+                ask1 = convert(lst[6])
+                ask2 = convert(lst[12])
+                ask3 = convert(lst[18])
+                ask4 = convert(lst[24])
+                ask5 = convert(lst[30])
+
+                bid1 = convert(lst[7])
+                bid2 = convert(lst[13])
+                bid3 = convert(lst[19])
+                bid4 = convert(lst[25])
+                bid5 = convert(lst[31])
+
+                askqty1 = str(lst[8])
+                askqty2 = str(lst[14])
+                askqty3 = str(lst[20])
+                askqty4 = str(lst[26])
+                askqty5 = str(lst[32])
+
+                bidqty1 = str(lst[9])
+                bidqty2 = str(lst[15])
+                bidqty3 = str(lst[21])
+                bidqty4 = str(lst[27])
+                bidqty5 = str(lst[33])
+
+                askcnt1 = str(lst[10])
+                askcnt2 = str(lst[16])
+                askcnt3 = str(lst[22])
+                askcnt4 = str(lst[28])
+                askcnt5 = str(lst[34])
+
+                bidcnt1 = str(lst[11])
+                bidcnt2 = str(lst[17])
+                bidcnt3 = str(lst[23])
+                bidcnt4 = str(lst[29])
+                bidcnt5 = str(lst[35])
+
+                totalaskqty = str(lst[36])
+                totalbidqty = str(lst[37])
+
+                totalaskcnt = str(lst[38])
+                totalbidcnt = str(lst[39])
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
+                       bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
+                       bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
+                       bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
+                       bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
+                       totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
+
+                chk = 'Q'
+                print lst[0], shcode, taqitem
 
         if chk == 'Q':
             wildcard = ','.join('?'*39)
