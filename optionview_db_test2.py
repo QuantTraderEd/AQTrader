@@ -4,7 +4,7 @@ Created on Fri Sep 12 16:52:59 2014
 
 @author: assa
 """
-
+import pdb
 import os
 import time
 import pandas as pd
@@ -43,7 +43,7 @@ class OptionDBThread(OptionViewerThread):
             self.initFileDB()
         else:
             print 'loading from file DB to memory DB'
-            self.conn_file = lite.connect(self.strdbname)
+            self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
             self.cursor_file = self.conn_file.cursor()
             df = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_file)
             pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory,'sqlite','replace')
@@ -128,10 +128,9 @@ class OptionDBThread(OptionViewerThread):
         else:
             nightshift = 1
 
-
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = str(lst[4]) + '000'
-            if nowtime.hour >= 7 and nowtime.hour < 17:
+            if nightshift == 0:
                 ask1 = convert(lst[6])
                 ask2 = convert(lst[7])
                 ask3 = convert(lst[8])
@@ -166,22 +165,60 @@ class OptionDBThread(OptionViewerThread):
                 bidcnt4 = str(lst[37])
                 bidcnt5 = str(lst[38])
                 totalbidcnt = str(lst[39])
-                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
-                       bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
-                       bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
-                       bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
-                       bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
-                       totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
+
             else:
                 ask1 = convert(lst[29])
                 bid1 = convert(lst[18])
                 askqty1 = str(lst[30])
                 bidqty1 = str(lst[19])
+
+                ask2 = convert(lst[27])
+                bid2 = convert(lst[20])
+                askqty2 = str(lst[28])
+                bidqty2 = str(lst[21])
+
+                ask3 = convert(lst[29])
+                bid3 = convert(lst[22])
+                askqty3 = str(lst[30])
+                bidqty3 = str(lst[23])
+
+                ask4 = convert(lst[31])
+                bid4 = convert(lst[24])
+                askqty4 = str(lst[32])
+                bidqty4 = str(lst[25])
+
+                ask5 = convert(lst[33])
+                bid5 = convert(lst[26])
+                askqty5 = str(lst[34])
+                bidqty5 = str(lst[27])
+
+
                 totalaskqty = str(lst[28])
                 totalbidqty = str(lst[17])[:-2]
-                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1)
+
+                bidcnt1 = str(lst[40])
+                bidcnt2 = str(lst[41])
+                bidcnt3 = str(lst[42])
+                bidcnt4 = str(lst[43])
+                bidcnt5 = str(lst[44])
+                totalbidcnt = str(lst[39])
+
+                askcnt1 = str(lst[46])
+                askcnt2 = str(lst[47])
+                askcnt3 = str(lst[48])
+                askcnt4 = str(lst[49])
+                askcnt5 = str(lst[50])
+                totalaskcnt = str(lst[45])
+
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
+                       bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
+                       bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
+                       bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
+                       bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
+                       totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
+
             chk = 'Q'
-            #print lst[0], shcode, taqitem
+            print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])
@@ -253,20 +290,20 @@ class OptionDBThread(OptionViewerThread):
             chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
-            #pdb.set_trace()
-            shcode = str(lst[32])
-            lastprice = convert(lst[8 + nightshift])
-            lastqty = str(lst[13 + nightshift])
-            if lst[12 + nightshift] == '+':
-                buysell = 'B'
-            elif lst[12 + nightshift] == '-':
-                buysell = 'S'
-            else:
-                buysell = ''
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
+            if nightshift == 1:
+                shcode = str(lst[32])
+                lastprice = convert(lst[8 + nightshift])
+                lastqty = str(lst[13 + nightshift])
+                if lst[12 + nightshift] == '+':
+                    buysell = 'B'
+                elif lst[12 + nightshift] == '-':
+                    buysell = 'S'
+                else:
+                    buysell = ''
+                taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
 
-            print lst[0], shcode, taqitem
-            chk = 'T'
+                print lst[0], shcode, taqitem
+                chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
             if nightshift == 1:
@@ -388,19 +425,20 @@ class OptionDBThread(OptionViewerThread):
         elif nowtime.second % 60 != 15:
             self.time_chk = True
 
+
         pass
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
             print 'read memomry db...'
             try:
+
                 df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE TIME > '%s' """%self.time_tag,self.conn_memory)
                 self.time_tag = df_memory['Time'].irow(-1)
             except lite.Error as e:
                 print "An error occurred:", e.args[0]
                 return
             print 'test: write file db...'
-
             pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
 
         else:
@@ -435,7 +473,7 @@ class OptionsDBTest(QtGui.QWidget):
             self.mythread.start()
             self.button.setText('Stop')
         else:
-            self.mythread.terminate()
+            self.mythread.stop()
             self.button.setText('Start')
         pass
     
