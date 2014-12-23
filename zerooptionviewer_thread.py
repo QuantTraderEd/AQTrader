@@ -43,3 +43,7 @@ class OptionViewerThread(QtCore.QThread):
 
     def onReceiveData(self,msg):
         pass
+    
+    def stop(self):
+        self.mt_stop = True
+        pass
