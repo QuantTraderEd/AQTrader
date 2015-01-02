@@ -32,6 +32,7 @@ from xing_xareal_NC0 import XAReal_NC0
 from xing_xareal_NH0 import XAReal_NH0
 from xing_xareal_EC0 import XAReal_EC0
 from xing_xareal_EH0 import XAReal_EH0
+from xing_xareal_EU0 import XAReal_EU0
 
 from xing_xaquery_cfoat00100 import XAQuery_CFOAT00100
 from xing_xaquery_cfoat00200 import XAQuery_CFOAT00200
