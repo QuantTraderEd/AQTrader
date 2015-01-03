@@ -9,7 +9,7 @@ from xing_source import SourceReal
 
 class XAReal_EU0(SourceReal):
     """
-    kospi200 eurex options execution real time receive
+    kospi200 eurex options order ack real time receive
     """
     def __init__(self,DataType='dictionary'):
         super(XAReal_EU0,self).__init__("XA_DataSet.XAReal")
