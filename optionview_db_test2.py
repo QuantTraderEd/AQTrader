@@ -4,7 +4,7 @@ Created on Fri Sep 12 16:52:59 2014
 
 @author: assa
 """
-import pdb
+
 import os
 import time
 import pandas as pd
@@ -22,9 +22,7 @@ class OptionDBThread(OptionViewerThread):
         OptionViewerThread.__init__(self,parent)
         self.strdbname = ''
         self.initDB()
-        nowtime = datetime.now()
-        strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-        self.time_tag = strnowtime
+        self.Id_tag = -1
 
 
     def initDB(self):
@@ -33,10 +31,10 @@ class OptionDBThread(OptionViewerThread):
         if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
             self.strdbname = "TAQ_%s.db" %(strtime)
         elif nowtime.tm_hour >= 16:
-            self.strdbname = "TAQ_Night_%s.db" %(strtime)
+            self.strdbname = "TAQ_Night_Test_%s.db" %(strtime)
         elif nowtime.tm_hour < 6:
             strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
-            self.strdbname = "TAQ_Night_%s.db" %(strtime)
+            self.strdbname = "TAQ_Night_Test_%s.db" %(strtime)
 
         self.initMemoryDB()
         if not os.path.isfile(self.strdbname):
@@ -53,7 +51,7 @@ class OptionDBThread(OptionViewerThread):
         self.conn_memory = lite.connect(":memory:",check_same_thread=False)
         self.cursor_memory = self.conn_memory.cursor()
         self.cursor_memory.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_memory.execute("""CREATE TABLE FutOptTickData(
+        self.cursor_memory.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -433,12 +431,14 @@ class OptionDBThread(OptionViewerThread):
             print 'read memomry db...'
             try:
 
-                df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE TIME > '%s' """%self.time_tag,self.conn_memory)
-                self.time_tag = df_memory['Time'].irow(-1)
+                df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE Id > %d """%self.Id_tag,self.conn_memory)
+                self.Id_tag = df_memory['Id'].irow(-1)
             except lite.Error as e:
                 print "An error occurred:", e.args[0]
                 return
             print 'test: write file db...'
+            #pdb.set_trace()
+            df_memory = df_memory.iloc[:,1:len(df_memory.columns)]
             pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
 
         else:
@@ -474,6 +474,8 @@ class OptionsDBTest(QtGui.QWidget):
             self.button.setText('Stop')
         else:
             self.mythread.stop()
+            if self.mythread.wait():
+                self.mythread.onXTimerUpdate()
             self.button.setText('Start')
         pass
     
