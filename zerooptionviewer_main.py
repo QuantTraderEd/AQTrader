@@ -29,7 +29,7 @@ class MainForm(QtGui.QMainWindow):
         self.initThread()
 
     def initVar(self):
-        self.expireMonthCode = 'K1'
+        self.expireMonthCode = 'K2'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -214,6 +214,7 @@ class MainForm(QtGui.QMainWindow):
             else:
                 return
 
+            if shcode[3:5] != self.expireMonthCode: return
             pos = self.strikelst.index(shcode[5:8])
 
             if shcode[:3] == '201':
@@ -238,7 +239,10 @@ class MainForm(QtGui.QMainWindow):
             shcode = lst[4]
             expectprice = convert(lst[6])
             expectqty = 'E'
+
+            if shcode[3:5] != self.expireMonthCode: return
             pos = self.strikelst.index(shcode[5:8])
+            
             if shcode[:3] == '201':                
                 self.updateTableWidgetItem(pos,0,shcode)
                 self.updateTableWidgetItem(pos,2,expectprice)
@@ -259,7 +263,9 @@ class MainForm(QtGui.QMainWindow):
                 lastprice = convert(lst[9])
                 lastqty = lst[14]
 
+            if shcode[3:5] != self.expireMonthCode: return
             pos = self.strikelst.index(shcode[5:8])
+
             if shcode[:3] == '201':                
                 self.updateTableWidgetItem(pos,0,shcode)
                 self.updateTableWidgetItem(pos,2,lastprice)
@@ -279,6 +285,7 @@ class MainForm(QtGui.QMainWindow):
                 askqty1 = lst[8]
                 bidqty1 = lst[9]
 
+            if shcode[3:5] != self.expireMonthCode: return
             pos = self.strikelst.index(shcode[5:8])
 
             if shcode[:3] == '201':
