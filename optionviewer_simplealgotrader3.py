@@ -44,7 +44,9 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.max_position = 1
         self.expireMonthCode = 'K2'
         self.callShCode = '201K2255'
-        self.putShCode = '201K2235'
+        self.putShCode = '301K2235'
+        self.callmidprice = 0
+        self.putmidprice = 0
         self.target_price = 1.00
         self.entry_counter1 = 0
         self.entry_counter2 = 0
@@ -115,6 +117,10 @@ class SimpleAlgoTrader(QtGui.QWidget):
             bidqty1 = str(lst[28])
 
             if shcode in [self.callShCode,self.putShCode]:
+                if shcode[:3] == '201': self.callmidprice = (float(bid1)+float(ask1)) / 2
+                if shcode[:3] == '301': self.putmidprice = (float(bid1)+float(ask1)) / 2
+                print self.callShCode, self.callmidprice, self.putShCode, self.putmidprice,
+                print 'strangle price:', self.callmidprice + self.putmidprice
                 taqitem = (strnowtime,shcode,askqty1,ask1,bid1,bidqty1)
                 #print lst[0],taqitem
                 self.cur.execute("""INSERT INTO TickData(Time,ShCode,AskQty1,Ask1,Bid1,BidQty1)
@@ -235,7 +241,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
         df_put = df[df['ShortCD'].str.contains('301' + self.expireMonthCode)]
 
         conn.close()
-        
+
         if len(df) == 0:
             print 'no expection price in db'
             return
