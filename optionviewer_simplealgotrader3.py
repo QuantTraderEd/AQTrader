@@ -4,7 +4,7 @@ Created on Fri Sep 12 09:01:06 2014
 
 @author: assa
 """
-
+import pdb
 import os
 import time
 import zmq
@@ -42,9 +42,10 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.counter = 0
         self.counter1 = 0
         self.max_position = 1
-        self.callShCode = ''
-        self.putShCode = ''
-        self.target_price = 0.75
+        self.expireMonthCode = 'K2'
+        self.callShCode = '201K2255'
+        self.putShCode = '201K2235'
+        self.target_price = 1.00
         self.entry_counter1 = 0
         self.entry_counter2 = 0
         self.starthourshift = 0
@@ -128,7 +129,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
             #if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 20 and nowtime.tm_min < 22:
                 self.getTargetShortCD()
             return
-        if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min > 21 and nowtime.tm_min < 25 and self.entry_counter1 < self.max_position:
+        if nowtime.tm_hour == 10 + self.starthourshift and nowtime.tm_min > 21 and nowtime.tm_min < 25 and self.entry_counter1 < self.max_position:
             callbuysell = False
             callprice = 0.40
             callqty = 1
@@ -147,7 +148,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
             #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
 
-            if callprice < 1.5 and putprice < 1.5:
+            if callprice < self.target_price * 1.86 and putprice < self.target_price * 1.86:
                 if self.sendOrder(callbuysell,self.callShCode,callprice,callqty) and self.sendOrder(putbuysell,self.putShCode,putprice,putqty):
                     self.entry_counter1 += 1
             else:
@@ -203,6 +204,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
         filedbname = time.strftime('TAQ_%Y%m%d.db',nowtime)
 
         if not os.path.isfile(filedbname):
+            print 'no filedb'
             return
 
         conn = lite.connect(filedbname)
@@ -229,13 +231,18 @@ class SimpleAlgoTrader(QtGui.QWidget):
             """%(starttime,endtime)
 
         df = pd.read_sql(sqltext, conn)
-        df_call = df[df['ShortCD'].str.contains('201')]
-        df_put = df[df['ShortCD'].str.contains('301')]
+        df_call = df[df['ShortCD'].str.contains('201' + self.expireMonthCode)]
+        df_put = df[df['ShortCD'].str.contains('301' + self.expireMonthCode)]
 
         conn.close()
+        
+        if len(df) == 0:
+            print 'no expection price in db'
+            return
 
 
         for shortcd in self._FeedCodeList.optionshcodelst:
+            pdb.set_trace()
             df_buffer = df_call[df_call['ShortCD'] == shortcd]
             if len(df_buffer) > 0:
                 row = df_buffer.irow(-1)
@@ -243,14 +250,14 @@ class SimpleAlgoTrader(QtGui.QWidget):
                     print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
                     midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
                     diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price:
+                    if diff < target_min and midprice < self.target_price * 1.2:
                         target_min = diff
                         target_cd = shortcd
                 elif row['TAQ'] == 'E':
                     print row['ShortCD'], row['Time'],row['LastPrice']
                     midprice =  float(row['LastPrice'])
                     diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price:
+                    if diff < target_min and midprice < self.target_price * 1.2:
                         target_min = diff
                         target_cd = shortcd
 
@@ -262,21 +269,21 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
 
         for shortcd in self._FeedCodeList.optionshcodelst:
-            df_buffer = df_call[df_call['ShortCD'] == shortcd]
+            df_buffer = df_put[df_put['ShortCD'] == shortcd]
             if len(df_buffer) > 0:
                 row = df_buffer.irow(-1)
                 if row['TAQ'] == 'Q':
                     print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
                     midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
                     diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price:
+                    if diff < target_min and midprice < self.target_price * 1.2:
                         target_min = diff
                         target_cd = shortcd
                 elif row['TAQ'] == 'E':
                     print row['ShortCD'], row['Time'],row['LastPrice']
                     midprice =  float(row['LastPrice'])
                     diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price:
+                    if diff < target_min and midprice < self.target_price * 1.2:
                         target_min = diff
                         target_cd = shortcd
 
