@@ -7,12 +7,12 @@ Created on Sun Jan 11 16:27:33 2014
 
 from xing_source import SourceQuery
 
-class XAQuery_cexaq31200(SourceQuery):
+class XAQuery_CEXAQ31200(SourceQuery):
     """
     kospi eurex options cash account and total info
     """
     def __init__(self):
-        super(XAQuery_cexaq31200,self).__init__("XA_DataSet.XAQuery")
+        super(XAQuery_CEXAQ31200,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAQ31200.res")
         pass
 

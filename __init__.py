@@ -10,10 +10,10 @@ from xing_xaquery_t0441 import XAQuery_t0441
 from xing_xaquery_t0434 import XAQuery_t0434
 from xing_xaquery_t1102 import XAQuery_t1102
 
-from xing_xaquery_cexaq21100 import XAQuery_cexaq21100
-from xing_xaquery_cexaq21200 import XAQuery_cexaq21200
-from xing_xaquery_cexaq31100 import XAQuery_cexaq31100
-from xing_xaquery_cexaq31200 import XAQuery_cexaq31200
+from xing_xaquery_cexaq21100 import XAQuery_CEXAQ21100
+from xing_xaquery_cexaq21200 import XAQuery_CEXAQ21200
+from xing_xaquery_cexaq31100 import XAQuery_CEXAQ31100
+from xing_xaquery_cexaq31200 import XAQuery_CEXAQ31200
 
 from xing_xareal_S3_ import XAReal_S3_
 from xing_xareal_H1_ import XAReal_H1_

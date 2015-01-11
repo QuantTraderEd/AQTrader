@@ -7,12 +7,12 @@ Created on Fri Jan 09 21:27:33 2014
 
 from xing_source import SourceQuery
 
-class XAQuery_cexaq21100(SourceQuery):
+class XAQuery_CEXAQ21100(SourceQuery):
     """
     kospi eurex options now quote & state query
     """
     def __init__(self):
-        super(XAQuery_cexaq21100,self).__init__("XA_DataSet.XAQuery")
+        super(XAQuery_CEXAQ21100,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAQ21100.res")
         pass
 

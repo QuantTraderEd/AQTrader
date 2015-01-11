@@ -7,12 +7,12 @@ Created on Sun Jan 11 14:27:33 2014
 
 from xing_source import SourceQuery
 
-class XAQuery_cexaq21200(SourceQuery):
+class XAQuery_CEXAQ21200(SourceQuery):
     """
     kospi eurex options account margin
     """
     def __init__(self):
-        super(XAQuery_cexaq21200,self).__init__("XA_DataSet.XAQuery")
+        super(XAQuery_CEXAQ21200,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAQ21200.res")
         pass
 
