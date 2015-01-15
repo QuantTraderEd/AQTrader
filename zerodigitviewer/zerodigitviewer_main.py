@@ -5,11 +5,14 @@ Created on Wed Jul 02 22:20:29 2014
 @author: assa
 """
 
+import time
 import sys
 import pythoncom
 import pyxing as px
 from PyQt4 import QtGui, QtCore
 from ui_zerodigitviewer import Ui_Form
+from xinglogindlg import LoginForm
+from weakref import proxy
 
 class observer_cmd:
     def Update(self,subject):       
@@ -22,6 +25,14 @@ class observer_t0441:
         subject.flag = False
         pass
 
+class observer_CEXAQ31200:
+    def Update(self,subject):
+        item = subject.data[1]
+        subject.pnl = int((int(item['OptEvalPnlAmt']) + int(item['FutsEvalPnlAmt'])) * 0.001)
+        subject.flag = False
+        pass
+
+
 class ZeroDigitViewer(QtGui.QWidget):
     def __init__(self,parent=None):
         super(ZeroDigitViewer,self).__init__()
@@ -33,6 +44,7 @@ class ZeroDigitViewer(QtGui.QWidget):
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+        self
         
     def initXing(self,XASession=None):
         if XASession != None:
@@ -42,41 +54,34 @@ class ZeroDigitViewer(QtGui.QWidget):
             return
 
         self.XASession = px.XASession()
-        obs = observer_cmd()        
-        
-        server = 'demo.etrade.co.kr'
-        port = 20001
-        servertype = 1      # demo server      
-        showcerterror = 1
-        
-        user = 'eddy777'
-        password = ''
-        certpw = ""        
-        
-        self.XASession.observer = obs
-        self.XASession.ConnectServer(server,port)
-        #print 'connect server'
-        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)                                
-        
-        self.XASession.flag = True
-        while self.XASession.flag:
-            pythoncom.PumpWaitingMessages()
-        
-        if self.XASession.data[0] != u'0000':
-            self.XASession.DisconnectServer()
-            return
-            
+
+        myform = LoginForm(self,proxy(self.XASession))
+        myform.show()
+        myform.exec_()
+
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
             self.accountlist = self.XASession.GetAccountList()
+            print self.accountlist
         
         
     def initQuery(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.NewQuery = px.XAQuery_t0441()
-            obs = observer_t0441()
-            self.NewQuery.observer = obs
-            self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-            self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+            nowtime = time.localtime()
+            if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+                self.NewQuery = px.XAQuery_t0441()
+                obs = observer_t0441()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+            else:
+                self.NewQuery = px.XAQuery_CEXAQ31200()
+                obs = observer_CEXAQ31200()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','BalEvalTp',0,'1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','FutsPrcEvalTp',0,'1')
         
         
     def initTIMER(self):
