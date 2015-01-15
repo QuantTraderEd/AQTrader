@@ -17,7 +17,7 @@ from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import ExecuterThread
 from orderlistdlg_main import OrderListDialog
-from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer
+from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 
@@ -92,23 +92,40 @@ class MainForm(QtGui.QMainWindow):
         
         self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
         self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
-        
-        
+
         
     def __del__(self):
         self.XASession.DisconnectServer()
-    
-    def initT0441Query(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.NewQuery = px.XAQuery_t0441()
-            obs = observer_t0441()
-            self.NewQuery.observer = obs
-            self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-            if self.servername[:3] == 'MIS':
-                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
-            elif self.servername[0] == 'X':
-                # it need the real account pw
-                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+
+
+    def initQuery(self):
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+            nowtime = time.localtime()
+            if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+                self.exchange = 'KRX'
+                self.NewQuery = px.XAQuery_t0441()
+                obs = observer_t0441()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+                if self.servername[:3] == 'MIS':
+                    self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+                elif self.servername[0] == 'X':
+                    # it need the real account pw
+                    self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+            else:
+                self.exchange = 'EUREX'
+                self.NewQuery = px.XAQuery_CEXAQ31200()
+                obs = observer_CEXAQ31200()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[0])
+                if self.servername[:3] == 'MIS':
+                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0000')
+                elif self.servername[0] == 'X':
+                    # it need the real account pw
+                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','BalEvalTp',0,'1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','FutsPrcEvalTp',0,'1')
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
@@ -121,7 +138,7 @@ class MainForm(QtGui.QMainWindow):
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
             self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
-            self.myPositionViewer.onReceiveData(self.NewQuery.data)
+            self.myPositionViewer.onReceiveData(self.exchange,self.NewQuery.data)
                 
         
     def slot_StartXingDlg(self,row,column):
@@ -156,7 +173,7 @@ class MainForm(QtGui.QMainWindow):
                 self.executerThread._accountlist = self.accountlist
                 self.executerThread._servername = self.servername
                 print  self.servername, self.accountlist
-                self.initT0441Query()
+                self.initQuery()
                 self.queryTimer.start(10000)
                 self.executerThread.start()
             else:
@@ -171,7 +188,8 @@ class MainForm(QtGui.QMainWindow):
             self.myOrdListDlg.show()
             self.myOrdListDlg.exec_()        
         pass
-    
+
+
     def NotifyOrderListViewer(self):
         #update ordlistDB
         print "will update ordlistDB"
@@ -199,14 +217,7 @@ class XingXASessionUpdate():
         if msg[:5] == ' 0000':
             self.status_xi.setText('connect:' + msg[:5])    
         pass
-    
-class observer_t0441:
-    def Update(self,subject):        
-        item = subject.data[0]        
-        subject.pnl = int(int(item['tsunik']) * 0.001)
-        subject.flag = False
-        pass    
-        
+
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
