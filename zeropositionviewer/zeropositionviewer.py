@@ -92,21 +92,24 @@ class ZeroPositionViewer(QtGui.QWidget):
                 pythoncom.PumpWaitingMessages()
             self.onReceiveData(self.NewQuery.data)
             
-    def onReceiveData(self,data):
-        self.ui.tableWidget.setRowCount(len(data)-1)
-        for i in xrange(1,len(data)):
-            shcode = data[i]['expcode']
-            if data[i]['medocd'] == '1':
-                pos = u'-' + data[i]['jqty']
-            elif data[i]['medocd'] == '2':
-                pos = data[i]['jqty']
-            else:
-                pos = ''
-            pnl = data[i]['dtsunik1']
-            
-            self.updateTableWidgetItem(i-1,0,shcode)
-            self.updateTableWidgetItem(i-1,1,pos)
-            self.updateTableWidgetItem(i-1,6,pnl)
+    def onReceiveData(self,exchange,data):
+        if exchange == 'KRX':
+            self.ui.tableWidget.setRowCount(len(data)-1)
+            for i in xrange(1,len(data)):
+                shcode = data[i]['expcode']
+                if data[i]['medocd'] == '1':
+                    pos = u'-' + data[i]['jqty']
+                elif data[i]['medocd'] == '2':
+                    pos = data[i]['jqty']
+                else:
+                    pos = ''
+                pnl = data[i]['dtsunik1']
+
+                self.updateTableWidgetItem(i-1,0,shcode)
+                self.updateTableWidgetItem(i-1,1,pos)
+                self.updateTableWidgetItem(i-1,6,pnl)
+        elif exchange == 'EUREX':
+            self.ui.tableWidget.setRowCount(len(data)-2)
             
     def updateTableWidgetItem(self,row,col,text):
         widgetItem = self.ui.tableWidget.item(row,col)
