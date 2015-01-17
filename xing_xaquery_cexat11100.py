@@ -9,7 +9,7 @@ from xing_source import SourceQuery
 
 class XAQuery_CEXAT11100(SourceQuery):
     """
-    kospi200 eurex option cancel order 
+    kospi200 eurex option new normal order
     """
     def __init__(self):
         super(XAQuery_CEXAT11100,self).__init__("XA_DataSet.XAQuery")
