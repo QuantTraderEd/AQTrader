@@ -5,11 +5,14 @@ Created on Wed Aug 13 21:56:21 2014
 @author: assa
 """
 
+import time
 import sys
 import pythoncom
 import pyxing as px
 from PyQt4 import QtGui, QtCore
 from ui_zeropositionviewer import Ui_Form
+from xinglogindlg import LoginForm
+from weakref import proxy
 
 class observer_cmd:
     def Update(self,subject):       
@@ -17,6 +20,13 @@ class observer_cmd:
         pass
 class observer_t0441:
     def Update(self,subject):        
+        subject.flag = False
+        pass
+
+class observer_CEXAQ31200:
+    def Update(self,subject):
+        item = subject.data[1]
+        subject.pnl = int((int(item['OptEvalPnlAmt']) + int(item['FutsEvalPnlAmt'])) * 0.001)
         subject.flag = False
         pass
 
@@ -35,46 +45,41 @@ class ZeroPositionViewer(QtGui.QWidget):
     def initXing(self,XASession=None):
         if XASession != None:
             self.XASession = XASession
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.accountlist = self.XASession.GetAccountList()
             return
 
         self.XASession = px.XASession()
-        obs = observer_cmd()        
-        
-        server = 'demo.etrade.co.kr'
-        port = 20001
-        servertype = 1      # demo server      
-        showcerterror = 1
-        
-        user = 'eddy777'
-        password = ''
-        certpw = ""        
-        
-        self.XASession.observer = obs
-        self.XASession.ConnectServer(server,port)
-        #print 'connect server'
-        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)                                
-        
-        self.XASession.flag = True
-        while self.XASession.flag:
-            pythoncom.PumpWaitingMessages()
-        
-        if self.XASession.data[0] != u'0000':
-            self.XASession.DisconnectServer()
-            return
-            
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+
+        myform = LoginForm(self,proxy(self.XASession))
+        myform.show()
+        myform.exec_()
+
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
+            print self.accountlist
         
         
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.NewQuery = px.XAQuery_t0441()
-            obs = observer_t0441()
-            self.NewQuery.observer = obs
-            self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-            self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+            nowtime = time.localtime()
+            if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+                self.exchange = 'KRX'
+                self.NewQuery = px.XAQuery_t0441()
+                obs = observer_t0441()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+            else:
+                self.exchange = 'EUREX'
+                self.NewQuery = px.XAQuery_CEXAQ31200()
+                obs = observer_CEXAQ31200()
+                self.NewQuery.observer = obs
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','BalEvalTp',0,'1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','FutsPrcEvalTp',0,'1')
         
         
     def initTIMER(self):
@@ -90,7 +95,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
-            self.onReceiveData(self.NewQuery.data)
+            self.onReceiveData(self.exchange,self.NewQuery.data)
             
     def onReceiveData(self,exchange,data):
         if exchange == 'KRX':
@@ -110,6 +115,19 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.updateTableWidgetItem(i-1,6,pnl)
         elif exchange == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2)
+            for i in xrange(2,len(data)):
+                shcode = data[i]['FnoIsuNo']
+                if data[i]['BnsTpCode'] == '1':
+                    pos = u'-' + data[i]['UnsttQty']
+                elif data[i]['BnsTpCode'] == '2':
+                    pos = data[i]['UnsttQty']
+                pnl = data[i]['EvalPnl']
+
+                self.updateTableWidgetItem(i-2,0,shcode)
+                self.updateTableWidgetItem(i-2,1,pos)
+                self.updateTableWidgetItem(i-2,6,pnl)
+
+
             
     def updateTableWidgetItem(self,row,col,text):
         widgetItem = self.ui.tableWidget.item(row,col)
