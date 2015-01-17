@@ -5,7 +5,6 @@ Created on Sat Oct 19 15:37:25 2013
 @author: Administrator
 """
 
-import pdb
 import pyxing as px
 import zmq
 from PyQt4 import QtCore
@@ -16,6 +15,8 @@ from QtViewerCSPAT00600 import QtViewerCSPAT00600
 from QtViewerCSPAT00800 import QtViewerCSPAT00800
 from QtViewerCFOAT00100 import QtViewerCFOAT00100
 from QtViewerCFOAT00300 import QtViewerCFOAT00300
+from QtViewerCEXAT11100 import QtViewerCEXAT11100
+from QtViewerCEXAT11300 import QtViewerCEXAT11300
 from QtViewerSC1 import QtViewerSC1
 from QtViewerC01 import QtViewerC01
 
@@ -47,6 +48,8 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer00800 = QtViewerCSPAT00800()
         self.qtviewer00100 = QtViewerCFOAT00100()
         self.qtviewer00300 = QtViewerCFOAT00300()
+        self.qtviewer11100 = QtViewerCEXAT11100()
+        self.qtviewer11300 = QtViewerCEXAT11300()
         self.qtviewerSC1 = QtViewerSC1()       
         self.qtviewerC01 = QtViewerC01()
         
@@ -73,7 +76,9 @@ class ExecuterThread(QtCore.QThread):
         self.xaquery_CFOAT00200 = px.XAQuery_CFOAT00200()
         self.xaquery_CFOAT00300 = px.XAQuery_CFOAT00300()
         self.xaquery_CSPAT00600 = px.XAQuery_CSPAT00600()          
-        self.xaquery_CSPAT00800 = px.XAQuery_CSPAT00800()          
+        self.xaquery_CSPAT00800 = px.XAQuery_CSPAT00800()
+        self.xaquery_CEXAT11100 = px.XAQuery_CEXAT11100()
+        self.xaquery_CEXAT11300 = px.XAQuery_CEXAT11300()
         self.xareal_SC0 = px.XAReal_SC0()
         self.xareal_SC1 = px.XAReal_SC1()
         self.xareal_C01 = px.XAReal_C01()
@@ -179,37 +184,86 @@ class ExecuterThread(QtCore.QThread):
                 self.socket.send('done ' + msg)
                 
             elif (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
-                # FO new order
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[0])
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shcode))
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
-                self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
-                ret = self.xaquery_CFOAT00100.Request(False)         
-                print ret                       
-                if ret == None:
-                    while self.xaquery_CFOAT00100.observer.flag:
-                        PumpWaitingMessages()
-                    self.xaquery_CFOAT00100.observer.flag = True
-                    szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']     
-                    print szMsgCode
-                    if szMsgCode != '00039' and szMsgCode != '00040':
-                        self.socket.send('errCode: ' + str(szMsgCode))
+                if nowtime.hour >= 6 and nowtime.hour < 16:
+                    # KRX Futures, Options new order
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[0])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shcode))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
+                    ret = self.xaquery_CFOAT00100.Request(False)
+                    print ret
+                    if not ret:
+                        while self.xaquery_CFOAT00100.observer.flag:
+                            PumpWaitingMessages()
+                        self.xaquery_CFOAT00100.observer.flag = True
+                        szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
+                        print szMsgCode
+                        if szMsgCode != '00039' and szMsgCode != '00040':
+                            self.socket.send('errCode: ' + str(szMsgCode))
+                        else:
+                            self.socket.send('msgCode: ' + str(szMsgCode))
+                else:
+                    if shcode[:3] == '101':
+                        self.socket.send('not yet implement...')
+                        return
                     else:
-                        self.socket.send('msgCode: ' + str(szMsgCode))
-                        
+                        # Eurex Futures, Options new order
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[0])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,self.accountpwd[0])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shcode))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','BnsTpCode',0,buysell)
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(price))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(qty))
+                        ret = self.xaquery_CEXAT11100.Request(False)
+                        print ret
+                        if not ret:
+                            while self.xaquery_CEXAT11100.observer.flag:
+                                PumpWaitingMessages()
+                            self.xaquery_CEXAT11100.observer.flag = True
+                            szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
+                            print szMsgCode
+                            if szMsgCode != '00039' and szMsgCode != '00040':
+                                self.socket.send('errCode: ' + str(szMsgCode))
+                            else:
+                                self.socket.send('msgCode: ' + str(szMsgCode))
+
             elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
-                # FO cancl order
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[0])
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
-                self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
-                ret = self.xaquery_CFOAT00300.Request(False)
-                self.socket.send('msgCode: ')
-                print ret
+                if nowtime.hour >= 6 and nowtime.hour < 16:
+                    # KRX Futures, Options new order
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[0])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
+                    ret = self.xaquery_CFOAT00300.Request(False)
+                    self.socket.send('msgCode: ')
+                    print ret
+                else:
+                    if shcode[:3] == '101':
+                        self.socket.send('not yet implement...')
+                        return
+                    else:
+                        # Eurex Futures, Options new order
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(ordno))
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[0])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,self.accountpwd[0])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shcode))
+                        ret = self.xaquery_CEXAT11300.Request(False)
+                        print ret
+                        if not ret:
+                            while self.xaquery_CEXAT11300.observer.flag:
+                                PumpWaitingMessages()
+                            self.xaquery_CEXAT11300.observer.flag = True
+                            szMsgCode = self.xaquery_CEXAT11300.data['szMessageCode']
+                            print szMsgCode
+                            if szMsgCode != '00039' and szMsgCode != '00040':
+                                self.socket.send('errCode: ' + str(szMsgCode))
+                            else:
+                                self.socket.send('msgCode: ' + str(szMsgCode))
             else:
                 self.socket.send('fail: other case order')
     
