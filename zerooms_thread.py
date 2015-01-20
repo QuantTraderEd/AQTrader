@@ -54,8 +54,14 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewerC01 = QtViewerC01()
         
         nowtime = datetime.now()
-        strtime = datetime.strftime(nowtime,'%Y%m%d')
-        self.strdbname = "orderlist_%s.db" %(strtime)
+        strtime = datetime.strftime(nowtime,'%Y%m%d')                        
+        if nowtime.hour >= 6 and nowtime < 16:
+            self.strdbname = "orderlist_%s.db" %(strtime)
+        elif nowtime >= 16:
+            self.strdbname = "orderlist_night_%s.db" %(strtime)
+        else:
+            strtime = "%d%.2d%.2d" %(nowtime.year,nowtime.month,nowtime.day-1)
+            self.strdbname = "orderlist_night_%s.db" %(strtime)
         
         self.qtviewer00600.dbname = self.strdbname
         self.qtviewer00800.dbname = self.strdbname
