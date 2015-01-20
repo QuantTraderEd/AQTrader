@@ -28,9 +28,17 @@ class OrderListDialog(QtGui.QDialog):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
         self.socket.connect("tcp://127.0.0.1:6000")
-        
-        strtime = time.strftime('%Y%m%d',time.localtime())
+
+        nowtime = time.localtime()
+        strtime = time.strftime('%Y%m%d',nowtime)
         self.strdbname = "orderlist_%s.db" %(strtime)
+        if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+            strdbname = "orderlist_%s.db" %(strtime)
+        elif nowtime >= 16:
+            strdbname = "orderlist_night_%s.db" %(strtime)
+        else:
+            strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
+            strdbname = "orderlist_night_%s.db" %(strtime)
         
     def __del__(self):
         if not self.socket.closed:
