@@ -55,9 +55,9 @@ class ExecuterThread(QtCore.QThread):
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')                        
-        if nowtime.hour >= 6 and nowtime < 16:
+        if nowtime.hour >= 6 and nowtime.hour < 16:
             self.strdbname = "orderlist_%s.db" %(strtime)
-        elif nowtime >= 16:
+        elif nowtime.hour >= 16:
             self.strdbname = "orderlist_night_%s.db" %(strtime)
         else:
             strtime = "%d%.2d%.2d" %(nowtime.year,nowtime.month,nowtime.day-1)
@@ -67,6 +67,8 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer00800.dbname = self.strdbname
         self.qtviewer00100.dbname = self.strdbname
         self.qtviewer00300.dbname = self.strdbname
+        self.qtviewer11100.dbname = self.strdbname
+        self.qtviewer11300.dbname = self.strdbname
         self.qtviewerSC1.dbname = self.strdbname
         self.qtviewerC01.dbname = self.strdbname
         
@@ -74,6 +76,8 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer00800.receive.connect(self.UpdateDB)
         self.qtviewer00100.receive.connect(self.UpdateDB)
         self.qtviewer00300.receive.connect(self.UpdateDB)
+        self.qtviewer11100.receive.connect(self.UpdateDB)
+        self.qtviewer11300.receive.connect(self.UpdateDB)
         self.qtviewerSC1.receive.connect(self.UpdateDB)
         self.qtviewerC01.receive.connect(self.UpdateDB)
         
@@ -92,6 +96,8 @@ class ExecuterThread(QtCore.QThread):
         self.xaquery_CSPAT00800.observer = self.qtviewer00800
         self.xaquery_CFOAT00100.observer = self.qtviewer00100
         self.xaquery_CFOAT00300.observer = self.qtviewer00300
+        self.xaquery_CEXAT11100.observer = self.qtviewer11100
+        self.xaquery_CEXAT11300.observer = self.qtviewer11300
         self.xareal_SC0.observer = self.cviewer0
         self.xareal_SC1.observer = self.qtviewerSC1
         self.xareal_C01.observer = self.qtviewerC01
@@ -218,7 +224,7 @@ class ExecuterThread(QtCore.QThread):
                     else:
                         # Eurex Futures, Options new order
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[0])
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,self.accountpwd[0])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,accountpwd[0])
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shcode))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','BnsTpCode',0,buysell)
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
@@ -256,7 +262,7 @@ class ExecuterThread(QtCore.QThread):
                         # Eurex Futures, Options new order
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(ordno))
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[0])
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,self.accountpwd[0])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[0])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shcode))
                         ret = self.xaquery_CEXAT11300.Request(False)
                         print ret
