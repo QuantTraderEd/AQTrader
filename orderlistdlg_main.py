@@ -31,14 +31,13 @@ class OrderListDialog(QtGui.QDialog):
 
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
-        self.strdbname = "orderlist_%s.db" %(strtime)
         if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
-            strdbname = "orderlist_%s.db" %(strtime)
+            self.strdbname = "orderlist_%s.db" %(strtime)
         elif nowtime >= 16:
-            strdbname = "orderlist_night_%s.db" %(strtime)
+            self.strdbname = "orderlist_night_%s.db" %(strtime)
         else:
             strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
-            strdbname = "orderlist_night_%s.db" %(strtime)
+            self.strdbname = "orderlist_night_%s.db" %(strtime)
         
     def __del__(self):
         if not self.socket.closed:
