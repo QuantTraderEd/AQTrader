@@ -5,6 +5,7 @@ Created on Tue Dec 03 20:14:48 2013
 @author: Administrator
 """
 
+import os
 import time
 import sys
 import zmq
@@ -31,11 +32,14 @@ class OrderListDialog(QtGui.QDialog):
 
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
+
+        self.strdbname = ''
+
         if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
             self.strdbname = "orderlist_%s.db" %(strtime)
-        elif nowtime >= 16:
+        elif nowtime.tm_hour >= 16:
             self.strdbname = "orderlist_night_%s.db" %(strtime)
-        else:
+        elif nowtime.tm_hour < 6:
             strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
             self.strdbname = "orderlist_night_%s.db" %(strtime)
         
@@ -44,26 +48,27 @@ class OrderListDialog(QtGui.QDialog):
             self.socket.close()
         
     def OnUpdateList(self):
-        conn_db = lite.connect(self.strdbname)
-        cursor_db = conn_db.cursor()
-        cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
-        col_names = [cn[0] for cn in cursor_db.description]
-        rows = cursor_db.fetchall()
-        self.ui.tableWidget.setRowCount(len(rows))
+        if os.path.isfile(self.strdbname):
+            conn_db = lite.connect(self.strdbname)
+            cursor_db = conn_db.cursor()
+            cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
+            col_names = [cn[0] for cn in cursor_db.description]
+            rows = cursor_db.fetchall()
+            self.ui.tableWidget.setRowCount(len(rows))
 
-#        print "%s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" %tuple(col_names)
-#        for row in rows:            
-#            print "%2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
-        rownum = 0
-        for row in rows:            
-            for j in range(1,len(row)):
-                if row[j]: 
-                    self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(row[j]))
-                elif not row[j]:
-                    self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(''))
-            rownum = rownum + 1                            
-            
-        conn_db.close()            
+    #        print "%s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" %tuple(col_names)
+    #        for row in rows:
+    #            print "%2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
+            rownum = 0
+            for row in rows:
+                for j in range(1,len(row)):
+                    if row[j]:
+                        self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(row[j]))
+                    elif not row[j]:
+                        self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(''))
+                rownum = rownum + 1
+
+            conn_db.close()
         pass
     
     def OnCellDoubleClicked(self,row,col):        
