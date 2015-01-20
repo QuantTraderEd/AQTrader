@@ -55,8 +55,36 @@ class MainForm(QtGui.QMainWindow):
         self.accountlist = []
         self.servername = ''
         
-        strtime = time.strftime('%Y%m%d',time.localtime())
-        strdbname = "orderlist_%s.db" %(strtime)
+        self.initDB()        
+        
+        self.executerThread = ExecuterThread()
+        self.executerThread._XASession = proxy(self.XASession)    
+        #self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
+        self.executerThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
+        
+        self.myOrdListDlg = OrderListDialog()
+        
+        self.myDigitViewer = ZeroDigitViewer()
+        self.myPositionViewer = ZeroPositionViewer()
+        
+        self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
+        self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
+
+        
+    def __del__(self):
+        self.XASession.DisconnectServer()
+        
+    def initDB(self):
+        nowtime = time.localtime()
+        strtime = time.strftime('%Y%m%d',nowtime)
+        if nowtime.hour >= 6 and nowtime < 16:
+            strdbname = "orderlist_%s.db" %(strtime)
+        elif nowtime >= 16:
+            strdbname = "orderlist_night_%s.db" %(strtime)
+        else:
+            strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
+            strdbname = "orderlist_night_%s.db" %(strtime)
+            
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
             self.cursor_db = self.conn_db.cursor()
@@ -79,23 +107,6 @@ class MainForm(QtGui.QMainWindow):
                                            )""")
             self.conn_db.close()
         
-        
-        self.executerThread = ExecuterThread()
-        self.executerThread._XASession = proxy(self.XASession)    
-        #self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
-        self.executerThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
-        
-        self.myOrdListDlg = OrderListDialog()
-        
-        self.myDigitViewer = ZeroDigitViewer()
-        self.myPositionViewer = ZeroPositionViewer()
-        
-        self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
-        self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
-
-        
-    def __del__(self):
-        self.XASession.DisconnectServer()
 
 
     def initQuery(self):
