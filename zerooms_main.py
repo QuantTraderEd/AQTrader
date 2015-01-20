@@ -77,7 +77,7 @@ class MainForm(QtGui.QMainWindow):
     def initDB(self):
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
-        if nowtime.hour >= 6 and nowtime < 16:
+        if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
             strdbname = "orderlist_%s.db" %(strtime)
         elif nowtime >= 16:
             strdbname = "orderlist_night_%s.db" %(strtime)
