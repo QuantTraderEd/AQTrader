@@ -14,6 +14,7 @@ class XAQuery_CEXAT11100(SourceQuery):
     def __init__(self):
         super(XAQuery_CEXAT11100,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAT11100.res")
+        self.shortcd = ''
         pass
     
     def OnSignal(self):                
