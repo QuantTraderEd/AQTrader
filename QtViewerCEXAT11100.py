@@ -30,7 +30,8 @@ class QtViewerCEXAT11100(QtCore.QObject):
             elif subject.data['BnsTpCode'] == '1': buysell = 'sell'
             else: buysell = None
 
-            shcode = subject.data['FnoIsuNo']
+            #shcode = subject.data['FnoIsuNo']
+            shcode = subject.shortcd
             price = subject.data['OrdPrc']
             qty = subject.data['OrdQty']
             unexecqty = qty
