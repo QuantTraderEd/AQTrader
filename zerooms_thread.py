@@ -230,12 +230,14 @@ class ExecuterThread(QtCore.QThread):
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(price))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(qty))
+                        self.xaquery_CEXAT11100.shortcd = shcode
                         ret = self.xaquery_CEXAT11100.Request(False)
                         print ret
                         if not ret:
                             while self.xaquery_CEXAT11100.observer.flag:
                                 PumpWaitingMessages()
                             self.xaquery_CEXAT11100.observer.flag = True
+                            self.shortcd = ''
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             print szMsgCode
                             if szMsgCode != '00039' and szMsgCode != '00040':
@@ -265,17 +267,8 @@ class ExecuterThread(QtCore.QThread):
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[0])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shcode))
                         ret = self.xaquery_CEXAT11300.Request(False)
+                        self.socket.send('msgCode: ')
                         print ret
-                        if not ret:
-                            while self.xaquery_CEXAT11300.observer.flag:
-                                PumpWaitingMessages()
-                            self.xaquery_CEXAT11300.observer.flag = True
-                            szMsgCode = self.xaquery_CEXAT11300.data['szMessageCode']
-                            print szMsgCode
-                            if szMsgCode != '00039' and szMsgCode != '00040':
-                                self.socket.send('errCode: ' + str(szMsgCode))
-                            else:
-                                self.socket.send('msgCode: ' + str(szMsgCode))
             else:
                 self.socket.send('fail: other case order')
     
