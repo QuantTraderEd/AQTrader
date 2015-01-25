@@ -19,6 +19,7 @@ from QtViewerCEXAT11100 import QtViewerCEXAT11100
 from QtViewerCEXAT11300 import QtViewerCEXAT11300
 from QtViewerSC1 import QtViewerSC1
 from QtViewerC01 import QtViewerC01
+from QtViewerEU1 import QtViewerEU1
 
 class ExecuterThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
@@ -52,6 +53,7 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer11300 = QtViewerCEXAT11300()
         self.qtviewerSC1 = QtViewerSC1()       
         self.qtviewerC01 = QtViewerC01()
+        self.qtviewerEU1 = QtViewerEU1()
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')                        
@@ -71,6 +73,7 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer11300.dbname = self.strdbname
         self.qtviewerSC1.dbname = self.strdbname
         self.qtviewerC01.dbname = self.strdbname
+        self.qtviewerEU1.dbname = self.strdbname
         
         self.qtviewer00600.receive.connect(self.UpdateDB)
         self.qtviewer00800.receive.connect(self.UpdateDB)
@@ -80,6 +83,7 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer11300.receive.connect(self.UpdateDB)
         self.qtviewerSC1.receive.connect(self.UpdateDB)
         self.qtviewerC01.receive.connect(self.UpdateDB)
+        self.qtviewerEU1.receive.connect(self.UpdateDB)
         
     def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
@@ -92,6 +96,7 @@ class ExecuterThread(QtCore.QThread):
         self.xareal_SC0 = px.XAReal_SC0()
         self.xareal_SC1 = px.XAReal_SC1()
         self.xareal_C01 = px.XAReal_C01()
+        self.xareal_EU1 = px.XAReal_EU1()
         self.xaquery_CSPAT00600.observer = self.qtviewer00600
         self.xaquery_CSPAT00800.observer = self.qtviewer00800
         self.xaquery_CFOAT00100.observer = self.qtviewer00100
@@ -101,6 +106,7 @@ class ExecuterThread(QtCore.QThread):
         self.xareal_SC0.observer = self.cviewer0
         self.xareal_SC1.observer = self.qtviewerSC1
         self.xareal_C01.observer = self.qtviewerC01
+        self.xareal_EU1.observer = self.qtviewerEU1
 
     
     def run(self):
@@ -120,9 +126,15 @@ class ExecuterThread(QtCore.QThread):
         context = zmq.Context()
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://127.0.0.1:6000")
-        self.xareal_SC0.AdviseRealData()
-        self.xareal_SC1.AdviseRealData()        
-        self.xareal_C01.AdviseRealData()
+
+        nowtime = datetime.now()
+        if nowtime.hour >= 6 and nowtime < 16:
+            self.xareal_SC0.AdviseRealData()
+            self.xareal_SC1.AdviseRealData()
+            self.xareal_C01.AdviseRealData()
+        elif nowtime.hour >= 16 or nowtime.hour < 6:
+            self.xareal_EU1.AdviseRealData()
+
         #self.conn_db = lite.connect('orderlist.db')
         #self.cursor_db = self.conn_db.cursor()
             
