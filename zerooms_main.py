@@ -4,6 +4,7 @@ Created on Sat Oct 19 13:37:02 2013
 
 @author: Administrator
 """
+
 import sys
 import time
 import os
@@ -61,7 +62,8 @@ class MainForm(QtGui.QMainWindow):
         self.executerThread._XASession = proxy(self.XASession)    
         #self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
         self.executerThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
-        
+        self.executerThread.finished.connect(self.NotifyThreadEnd)
+
         self.myOrdListDlg = OrderListDialog()
         
         self.myDigitViewer = ZeroDigitViewer()
@@ -114,6 +116,7 @@ class MainForm(QtGui.QMainWindow):
             nowtime = time.localtime()
             if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
                 self.exchange = 'KRX'
+                print self.exchange
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
@@ -125,6 +128,7 @@ class MainForm(QtGui.QMainWindow):
                     self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
             else:
                 self.exchange = 'EUREX'
+                print self.exchange
                 self.NewQuery = px.XAQuery_CEXAQ31200()
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
@@ -192,6 +196,11 @@ class MainForm(QtGui.QMainWindow):
         elif self.executerThread.isRunning() and (not boolToggle):
             self.executerThread.terminate()
             print 'thread pause'
+        pass
+
+    def NotifyThreadEnd(self):
+        self.ui.actionExecute.setChecked(False)
+        print 'Thread Stop'
         pass
     
     def slot_TriggerOrderList(self):
