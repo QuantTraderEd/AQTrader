@@ -48,7 +48,7 @@ class QtViewerC01(QtCore.QObject):
             if self.dbname != None:
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
+                cursor_db.execute("""INSERT INTO OrderList(OrgOrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
                                                 VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem) 
                                                 
                 cursor_db.execute("""Select ExecPrice,ExecQty,UnExecQty From OrderList 
