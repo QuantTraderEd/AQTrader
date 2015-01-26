@@ -5,14 +5,19 @@ Created on Wed Aug 13 21:56:21 2014
 @author: assa
 """
 
+import os
 import time
 import sys
 import pythoncom
 import pyxing as px
 from PyQt4 import QtGui, QtCore
 from ui_zeropositionviewer import Ui_Form
-from xinglogindlg import LoginForm
 from weakref import proxy
+
+xinglogindlg_dir = os.path.dirname(os.path.realpath(__file__)) + '\\..'
+sys.path.append(xinglogindlg_dir)
+
+from xinglogindlg import LoginForm
 
 class observer_cmd:
     def Update(self,subject):       
