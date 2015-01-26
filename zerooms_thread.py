@@ -128,7 +128,7 @@ class ExecuterThread(QtCore.QThread):
         self.socket.bind("tcp://127.0.0.1:6000")
 
         nowtime = datetime.now()
-        if nowtime.hour >= 6 and nowtime < 16:
+        if nowtime.hour >= 6 and nowtime.hour < 16:
             self.xareal_SC0.AdviseRealData()
             self.xareal_SC1.AdviseRealData()
             self.xareal_C01.AdviseRealData()
