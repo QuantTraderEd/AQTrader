@@ -22,7 +22,8 @@ class QtViewerC01(QtCore.QObject):
         
     def Update(self, subject):
         #print '-' * 20                    
-        if type(subject.data).__name__ == 'dict':     
+        if type(subject.data).__name__ == 'dict':
+            print subject.data
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]   
             #print 'szMessage',  subject.data['szMessage']
