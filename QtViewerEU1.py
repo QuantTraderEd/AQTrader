@@ -28,29 +28,31 @@ class QtViewerEU1(QtCore.QObject):
             #print 'szMessage',  subject.data['szMessage']
             #print 'szMessageCode', subject.data['szMessageCode'],
             print subject.data
-            ordno = subject.data['ordno']
-            execno = subject.data['execno']
+            orgordno = subject.data['orgordno']
+            execno = None
 
             if subject.data['bnstp'] == '2': buysell = 'buy'
             elif subject.data['bnstp'] == '1': buysell = 'sell'
             else: buysell = None
 
             shcode = subject.data['fnoIsuno']   # or isuno
-            ordprice = subject.data['ordprc']
-            ordqty = subject.data['ordqty']
+            ordprice = None
+            ordqty = None
+            #ordprice = subject.data['ordprc']
+            #ordqty = subject.data['ordqty']
             execprice = subject.data['execprc']
             execqty = subject.data['execqty']
             unexecqty = subject.data['unercqty']
-            orderitem = (ordno,execno,strnowtime,buysell,shcode,ordprice,ordqty,execprice,execqty,unexecqty)
+            orderitem = (orgordno,strnowtime,buysell,shcode,ordprice,ordqty,execprice,execqty,unexecqty)
             #print orderitem
             if self.dbname != None:
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty)
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem)
+                cursor_db.execute("""INSERT INTO OrderList(OrgOrdNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty)
+                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)""",orderitem)
 
                 cursor_db.execute("""Select ExecPrice,ExecQty,UnExecQty From OrderList
-                                    WHERE OrdNo = ? and ShortCD = ? and ChkReq is not null """,(str(ordno),str(shcode),))
+                                    WHERE OrdNo = ? and ShortCD = ? and ChkReq is not null """,(str(orgordno),str(shcode),))
                 rows = cursor_db.fetchall()
                 unexecqty = 0
                 avgExecPrice = 0
@@ -62,6 +64,7 @@ class QtViewerEU1(QtCore.QObject):
                         avgExecQty = int(rows[0][1])
                     unexecqty = int(rows[0][2])
                     avgExecPrice = (avgExecPrice * avgExecQty + float(execprice) * int(execqty)) / (avgExecQty + int(execqty))
+                    avgExecQty =  avgExecQty + int(execqty)
                     avgExecPrice = convert(avgExecPrice)
 
 
@@ -70,7 +73,7 @@ class QtViewerEU1(QtCore.QObject):
                                                                     WHERE OrdNo=? and ShortCD = ? and (BuySell = 'buy' or BuySell = 'sell')
                                                                     and ChkReq is not null
                                                                     """,
-                                                                    (str(avgExecPrice), str(avgExecQty),str(unexecqty - int(execqty)),str(ordno),str(shcode),))
+                                                                    (str(avgExecPrice), str(avgExecQty),str(unexecqty - int(execqty)),str(orgordno),str(shcode),))
                 conn_db.commit()
                 conn_db.close()
                 #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')
