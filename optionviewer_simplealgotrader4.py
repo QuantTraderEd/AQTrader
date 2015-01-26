@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 21 09:01:06 2015
+Created on Fri Sep 12 09:01:06 2014
 
 @author: assa
 """
@@ -17,6 +17,14 @@ from datetime import datetime
 
 def convert(strprice):
     return '%.2f' %round(float(strprice),2)
+
+def convert_strike(strike):
+    if type(strike).__name__ == 'unicode':
+        if strike[2] == '2' or strike[2] == '7':
+            return '%s.5'%strike
+        else:
+            return strike
+    pass
 
 
 class SimpleAlgoTrader(QtGui.QWidget):
@@ -129,8 +137,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def onXTimerUpdate(self):
         nowtime = time.localtime()
         if self.callShCode == '' or self.putShCode == '':
-            if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 0 and nowtime.tm_min < 50:
-            #if nowtime.tm_hour == 9 + self.starthourshift and nowtime.tm_min >= 20 and nowtime.tm_min < 22:
+            if nowtime.tm_hour == 15 + self.starthourshift and nowtime.tm_min >= 10 and nowtime.tm_min < 15:            
                 self.getTargetShortCD()
             return
 
@@ -175,8 +182,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
         pass
 
     def getTargetShortCD(self):
-        starttime = '%.2d:57:30.000'%(8+self.starthourshift)
-        endtime = '%.2d:59:59.000'%(8+self.starthourshift)
+        starttime = '%.2d:05:00.000'%(15+self.endhourshift)
+        endtime = '%.2d:11:09.000'%(15+self.endhourshift)
 
         #starttime = '%.2d:18:30.000'%(9+self.starthourshift)
         #endtime = '%.2d:21:00.000'%(9+self.starthourshift)
@@ -190,90 +197,71 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
         conn = lite.connect(filedbname)
 
-        target_min = 9999
-        target_cd = ''
-        target_price = '%.1f'%self.target_price
+        sql_text = """
+        SELECT Time, ShortCD, LastPrice
+        FROM FutOptTickData
+        WHERE TAQ = 'E'
+        and Time between '%s' and '%s'
+        and substr(ShortCD,4,2) = '%s'
+        """%(starttime,endtime,self.expireMonthCode)
 
-        if endtime < '%.2d:00:00.000'%(9+self.starthourshift):
-            sqltext = """
-            SELECT Time, ShortCD, TAQ, LastPrice, LastQty, BuySell
-            FROM FutOptTickData
-            WHERE TAQ IN ('E')
-            and Time between '%s' and '%s'
-            Order by Time DESC
-            """%(starttime,endtime)
-        else:
-            sqltext = """
-            SELECT Time, ShortCD, TAQ, Ask1, Bid1
-            FROM FutOptTickData
-            WHERE TAQ ='Q'
-            and Time between '%s' and '%s'
-            Order by Time DESC
-            """%(starttime,endtime)
-
-        df = pd.read_sql(sqltext, conn)
-        df_call = df[df['ShortCD'].str.contains('201' + self.expireMonthCode)]
-        df_put = df[df['ShortCD'].str.contains('301' + self.expireMonthCode)]
-
+        df = pd.read_sql(sql_text,conn)
         conn.close()
+                
+        df_call = df[df['ShortCD'].str[:3] == '201']
+        df_put = df[df['ShortCD'].str[:3] == '301']
+        
+        #ShortCDSet = set(list(df['ShortCD']))
+        #CallShortCDSet = set(df_call['ShortCD'])
+        #PutShortCDSet = set(df_put['ShortCD'])
+        
+        StrikeLst = list(set(df_call['ShortCD'].str[-3:]).intersection(set(df_put['ShortCD'].str[-3:])))
+        StrikeLst.sort()
+        
+        df_call_last = pd.DataFrame()
+        df_put_last = pd.DataFrame()
+        
+        for strike in StrikeLst:
+            shortcd = '201%s%s'%(self.expireMonthCode,strike)
+            df_tmp = df[df['ShortCD'] == shortcd][-1:]
+            df_tmp['Strike'] = convert_strike(strike)
+            if len(df_call_last) == 0: df_call_last = df_tmp
+            else: df_call_last = df_call_last.append(df_tmp)
+            print shortcd
+            shortcd = '301%s%s'%(self.expireMonthCode,strike)
+            df_tmp = df[df['ShortCD'] == shortcd][-1:]
+            df_tmp['Strike'] = convert_strike(strike)
+            if len(df_put_last) == 0: df_put_last = df_tmp
+            else: df_put_last = df_put_last.append(df_tmp)
+            print shortcd
 
-        if len(df) == 0:
-            print 'no expection price in db'
-            return
+        df_syth = df_call_last.merge(df_put_last,left_on='Strike',right_on='Strike',how='outer')
+        df_syth['SythPrice'] = df_syth['LastPrice_x'].astype(float) - df_syth['LastPrice_y'].astype(float) + df_syth['Strike'].astype(float)
+        
+        df_syth['Differ'] = abs(df_syth['LastPrice_x'].astype(float) - df_syth['LastPrice_y'].astype(float))
+        df_syth = df_syth.sort('Differ')
+        
+        
+        df_syth['Differ'] = abs(df_syth['LastPrice_x'].astype(float) - df_syth['LastPrice_y'].astype(float))
+        df_syth = df_syth.sort('Differ')
+        
+        call_atm_price = df_syth.iloc[0]['LastPrice_x']
+        put_atm_price = df_syth.iloc[0]['LastPrice_y']
+        
+        
+        call_condition = (df_call_last['LastPrice'] <= call_atm_price) & (df_call_last['LastPrice'] < '2.88')
+        put_condition = (df_put_last['LastPrice'] <= put_atm_price) & (df_put_last['LastPrice'] < '2.88')
+        
+        
+        call_target_shortcd = df_call_last[call_condition].iloc[0]['ShortCD']
+        put_target_shortcd = df_put_last[put_condition].iloc[-1]['ShortCD']
+                
+        
 
-
-        for shortcd in self._FeedCodeList.optionshcodelst:
-            df_buffer = df_call[df_call['ShortCD'] == shortcd]
-            if len(df_buffer) > 0:
-                row = df_buffer.irow(-1)
-                if row['TAQ'] == 'Q':
-                    print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
-                    midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
-                    diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price * 1.2:
-                        target_min = diff
-                        target_cd = shortcd
-                elif row['TAQ'] == 'E':
-                    print row['ShortCD'], row['Time'],row['LastPrice']
-                    midprice =  float(row['LastPrice'])
-                    diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price * 1.2:
-                        target_min = diff
-                        target_cd = shortcd
-
-
-        self.callShCode = target_cd
-
-        target_min = 9999
-        target_cd = ''
-
-
-        for shortcd in self._FeedCodeList.optionshcodelst:
-            df_buffer = df_put[df_put['ShortCD'] == shortcd]
-            if len(df_buffer) > 0:
-                row = df_buffer.irow(-1)
-                if row['TAQ'] == 'Q':
-                    print row['ShortCD'], row['Time'],row['Ask1'],row['Bid1']
-                    midprice = (float(row['Ask1']) + float(row['Bid1'])) / 2
-                    diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price * 1.2:
-                        target_min = diff
-                        target_cd = shortcd
-                elif row['TAQ'] == 'E':
-                    print row['ShortCD'], row['Time'],row['LastPrice']
-                    midprice =  float(row['LastPrice'])
-                    diff = abs(midprice - self.target_price)
-                    if diff < target_min and midprice < self.target_price * 1.2:
-                        target_min = diff
-                        target_cd = shortcd
-
-
-
-        self.putShCode = target_cd
+        self.callShCode = call_target_shortcd
+        self.putShCode = put_target_shortcd
 
         print self.callShCode, self.putShCode
-
-
 
 
 
