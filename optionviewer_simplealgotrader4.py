@@ -51,8 +51,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
         self.counter1 = 0
         self.max_position = 1
         self.expireMonthCode = 'K2'
-        self.callShCode = '201K2252'
-        self.putShCode = '301K2250'
+        self.callShCode = ''
+        self.putShCode = ''
         self.callmidprice = 0
         self.putmidprice = 0
         self.target_price = 1.00
@@ -137,11 +137,12 @@ class SimpleAlgoTrader(QtGui.QWidget):
     def onXTimerUpdate(self):
         nowtime = time.localtime()
         if self.callShCode == '' or self.putShCode == '':
-            if nowtime.tm_hour == 15 + self.starthourshift and nowtime.tm_min >= 10 and nowtime.tm_min < 15:            
+            if nowtime.tm_hour == 15 + self.starthourshift and nowtime.tm_min >= 10 and nowtime.tm_min < 45:
                 self.getTargetShortCD()
             return
 
         if nowtime.tm_hour == 15 + self.endhourshift and nowtime.tm_min == 13 and self.counter < self.max_position:
+            if self.callShCode == '' or self.putShCode != '': return
             #time.sleep(random.randint(0,2000) * 0.001)
             callbuysell = True
             callprice = 0.40
@@ -183,7 +184,7 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
     def getTargetShortCD(self):
         starttime = '%.2d:05:00.000'%(15+self.endhourshift)
-        endtime = '%.2d:11:09.000'%(15+self.endhourshift)
+        endtime = '%.2d:15:09.000'%(15+self.endhourshift)
 
         #starttime = '%.2d:18:30.000'%(9+self.starthourshift)
         #endtime = '%.2d:21:00.000'%(9+self.starthourshift)
@@ -248,13 +249,13 @@ class SimpleAlgoTrader(QtGui.QWidget):
         call_atm_price = df_syth.iloc[0]['LastPrice_x']
         put_atm_price = df_syth.iloc[0]['LastPrice_y']
         
+        print call_atm_price, put_atm_price
+        call_condition = (df_call_last['LastPrice'] <= call_atm_price) & (df_call_last['LastPrice'].astype(float) < 2.88)
+        put_condition = (df_put_last['LastPrice'] <= put_atm_price) & (df_put_last['LastPrice'].astype(float) < 2.88)
         
-        call_condition = (df_call_last['LastPrice'] <= call_atm_price) & (df_call_last['LastPrice'] < '2.88')
-        put_condition = (df_put_last['LastPrice'] <= put_atm_price) & (df_put_last['LastPrice'] < '2.88')
-        
-        
-        call_target_shortcd = df_call_last[call_condition].iloc[0]['ShortCD']
-        put_target_shortcd = df_put_last[put_condition].iloc[-1]['ShortCD']
+
+        call_target_shortcd = df_call_last[call_condition].sort('LastPrice').iloc[0]['ShortCD']
+        put_target_shortcd = df_put_last[put_condition].sort('LastPrice').iloc[0]['ShortCD']
                 
         
 
