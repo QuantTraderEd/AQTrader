@@ -228,13 +228,13 @@ class SimpleAlgoTrader(QtGui.QWidget):
             df_tmp['Strike'] = convert_strike(strike)
             if len(df_call_last) == 0: df_call_last = df_tmp
             else: df_call_last = df_call_last.append(df_tmp)
-            print shortcd
+            #print shortcd
             shortcd = '301%s%s'%(self.expireMonthCode,strike)
             df_tmp = df[df['ShortCD'] == shortcd][-1:]
             df_tmp['Strike'] = convert_strike(strike)
             if len(df_put_last) == 0: df_put_last = df_tmp
             else: df_put_last = df_put_last.append(df_tmp)
-            print shortcd
+            #print shortcd
 
         df_syth = df_call_last.merge(df_put_last,left_on='Strike',right_on='Strike',how='outer')
         df_syth['SythPrice'] = df_syth['LastPrice_x'].astype(float) - df_syth['LastPrice_y'].astype(float) + df_syth['Strike'].astype(float)
@@ -253,12 +253,12 @@ class SimpleAlgoTrader(QtGui.QWidget):
         call_condition = (df_call_last['LastPrice'] <= call_atm_price) & (df_call_last['LastPrice'].astype(float) < 2.88)
         put_condition = (df_put_last['LastPrice'] <= put_atm_price) & (df_put_last['LastPrice'].astype(float) < 2.88)
         
+        print df_call_last[call_condition].sort('LastPrice')
+        print df_put_last[put_condition].sort('LastPrice')
 
-        call_target_shortcd = df_call_last[call_condition].sort('LastPrice').iloc[0]['ShortCD']
-        put_target_shortcd = df_put_last[put_condition].sort('LastPrice').iloc[0]['ShortCD']
+        call_target_shortcd = df_call_last[call_condition].sort('LastPrice').iloc[-1]['ShortCD']
+        put_target_shortcd = df_put_last[put_condition].sort('LastPrice').iloc[-1]['ShortCD']
                 
-        
-
         self.callShCode = call_target_shortcd
         self.putShCode = put_target_shortcd
 
