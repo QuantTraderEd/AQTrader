@@ -216,7 +216,8 @@ class SimpleAlgoTrader(QtGui.QWidget):
         #CallShortCDSet = set(df_call['ShortCD'])
         #PutShortCDSet = set(df_put['ShortCD'])
         
-        StrikeLst = list(set(df_call['ShortCD'].str[-3:]).intersection(set(df_put['ShortCD'].str[-3:])))
+        df['ShortCDStrike'] = df['ShortCD'].str[-3:]
+        StrikeLst = list(df.drop_duplicates(cols=['ShortCDStrike'])['ShortCDStrike'])
         StrikeLst.sort()
         
         df_call_last = pd.DataFrame()
