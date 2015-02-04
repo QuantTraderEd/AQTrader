@@ -10,6 +10,7 @@ import time
 import os
 import pythoncom
 
+import logging
 import pyxing as px
 import sqlite3 as lite
 
@@ -21,8 +22,28 @@ from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
-
 from weakref import proxy
+
+logger = logging.getLogger('ZeroOMS')
+logger.setLevel(logging.DEBUG)
+
+# create file handler which logs even debug messages
+fh = logging.FileHandler('ZeroOMS.log')
+#fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
@@ -72,6 +93,8 @@ class MainForm(QtGui.QMainWindow):
         self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
         self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
 
+        logger.info('Start ZeroOMS')
+
         
     def __del__(self):
         self.XASession.DisconnectServer()
@@ -108,6 +131,8 @@ class MainForm(QtGui.QMainWindow):
                                            ChkReq TEXT
                                            )""")
             self.conn_db.close()
+            logger.info('Init New OrdList DB File')
+
         
 
 
@@ -116,7 +141,7 @@ class MainForm(QtGui.QMainWindow):
             nowtime = time.localtime()
             if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
                 self.exchange = 'KRX'
-                print self.exchange
+                logger.info(self.exchange)
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
@@ -128,7 +153,7 @@ class MainForm(QtGui.QMainWindow):
                     self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
             else:
                 self.exchange = 'EUREX'
-                print self.exchange
+                logger.info(self.exchange)
                 self.NewQuery = px.XAQuery_CEXAQ31200()
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
@@ -187,20 +212,23 @@ class MainForm(QtGui.QMainWindow):
                 self.accountlist = self.XASession.GetAccountList()
                 self.executerThread._accountlist = self.accountlist
                 self.executerThread._servername = self.servername
-                print  self.servername, self.accountlist
+                #print  self.servername, self.accountlist
+                logmsg = '%s   %s'%(self.servername,self.accountlist[0])
+                logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
                 self.executerThread.start()
+                logger.info('Thread start')
             else:
                 self.ui.actionExecute.setChecked(False)
         elif self.executerThread.isRunning() and (not boolToggle):
             self.executerThread.terminate()
-            print 'thread pause'
+            logger.info('Thread stop')
         pass
 
     def NotifyThreadEnd(self):
         self.ui.actionExecute.setChecked(False)
-        print 'Thread Stop'
+        logger.info('Thread finished')
         pass
     
     def slot_TriggerOrderList(self):
@@ -212,7 +240,7 @@ class MainForm(QtGui.QMainWindow):
 
     def NotifyOrderListViewer(self):
         #update ordlistDB
-        print "will update ordlistDB"
+        logger.info('will update ordlistDB')
         self.myOrdListDlg.OnUpdateList()
         pass
     

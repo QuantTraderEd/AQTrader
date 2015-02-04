@@ -7,6 +7,7 @@ Created on Sat Oct 19 15:37:25 2013
 
 import pyxing as px
 import zmq
+import logging
 from PyQt4 import QtCore
 from pythoncom import PumpWaitingMessages
 from datetime import datetime
@@ -30,6 +31,8 @@ class ExecuterThread(QtCore.QThread):
         self.initThread()
         self.initViewer()
         self.initQuery()
+        self.logger = logging.getLogger('ZeroOMS.Thread')
+        self.logger.info('Init Thread')
 
     def initVar(self):
         self._accountlist = []
@@ -111,7 +114,7 @@ class ExecuterThread(QtCore.QThread):
     
     def run(self):
         if len(self._accountlist) == 0 :
-            print 'fail: no account'
+            self.logger.info('fail: no account')
             return
 
         if self._servername[:3] == 'MIS':
@@ -119,7 +122,7 @@ class ExecuterThread(QtCore.QThread):
         elif self._servername[:1] == 'X':
             accountpwd = ['0302','']
         else:
-            print 'fail: not available servername'
+            self.logger.info('fail: not available servername')
             accountpwd = []
             return
 
@@ -137,17 +140,21 @@ class ExecuterThread(QtCore.QThread):
 
         #self.conn_db = lite.connect('orderlist.db')
         #self.cursor_db = self.conn_db.cursor()
+
+        self.logger.info('Ready')
             
         while True:
             msg = self.socket.recv()
             if not self._XASession.IsConnected():
+                self.logger.info('fail: disconnect xsession')
                 self.socket.send('fail: disconnect xsession')
                 continue
             
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                        
-            print "Got ",strnowtime ,msg
+            #print "Got ",strnowtime ,msg
+            self.logger.info('Got ' + msg)
             lst = msg.split(',')
             buysell = ''
             shcode = lst[1]
@@ -161,8 +168,8 @@ class ExecuterThread(QtCore.QThread):
             elif lst[0] == 'cancl':
                 buysell = 'c'
                 ordno = lst[4]  
-                
-            print buysell,shcode,price,qty,ordno
+
+            self.logger.info(buysell + shcode + price + qty + ordno )
             
             if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
                 # equity new order                       
@@ -195,7 +202,7 @@ class ExecuterThread(QtCore.QThread):
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shcode)) #demo
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(qty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)    
-                print ret
+                self.logger.info(str(ret))
 #                if ret == None:
 #                    while self.xaquery_CSPAT00800.observer.flag:
 #                        PumpWaitingMessages()
@@ -218,19 +225,20 @@ class ExecuterThread(QtCore.QThread):
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
                     ret = self.xaquery_CFOAT00100.Request(False)
-                    print ret
+                    self.logger.info(str(ret))
                     if not ret:
                         while self.xaquery_CFOAT00100.observer.flag:
                             PumpWaitingMessages()
                         self.xaquery_CFOAT00100.observer.flag = True
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
-                        print szMsgCode
+                        self.logger.info(szMsgCode)
                         if szMsgCode != '00039' and szMsgCode != '00040':
                             self.socket.send('errCode: ' + str(szMsgCode))
                         else:
                             self.socket.send('msgCode: ' + str(szMsgCode))
                 else:
                     if shcode[:3] == '101':
+                        self.logger.info('not yet implement... 101')
                         self.socket.send('not yet implement...')
                         return
                     else:
@@ -244,14 +252,14 @@ class ExecuterThread(QtCore.QThread):
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(qty))
                         self.xaquery_CEXAT11100.shortcd = shcode
                         ret = self.xaquery_CEXAT11100.Request(False)
-                        print ret
+                        self.logger.info(str(ret))
                         if not ret:
                             while self.xaquery_CEXAT11100.observer.flag:
                                 PumpWaitingMessages()
                             self.xaquery_CEXAT11100.observer.flag = True
                             self.shortcd = ''
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
-                            print szMsgCode
+                            self.logger.info(szMsgCode)
                             if szMsgCode != '00039' and szMsgCode != '00040':
                                 self.socket.send('errCode: ' + str(szMsgCode))
                             else:
@@ -267,7 +275,7 @@ class ExecuterThread(QtCore.QThread):
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
                     ret = self.xaquery_CFOAT00300.Request(False)
                     self.socket.send('msgCode: ')
-                    print ret
+                    self.logger.info(str(ret))
                 else:
                     if shcode[:3] == '101':
                         self.socket.send('not yet implement...')
@@ -280,14 +288,16 @@ class ExecuterThread(QtCore.QThread):
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shcode))
                         ret = self.xaquery_CEXAT11300.Request(False)
                         self.socket.send('msgCode: ')
-                        print ret
+                        self.logger.info(str(ret))
             else:
+                self.logger.info('fail: other case order')
                 self.socket.send('fail: other case order')
     
 
             
     def UpdateDB(self):
-        print "receive update "
+        #print "receive update "
+        self.logger.info('receive update')
         self.threadUpdateDB.emit()
         pass
 
@@ -296,9 +306,12 @@ class ExecuterThread(QtCore.QThread):
 class ConsoleViewer:
     def __init__(self):
         self.flag = True
+        self.logger = logging.getLogger('ZeroOMS.Thread')
     def Update(self, subject):
-        print '-' * 20
-        print subject.__class__
+        #print '-' * 20
+        #print subject.__class__
+        self.logger.info('-' * 20)
+        self.logger.info(str(subject.__class__))
         for item in subject.data:            
             if type(subject.data).__name__ == 'dict' : print item,subject.data[item]
             else: print item
@@ -310,8 +323,10 @@ class ConsoleViewer:
 class ConsolViewerSC0:
     def __init__(self):
         self.flag = True
+        self.logger = logging.getLogger('ZeroOMS.Thread')
     def Update(self, subject):
-        print '-' * 20                    
+        #print '-' * 20
+        self.logger.info('-' * 20)
         if type(subject.data).__name__ == 'dict':     
             nowtime = datetime.now()
             #print 'szMessage',  subject.data['szMessage']
