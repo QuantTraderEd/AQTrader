@@ -5,6 +5,7 @@ Created on Sun Jan 04 18:08:52 2015
 @author: assa
 """
 
+import logging
 import sqlite3 as lite
 from PyQt4 import QtCore
 from datetime import datetime
@@ -19,6 +20,7 @@ class QtViewerEU1(QtCore.QObject):
         super(QtViewerEU1,self).__init__(parent)
         self.dbname = None
         self.flag = True
+        self.logger = logging.getLogger('ZeroOMS.Thread.EU1')
 
     def Update(self, subject):
         print '-' * 20
@@ -44,6 +46,7 @@ class QtViewerEU1(QtCore.QObject):
             execqty = subject.data['execqty']
             unexecqty = subject.data['unercqty']
             orderitem = (orgordno,strnowtime,buysell,shcode,ordprice,ordqty,execprice,execqty,unexecqty)
+            self.logger.info(str(orderitem))
             #print orderitem
             if self.dbname != None:
                 conn_db = lite.connect(self.dbname)

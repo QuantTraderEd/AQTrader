@@ -21,8 +21,8 @@ class QtViewerCEXAT11100(QtCore.QObject):
         if type(subject.data).__name__ == 'dict':
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-            print 'szMessage',  subject.data['szMessage']
-            print 'szMessageCode', subject.data['szMessageCode'],
+            #print 'szMessage',  subject.data['szMessage']
+            #print 'szMessageCode', subject.data['szMessageCode'],
 
             ordno = subject.data['OrdNo']
 
@@ -46,7 +46,7 @@ class QtViewerCEXAT11100(QtCore.QObject):
             chkreq = subject.data['szMessageCode']
 
             orderitem = (ordno,strnowtime,buysell,shcode,price,qty,type1,type2,unexecqty,chkreq)
-            print orderitem
+            #print orderitem
             if self.dbname != None:
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()

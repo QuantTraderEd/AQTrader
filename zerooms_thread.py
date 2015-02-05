@@ -168,8 +168,8 @@ class ExecuterThread(QtCore.QThread):
             elif lst[0] == 'cancl':
                 buysell = 'c'
                 ordno = lst[4]  
-
-            self.logger.info(buysell + shcode + price + qty + ordno )
+            logmsg = '%s, %s, %s, %s, %s'%(buysell,shcode,price,qty,ordno)
+            self.logger.info(logmsg)
             
             if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
                 # equity new order                       
@@ -306,12 +306,9 @@ class ExecuterThread(QtCore.QThread):
 class ConsoleViewer:
     def __init__(self):
         self.flag = True
-        self.logger = logging.getLogger('ZeroOMS.Thread')
     def Update(self, subject):
-        #print '-' * 20
-        #print subject.__class__
-        self.logger.info('-' * 20)
-        self.logger.info(str(subject.__class__))
+        print '-' * 20
+        print subject.__class__
         for item in subject.data:            
             if type(subject.data).__name__ == 'dict' : print item,subject.data[item]
             else: print item
@@ -323,10 +320,8 @@ class ConsoleViewer:
 class ConsolViewerSC0:
     def __init__(self):
         self.flag = True
-        self.logger = logging.getLogger('ZeroOMS.Thread')
     def Update(self, subject):
-        #print '-' * 20
-        self.logger.info('-' * 20)
+        print '-' * 20
         if type(subject.data).__name__ == 'dict':     
             nowtime = datetime.now()
             #print 'szMessage',  subject.data['szMessage']

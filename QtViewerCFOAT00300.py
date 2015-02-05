@@ -21,8 +21,8 @@ class QtViewerCFOAT00300(QtCore.QObject):
         if type(subject.data).__name__ == 'dict':     
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]   
-            print 'szMessage',  subject.data['szMessage']            
-            print 'szMessageCode', subject.data['szMessageCode']             
+            #print 'szMessage',  subject.data['szMessage']
+            #print 'szMessageCode', subject.data['szMessageCode']
             
             orgordno = subject.data['OrgOrdNo']
             ordno = subject.data['OrdNo']

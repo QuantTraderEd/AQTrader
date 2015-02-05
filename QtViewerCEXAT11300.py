@@ -21,8 +21,8 @@ class QtViewerCEXAT11300(QtCore.QObject):
         if type(subject.data).__name__ == 'dict':
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-            print 'szMessage',  subject.data['szMessage']
-            print 'szMessageCode', subject.data['szMessageCode']
+            #print 'szMessage',  subject.data['szMessage']
+            #print 'szMessageCode', subject.data['szMessageCode']
 
             orgordno = subject.data['OrgOrdNo']
             ordno = subject.data['OrdNo']
@@ -39,7 +39,7 @@ class QtViewerCEXAT11300(QtCore.QObject):
 
             chkreq = subject.data['szMessageCode']
             orderitem = (ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)
-            print orderitem
+            #print orderitem
             if self.dbname != None and subject.data['szMessageCode'] == '00156':
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()
@@ -57,9 +57,9 @@ class QtViewerCEXAT11300(QtCore.QObject):
                     unexecqty = int(rows[0][0])
                 cursor_db.execute("""INSERT INTO OrderList(OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
                                                 VALUES(?, ?, ?, ? ,?, ?, ?)""",orderitem)
-                print rows
-                print rows_cancl
-                print unexecqty
+                #print rows
+                #print rows_cancl
+                #print unexecqty
 
                 if len(rows_cancl) == 0 and unexecqty > 0:
                     cursor_db.execute("""Update OrderList Set UnExecQty=?
