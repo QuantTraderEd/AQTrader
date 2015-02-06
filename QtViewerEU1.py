@@ -23,13 +23,13 @@ class QtViewerEU1(QtCore.QObject):
         self.logger = logging.getLogger('ZeroOMS.Thread.EU1')
 
     def Update(self, subject):
-        print '-' * 20
+        #print '-' * 20
         if type(subject.data).__name__ == 'dict':
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
             #print 'szMessage',  subject.data['szMessage']
             #print 'szMessageCode', subject.data['szMessageCode'],
-            print subject.data
+            #print subject.data
             orgordno = subject.data['orgordno']
             execno = None
 
