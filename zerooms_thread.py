@@ -12,15 +12,15 @@ from PyQt4 import QtCore
 from pythoncom import PumpWaitingMessages
 from datetime import datetime
 
-from QtViewerCSPAT00600 import QtViewerCSPAT00600
-from QtViewerCSPAT00800 import QtViewerCSPAT00800
-from QtViewerCFOAT00100 import QtViewerCFOAT00100
-from QtViewerCFOAT00300 import QtViewerCFOAT00300
-from QtViewerCEXAT11100 import QtViewerCEXAT11100
-from QtViewerCEXAT11300 import QtViewerCEXAT11300
-from QtViewerSC1 import QtViewerSC1
-from QtViewerC01 import QtViewerC01
-from QtViewerEU1 import QtViewerEU1
+from QtViewer.QtViewerCSPAT00600 import QtViewerCSPAT00600
+from QtViewer.QtViewerCSPAT00800 import QtViewerCSPAT00800
+from QtViewer.QtViewerCFOAT00100 import QtViewerCFOAT00100
+from QtViewer.QtViewerCFOAT00300 import QtViewerCFOAT00300
+from QtViewer.QtViewerCEXAT11100 import QtViewerCEXAT11100
+from QtViewer.QtViewerCEXAT11300 import QtViewerCEXAT11300
+from QtViewer.QtViewerSC1 import QtViewerSC1
+from QtViewer.QtViewerC01 import QtViewerC01
+from QtViewer.QtViewerEU1 import QtViewerEU1
 
 class ExecuterThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
