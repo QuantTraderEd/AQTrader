@@ -1,0 +1,4 @@
+cx_Freeze can't support to include win32com (CLSID name have "-", this style name is not supported by cx_Freeze)
+
+but py2exe might be able to support win32com module 
+
