@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'zeropositionviewer.ui'
 #
-# Created: Wed Aug 13 21:56:18 2014
+# Created: Fri Feb 13 00:00:21 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,12 +26,12 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(769, 139)
+        Form.resize(818, 139)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tableWidget = QtGui.QTableWidget(Form)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
-        self.tableWidget.setColumnCount(7)
+        self.tableWidget.setColumnCount(8)
         self.tableWidget.setRowCount(3)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setVerticalHeaderItem(0, item)
@@ -53,6 +53,8 @@ class Ui_Form(object):
         self.tableWidget.setHorizontalHeaderItem(5, item)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(6, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(7, item)
         self.verticalLayout.addWidget(self.tableWidget)
 
         self.retranslateUi(Form)
@@ -67,7 +69,7 @@ class Ui_Form(object):
         item = self.tableWidget.verticalHeaderItem(2)
         item.setText(_translate("Form", "3", None))
         item = self.tableWidget.horizontalHeaderItem(0)
-        item.setText(_translate("Form", "ShCode", None))
+        item.setText(_translate("Form", "ShortCD", None))
         item = self.tableWidget.horizontalHeaderItem(1)
         item.setText(_translate("Form", "Pos", None))
         item = self.tableWidget.horizontalHeaderItem(2)
@@ -80,4 +82,6 @@ class Ui_Form(object):
         item.setText(_translate("Form", "Vega", None))
         item = self.tableWidget.horizontalHeaderItem(6)
         item.setText(_translate("Form", "PnL", None))
+        item = self.tableWidget.horizontalHeaderItem(7)
+        item.setText(_translate("Form", "EntryAvgPrice", None))
 

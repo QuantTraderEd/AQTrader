@@ -5,6 +5,9 @@ Created on Wed Aug 13 21:56:21 2014
 @author: assa
 """
 
+#import imp
+#imp.load_source('xinglogindlg','..\\xinglogindlg.py')
+
 import os
 import time
 import sys
@@ -114,10 +117,12 @@ class ZeroPositionViewer(QtGui.QWidget):
                 else:
                     pos = ''
                 pnl = data[i]['dtsunik1']
+                avgprc = '%.5s'%data[i]['price']
 
                 self.updateTableWidgetItem(i-1,0,shcode)
                 self.updateTableWidgetItem(i-1,1,pos)
                 self.updateTableWidgetItem(i-1,6,pnl)
+                self.updateTableWidgetItem(i-1,7,avgprc)
         elif exchange == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2)
             for i in xrange(2,len(data)):
@@ -127,10 +132,12 @@ class ZeroPositionViewer(QtGui.QWidget):
                 elif data[i]['BnsTpCode'] == '2':
                     pos = data[i]['UnsttQty']
                 pnl = data[i]['EvalPnl']
+                avgprc = '%.5s'%data[i]['FnoAvrPrc']
 
                 self.updateTableWidgetItem(i-2,0,shcode)
                 self.updateTableWidgetItem(i-2,1,pos)
                 self.updateTableWidgetItem(i-2,6,pnl)
+                self.updateTableWidgetItem(i-2,7,avgprc)
 
 
             
