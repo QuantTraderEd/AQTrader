@@ -117,7 +117,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                 else:
                     pos = ''
                 pnl = data[i]['dtsunik1']
-                avgprc = '%.5s'%data[i]['price']
+                avgprc = '%.5s'%data[i]['pamt']
 
                 self.updateTableWidgetItem(i-1,0,shcode)
                 self.updateTableWidgetItem(i-1,1,pos)
