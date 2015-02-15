@@ -154,11 +154,11 @@ class SimpleAlgoTrader(QtGui.QWidget):
 
             self.cur.execute("""SELECT LastPrice,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.callShCode,))
             row = self.cur.fetchone()
-            callprice = round(float(row[0]) + 0.12,2)
+            callprice = round(min(float(row[0]) + 0.12,3.0),2)
 
             self.cur.execute("""SELECT LastPrice,Time From TickData WHERE ShCode = ? ORDER BY TIME DESC LIMIT 1""",(self.putShCode,))
             row = self.cur.fetchone()
-            putprice = round(float(row[0]) + 0.12,2)
+            putprice = round(min(float(row[0]) + 0.12,3.0),2)
 
             #print buysell,shcode,price,qty,time.strftime("%H:%M:%S",nowtime),row[1]
             print 'call: ', self.callShCode, callprice, callqty,'put: ', self.putShCode, putprice, putqty
