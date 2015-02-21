@@ -28,8 +28,12 @@ class MainForm(QtGui.QMainWindow):
         self.initTableWidget()
         self.initThread()
 
+    def closeEvent(self, event):
+        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        setting.setValue("geometry",self.saveGeometry())
+
     def initVar(self):
-        self.expireMonthCode = 'K2'
+        self.expireMonthCode = 'K3'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -38,6 +42,9 @@ class MainForm(QtGui.QMainWindow):
         self.resize(800,200)
         self.myExecuteWidget = OptionViewerExecuteWidget(self)
         self.myExecuteWidget.initZMQ()
+
+        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        self.restoreGeometry(setting.value("geometry").toByteArray())
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
