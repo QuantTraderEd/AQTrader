@@ -52,6 +52,11 @@ class MainForm(QtGui.QMainWindow):
         self.XASession.DisconnectServer()
         ctypes.windll.user32.PostQuitMessage(0)
 
+    def closeEvent(self, event):
+        self.XASession.DisconnectServer()
+        ctypes.windll.user32.PostQuitMessage(0)
+        setting = QtCore.QSettings("ZeroFeeder.ini",QtCore.QSettings.IniFormat)
+        setting.setValue("geometry",self.saveGeometry())
 
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -65,6 +70,9 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(0,1,self.status_cy)
         self.ui.tableWidget.setItem(1,1,self.status_xi)
         #self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
+
+        setting = QtCore.QSettings("ZeroFeeder.ini",QtCore.QSettings.IniFormat)
+        self.restoreGeometry(setting.value("geometry").toByteArray())
 
     def initTIMER(self):
         self.ctimer =  QtCore.QTimer()
