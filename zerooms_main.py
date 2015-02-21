@@ -49,24 +49,17 @@ class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
         #QtGui.QWidget.__init__(self,parent)
         super(MainForm,self).__init__(parent)
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+
+        self.initUI()
+
         self.ctimer = QtCore.QTimer()
         self.ctimer.start(1000)
         self.ctimer.timeout.connect(self.ctimerUpdate)
-        self.labelTimer = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+
         self.xingTimer = QtCore.QTimer()
         self.xingTimer.timeout.connect(self.xingTimerUpdate)
         self.queryTimer = QtCore.QTimer()
         self.queryTimer.timeout.connect(self.queryTimerUpdate)
-        self.ui.statusbar.addPermanentWidget(self.labelTimer)
-        
-        
-        self.conn_xi = QtGui.QTableWidgetItem("conn xi")
-        self.status_xi = QtGui.QTableWidgetItem("ready")                   
-        self.ui.tableWidget.setItem(0,2,self.conn_xi)        
-        self.ui.tableWidget.setItem(0,1,self.status_xi)
-        
         
         self.FuturesOptionTAQFeederLst = []
         self.EquityTAQFeederLst = []
@@ -85,20 +78,45 @@ class MainForm(QtGui.QMainWindow):
         self.executerThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
         self.executerThread.finished.connect(self.NotifyThreadEnd)
 
-        self.myOrdListDlg = OrderListDialog()
-        
-        self.myDigitViewer = ZeroDigitViewer()
-        self.myPositionViewer = ZeroPositionViewer()
-        
-        self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
-        self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
 
         logger.info('Start ZeroOMS')
 
-        
-    def __del__(self):
+    def closeEvent(self, event):
         self.XASession.DisconnectServer()
-        
+        setting = QtCore.QSettings("ZeroOMS.ini",QtCore.QSettings.IniFormat)
+        setting.setValue("OMS_Geometry",self.saveGeometry())
+        setting.setValue("OrdListDlg_Geometry",self.myOrdListDlg.saveGeometry())
+        setting.setValue("PositionViewer_Geometry",self.myPositionViewer.saveGeometry())
+        setting.setValue("DigitViewer_Geometry",self.myDigitViewer.saveGeometry())
+        self.myOrdListDlg.close()
+        self.myPositionViewer.close()
+        self.myDigitViewer.close()
+        logger.info("Close ZeroOMS")
+
+    def initUI(self):
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.labelTimer = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        self.ui.statusbar.addPermanentWidget(self.labelTimer)
+
+        self.conn_xi = QtGui.QTableWidgetItem("conn xi")
+        self.status_xi = QtGui.QTableWidgetItem("ready")
+        self.ui.tableWidget.setItem(0,2,self.conn_xi)
+        self.ui.tableWidget.setItem(0,1,self.status_xi)
+
+        self.myOrdListDlg = OrderListDialog()
+        self.myPositionViewer = ZeroPositionViewer()
+        self.myDigitViewer = ZeroDigitViewer()
+
+        self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
+        self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
+
+        setting = QtCore.QSettings("ZeroOMS.ini",QtCore.QSettings.IniFormat)
+        self.restoreGeometry(setting.value("OMS_Geometry").toByteArray())
+        self.myOrdListDlg.restoreGeometry(setting.value("OrdListDlg_Geometry").toByteArray())
+        self.myPositionViewer.restoreGeometry(setting.value("PositionViewer_Geometry").toByteArray())
+        self.myDigitViewer.restoreGeometry(setting.value("DigitViewer_Geometry").toByteArray())
+
     def initDB(self):
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)

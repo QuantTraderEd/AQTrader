@@ -55,7 +55,6 @@ class ZeroDigitViewer(QtGui.QWidget):
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self
         
     def initXing(self,XASession=None):
         if XASession != None:
