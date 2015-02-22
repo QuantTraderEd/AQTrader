@@ -88,6 +88,9 @@ class MainForm(QtGui.QMainWindow):
         setting.setValue("OrdListDlg_Geometry",self.myOrdListDlg.saveGeometry())
         setting.setValue("PositionViewer_Geometry",self.myPositionViewer.saveGeometry())
         setting.setValue("DigitViewer_Geometry",self.myDigitViewer.saveGeometry())
+        setting.setValue("OrdListDlg_Show",self.myOrdListDlg.isVisible())
+        setting.setValue("PositionViewer_Show",self.myPositionViewer.isVisible())
+        setting.setValue("DigitViewer_Show",self.myDigitViewer.isVisible())
         self.myOrdListDlg.close()
         self.myPositionViewer.close()
         self.myDigitViewer.close()
@@ -116,6 +119,13 @@ class MainForm(QtGui.QMainWindow):
         self.myOrdListDlg.restoreGeometry(setting.value("OrdListDlg_Geometry").toByteArray())
         self.myPositionViewer.restoreGeometry(setting.value("PositionViewer_Geometry").toByteArray())
         self.myDigitViewer.restoreGeometry(setting.value("DigitViewer_Geometry").toByteArray())
+        if setting.value("OrdListDlg_Show").toBool():
+            self.myOrdListDlg.show()
+        if setting.value("PositionViewer_Show").toBool():
+            self.myPositionViewer.show()
+        if setting.value("DigitViewer_Show").toBool():
+            self.myDigitViewer.show()
+
 
     def initDB(self):
         nowtime = time.localtime()
