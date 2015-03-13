@@ -9,6 +9,7 @@ Created on Thu Sep 12 07:52:42 2013
 from datetime import datetime
 
 class ZMQTickSender:
+    count = 0
     def __init__(self,ZMQSocket=None,FeedSource=None,FeedType=None,SecuritiesType=None):
         self.ZMQSocket = ZMQSocket
         self.FeedSource = FeedSource
@@ -25,5 +26,6 @@ class ZMQTickSender:
         for i in xrange(len(subject.data)):
             msg = msg + ',' +  str(subject.data[i])
         msg = timestamp + ',' + msg        
-        self.ZMQSocket.send(msg)       
+        self.ZMQSocket.send(msg)
+        self.count += 1
         pass
