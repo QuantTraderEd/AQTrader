@@ -10,8 +10,8 @@ import sys
 import time
 import zmq
 import ctypes
+import logging
 import pythoncom
-#import cybos_feeder
 
 import pyxing as px
 import pycybos as pc
@@ -25,8 +25,29 @@ from ZMQTickSender import ZMQTickSender
 
 from weakref import proxy
 
-import psutil
-from subprocess import Popen
+#import psutil
+#from subprocess import Popen
+
+logger = logging.getLogger('ZeroFeeder')
+logger.setLevel(logging.DEBUG)
+
+# create file handler which logs even debug messages
+fh = logging.FileHandler('ZeroFeeder.log')
+#fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+#logger.addHandler(ch)
 
 class ConsoleObserver:
     def Update(self,subject):
@@ -248,12 +269,15 @@ class MainForm(QtGui.QMainWindow):
 
 
     def slot_ToggleFeed(self,boolToggle):
-        pythoncom.CoInitialize()
 
-        #if boolToggle: self.slot_RequestPrevClosePrice()
-        self.initFeedCode()
-        self.initZMQSender()
-        self.initTAQFeederLst()
+        if boolToggle:
+            #self.slot_RequestPrevClosePrice()
+            pythoncom.CoInitialize()
+            self.initFeedCode()
+            self.initZMQSender()
+            self.initTAQFeederLst()
+        else:
+            logger.info(ZMQTickSender.count)
 
         if self.XASession.IsConnected() and boolToggle:
             nowlocaltime = time.localtime()
