@@ -37,6 +37,7 @@ def convert_df_strike(x):
     
 class BackTestReceiverThread(QtCore.QThread):
     receiveData = QtCore.pyqtSignal(dict)
+    updateImVol = QtCore.pyqtSignal(pd.DataFrame)
     def __init__(self,parent=None):
         QtCore.QThread.__init__(self,parent)
         self.msg = ''
@@ -112,8 +113,7 @@ class BackTestReceiverThread(QtCore.QThread):
             imvol = pricer.CalcImpliedVolatility(OptionType, S0, K, self.r, self.T, midprice, 0.000001, Vol)            
             incre = -0.0001
             count = 0
-            if row['Time'] == '09:00:10.295':
-                pdb.set_trace()
+            
             while np.isnan(imvol):                
                 count += 1                
                 Vol += incre * -1.0
@@ -139,7 +139,8 @@ class BackTestReceiverThread(QtCore.QThread):
                 self.mutex.unlock()
             
             self.df_imvol = self.df_imvol.sort('ShortCD')            
-            print self.df_imvol
+            #print self.df_imvol
+            self.updateImVol.emit(self.get_volsurf(self.df_imvol))
             
         pass
     
@@ -180,5 +181,13 @@ class BackTestReceiverThread(QtCore.QThread):
         
         print self.atm_strike, self.call_atm_price, self.put_atm_price
         if self.call_atm_price and not np.isnan(self.put_atm_price): self.isGETATM = True
+        pass
+    
+    def get_volsurf(self, df_imvol):        
+        df_call_imvol = df_imvol[(df_imvol['ShortCD'].str[0] == '2') & (df_imvol['Strike'].astype(float) >= self.atm_strike)]    
+        df_put_imvol = df_imvol[(df_imvol['ShortCD'].str[0] == '3') & (df_imvol['Strike'].astype(float) <= self.atm_strike)]    
+        df = df_call_imvol.append(df_put_imvol)
+        df = df.sort('Strike')         
+        return df
         pass
         
