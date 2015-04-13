@@ -7,6 +7,7 @@ Created on Mon Mar 30 15:14:13 2015
 import pdb
 import pandas as pd
 from BackTestReceiver_Thread import BackTestReceiverThread
+from OptionViewerPlot import OptionViewerPlotDlg
 from PyQt4 import QtGui
 
 class BackTestReciever(QtGui.QWidget):
@@ -18,16 +19,21 @@ class BackTestReciever(QtGui.QWidget):
         
     def initUI(self):
         self.button = QtGui.QPushButton('Start', self)
+        self.buttonPlot = QtGui.QPushButton('Plot', self)
         self.button.clicked.connect(self.onClick)
-        self.button.move(70, 40)
+        self.buttonPlot.clicked.connect(self.onPlotClick)
+        self.button.move(80, 30)
+        self.buttonPlot.move(80, 60)
         self.setWindowTitle('BackTestReciever')
-        self.resize(220, 100)
+        self.resize(240, 110)
+        
+        self._OptionVeiwerPlotDlg = OptionViewerPlotDlg()
         pass
     
     def initThread(self):
         self._thread = BackTestReceiverThread()
         self._thread.finished.connect(self.NotifyThreadEnd)
-        self._thread.receiveData.connect(self.NotifyMsg)
+        self._thread.updateImVol.connect(self.NotifyUpdateImVol)
         pass
     
     
@@ -42,11 +48,26 @@ class BackTestReciever(QtGui.QWidget):
             self.button.setText('Start')
         pass
     
+    def onPlotClick(self):
+        if not self._OptionVeiwerPlotDlg.isVisible():
+            self._OptionVeiwerPlotDlg.show()
+            #self._OptionVeiwerPlotDlg.exec_()
+            
+        pass
+    
     def NotifyThreadEnd(self):
         self.button.setText('Start')
         pass
     
     def NotifyMsg(self,row):        
+        pass
+    
+    
+    def NotifyUpdateImVol(self,df_imvol):
+        print 'receive df_imvol'
+        xdata = df_imvol['Strike']
+        data = df_imvol['ImVol']
+        self._OptionVeiwerPlotDlg.plot(xdata, data)
         pass
             
                 
