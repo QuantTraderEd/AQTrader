@@ -71,6 +71,7 @@ class XAQuery_CEXAQ31200(SourceQuery):
             data3['EvalPnl'] = self.GetFieldData('CEXAQ31200OutBlock3','EvalPnl',i)
             data3['PnlRat'] = self.GetFieldData('CEXAQ31200OutBlock3','PnlRat',i)
             data3['EvalAmt'] = self.GetFieldData('CEXAQ31200OutBlock3','EvalAmt',i)
+            data3['LqdtAbleQty'] = self.GetFieldData('CEXAQ31200OutBlock3','LqdtAbleQty',i)
             self.data.append(data3)
 
         self.Notify()
