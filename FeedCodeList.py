@@ -42,8 +42,9 @@ class FeedCodeList():
                 self.equityshcodelst.append(line[:-1])
             elif state == 4 and line[0] != "<":
                 self.indexshcodelst.append(line[:-1])
-            
 
+        feedcodelistfilep.close()
+        pass
 
 if __name__ == "__main__":
     
