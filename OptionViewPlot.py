@@ -5,7 +5,6 @@ Created on Mon Apr 06 15:27:41 2015
 @author: assa
 """
 
-
 from PyQt4 import QtGui
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -47,6 +46,8 @@ class OptionViewerPlotDlg(QtGui.QWidget):
         
         # create an axis
         self.ax = self.figure.add_subplot(111)
+        self.xdata = []
+        self.ydata = []
         
         
     
@@ -55,7 +56,7 @@ class OptionViewerPlotDlg(QtGui.QWidget):
         plot some random stuff 
         """
         # random data
-#        x_data = [240 + i * 2.5 for i in range(9)]
+#        xdata = [240 + i * 2.5 for i in range(9)]
 #        data = [
 #        0.002142,  
 #        0.001950,  
@@ -67,13 +68,15 @@ class OptionViewerPlotDlg(QtGui.QWidget):
 #        0.001517,  
 #        0.001583         
 #        ]
-        
-        # discards the old graph
-        self.ax.hold(False)
-        
-        # plot data
-        self.ax.plot(xdata,data, 'o-')
-        
+
+        if self.xdata == self.xdata:
+            # discards the old graph
+            self.ax.hold(False)            
+            # plot data
+            self.ax.plot(xdata,data, 'bo-')
+        else:
+            self.ax.set_ydata(data)            
+            
         #refresh canvas
         self.canvas.draw()
 
