@@ -6,6 +6,8 @@ Created on Thu Jun 12 10:27:17 2014
 """
 
 import pdb
+import os
+import sys
 import zmq
 import datetime
 import numpy as np
@@ -79,7 +81,7 @@ class BackTestReceiverThread(QtCore.QThread):
         if row['TAQ'] != 'Q':
             return
         if row['ShortCD'][3:5] == 'K3' and float(row['Ask1']) and float(row['Bid1']):
-            print row['Time'], row['ShortCD'], row['Ask1'], row['Bid1'], (float(row['Ask1']) + float(row['Bid1'])) * 0.5
+            #print row['Time'], row['ShortCD'], row['Ask1'], row['Bid1'], (float(row['Ask1']) + float(row['Bid1'])) * 0.5
             item = [row['Time'], row['ShortCD'], row['Ask1'], row['Bid1']]           
             
             if not row['ShortCD'] in list(self.df_mid['ShortCD']):        
@@ -107,7 +109,9 @@ class BackTestReceiverThread(QtCore.QThread):
             if row['ShortCD'][0] == '2': OptionType = 'C'
             elif row['ShortCD'][0] == '3': OptionType = 'P'
             else:
-                return            
+                return  
+                
+            #pdb.set_trace()
             midprice = (float(row['Ask1']) + float(row['Bid1'])) * 0.5            
             Vol = 0.0017
             imvol = pricer.CalcImpliedVolatility(OptionType, S0, K, self.r, self.T, midprice, 0.000001, Vol)            
@@ -122,7 +126,7 @@ class BackTestReceiverThread(QtCore.QThread):
                 if count > 4: 
                     break
                 
-            print row['Time'], row['ShortCD'], row['Ask1'], row['Bid1'], imvol            
+            #print row['Time'], row['ShortCD'], row['Ask1'], row['Bid1'], imvol            
             
             imvol = '%.8f'%imvol
             item = [row['Time'], row['ShortCD'], str(K), row['Ask1'], row['Bid1'] ,imvol]
@@ -139,6 +143,8 @@ class BackTestReceiverThread(QtCore.QThread):
                 self.mutex.unlock()
             
             self.df_imvol = self.df_imvol.sort('ShortCD')            
+            self.update_df_imvol(S0, str(K),self.T)
+            df_imvol_curv = self.get_volsurf(self.df_imvol)
             #print self.df_imvol
             self.updateImVol.emit(self.get_volsurf(self.df_imvol))
             
@@ -179,7 +185,7 @@ class BackTestReceiverThread(QtCore.QThread):
         self.put_atm_price = df_syth.iloc[0]['Mid_y']
         self.atm_strike = float(df_syth.iloc[0]['Strike'])        
         
-        print self.atm_strike, self.call_atm_price, self.put_atm_price
+        #print self.atm_strike, self.call_atm_price, self.put_atm_price
         if self.call_atm_price and not np.isnan(self.put_atm_price): self.isGETATM = True
         pass
     
@@ -187,7 +193,41 @@ class BackTestReceiverThread(QtCore.QThread):
         df_call_imvol = df_imvol[(df_imvol['ShortCD'].str[0] == '2') & (df_imvol['Strike'].astype(float) >= self.atm_strike)]    
         df_put_imvol = df_imvol[(df_imvol['ShortCD'].str[0] == '3') & (df_imvol['Strike'].astype(float) <= self.atm_strike)]    
         df = df_call_imvol.append(df_put_imvol)
-        df = df.sort('Strike')         
+        df = df.sort('Strike')  
+        #pdb.set_trace()
+        df['ImVol'] = df['ImVol'].astype(float) * np.sqrt(252 * 18) * 100
+        clear = lambda: os.system('cls')
+        clear()
+        print >> sys.stderr, df
         return df
         pass
+    
+    def update_df_imvol(self,S0,K_new,T):
+        K_list = list(self.df_imvol['Strike'])
+        midprice_list = list((self.df_imvol['Ask1'].astype(float) + self.df_imvol['Bid1'].astype(float)) * 0.5)   
+        type_list = list(self.df_imvol['ShortCD'].str[0])
+        
+        for i in xrange(len(K_list)):
+            if K_list[i] == K_new: continue
+            K = float(K_list[i])
+            midprice = midprice_list[i]
+            OptionType = ''
+            if type_list[i] == '2': OptionType = 'C'
+            elif type_list[i] == '3': OptionType = 'P'
+            Vol = 0.0017    
+            imvol = pricer.CalcImpliedVolatility(OptionType, S0, K, self.r, T, midprice, 0.000001, Vol)            
+            incre = -0.0001
+            count = 0
+        
+            while np.isnan(imvol):                
+                count += 1                
+                Vol += incre * -1.0
+                incre = cmp(incre,0) * abs(incre) * 2
+                imvol = pricer.CalcImpliedVolatility(OptionType, S0, K, self.r, T, midprice, 0.000001, Vol)
+                if count > 4: 
+                    break            
+            self.df_imvol.iloc[i]['ImVol'] = imvol
+            
+        pass
+        
         
