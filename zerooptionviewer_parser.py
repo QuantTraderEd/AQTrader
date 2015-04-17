@@ -350,3 +350,4 @@ if __name__ == '__main__':
 
         msg = socket.recv()
         row = msgParser(msg,nightshift=nightshift)
+        print row['Time'], row['ShortCD'], row['LastPrice'] 
