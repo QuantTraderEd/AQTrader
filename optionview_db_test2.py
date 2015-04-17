@@ -281,29 +281,28 @@ class OptionDBThread(OptionViewerThread):
                 buysell = 'S'
             else:
                 buysell = ''
-			bid1 = convert(lst[21 + nightshift])
-			ask1 = convert(lst[20 + nightshift])
+            bid1 = convert(lst[21 + nightshift])
+            ask1 = convert(lst[20 + nightshift])
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,lastprice,lastqty,buysell)
             print lst[0], shcode, taqitem
             #print msg
             chk = 'T'
 
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':            
-			shcode = str(lst[31 + nightshift])
-			lastprice = convert(lst[8 + nightshift])
-			lastqty = str(lst[13 + nightshift])
-			if lst[12 + nightshift] == '+':
-				buysell = 'B'
-			elif lst[12 + nightshift] == '-':
-				buysell = 'S'
-			else:
-				buysell = ''
-			bid1 = convert(lst[21 + nightshift])
-			ask1 = convert(lst[20 + nightshift])
-			taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,lastprice,lastqty,buysell)
-
-			print lst[0], shcode, taqitem
-			chk = 'T'
+        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
+            shcode = str(lst[31 + nightshift])
+            lastprice = convert(lst[8 + nightshift])
+            lastqty = str(lst[13 + nightshift])
+            if lst[12 + nightshift] == '+':
+                buysell = 'B'
+            elif lst[12 + nightshift] == '-':
+                buysell = 'S'
+            else:
+                buysell = ''
+            bid1 = convert(lst[21 + nightshift])
+            ask1 = convert(lst[20 + nightshift])
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,lastprice,lastqty,buysell)
+            print lst[0], shcode, taqitem
+            chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
             if nightshift == 1:
