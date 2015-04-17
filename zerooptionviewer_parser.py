@@ -199,8 +199,8 @@ def msgParser(msg,nightshift):
             buysell = 'S'
         else:
             buysell = ''
-        bid1 = convert(lst[22 + nightshift])
-        ask1 = convert(lst[21 + nightshift])
+        bid1 = convert(lst[21 + nightshift])
+        ask1 = convert(lst[20 + nightshift])
         taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
                    buysell, lastprice, lastqty,
                    bid1 , ask1, '', '', '', '',
