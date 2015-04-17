@@ -328,3 +328,25 @@ def msgParser(msg,nightshift):
         taqdict[key] = value
 
     return taqdict
+
+if __name__ == '__main__':
+    import zmq
+    import datetime as dt
+
+    context = zmq.Context()
+    socket = context.socket(zmq.SUB)
+    socket.connect("tcp://127.0.0.1:5500")
+    socket.setsockopt(zmq.SUBSCRIBE,"")
+
+    while True:
+        nowtime = dt.datetime.now()
+        strnowtime = dt.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
+
+        nightshift = 0
+        if nowtime.hour >= 7 and nowtime.hour < 17:
+            nightshift = 0
+        else:
+            nightshift = 1
+
+        msg = socket.recv()
+        row = msgParser(msg,nightshift=nightshift)
