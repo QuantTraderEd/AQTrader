@@ -199,9 +199,11 @@ def msgParser(msg,nightshift):
             buysell = 'S'
         else:
             buysell = ''
+        bid1 = convert(lst[22 + nightshift])
+        ask1 = convert(lst[21 + nightshift])
         taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
                    buysell, lastprice, lastqty,
-                   '', '', '', '', '', '',
+                   bid1 , ask1, '', '', '', '',
                    '', '', '', '', '', '',
                    '', '', '', '', '', '',
                    '', '', '', '', '', '',
@@ -209,24 +211,25 @@ def msgParser(msg,nightshift):
                    '', '', '', '']
 
     elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
-        if nightshift == 1:
-            shcode = str(lst[32])
-            lastprice = convert(lst[8 + nightshift])
-            lastqty = str(lst[13 + nightshift])
-            if lst[12 + nightshift] == '+':
-                buysell = 'B'
-            elif lst[12 + nightshift] == '-':
-                buysell = 'S'
-            else:
-                buysell = ''
-            taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
-                       buysell, lastprice, lastqty,
-                       '', '', '', '', '', '',
-                       '', '', '', '', '', '',
-                       '', '', '', '', '', '',
-                       '', '', '', '', '', '',
-                       '', '', '', '', '', '',
-                       '', '', '', '']
+        shcode = str(lst[31 + nightshift])
+        lastprice = convert(lst[8 + nightshift])
+        lastqty = str(lst[13 + nightshift])
+        if lst[12 + nightshift] == '+':
+            buysell = 'B'
+        elif lst[12 + nightshift] == '-':
+            buysell = 'S'
+        else:
+            buysell = ''
+        bid1 = convert(lst[22 + nightshift])
+        ask1 = convert(lst[21 + nightshift])
+        taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
+                   buysell, lastprice, lastqty,
+                   bid1, ask1, '', '', '', '',
+                   '', '', '', '', '', '',
+                   '', '', '', '', '', '',
+                   '', '', '', '', '', '',
+                   '', '', '', '', '', '',
+                   '', '', '', '']
 
     elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
         if nightshift == 1:
@@ -258,10 +261,10 @@ def msgParser(msg,nightshift):
             taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
                        buysell, lastprice, lastqty,
                        bid1, ask1, bidqty1, askqty1, '', '',
-                       bid2, ask2, bidqty2, askqty2, '','',
+                       bid2, ask2, bidqty2, askqty2, '', '',
                        bid3, ask3, bidqty3, askqty3, '', '',
-                       '' , '', '', '', '', '',
-                       '' , '', '', '', '', '',
+                       '', '', '', '', '', '',
+                       '', '', '', '', '', '',
                        totalbidqty, totalaskqty, totalbidcnt, totalaskcnt]
 
     elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'futures':
@@ -350,4 +353,4 @@ if __name__ == '__main__':
 
         msg = socket.recv()
         row = msgParser(msg,nightshift=nightshift)
-        print row['Time'], row['ShortCD'], row['LastPrice'] 
+        print row['Time'], row['ShortCD'], row['LastPrice']
