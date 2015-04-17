@@ -5,7 +5,6 @@ Created on Fri Sep 12 16:52:59 2014
 @author: assa
 """
 
-import pdb
 import os
 import time
 import pandas as pd
@@ -32,10 +31,10 @@ class OptionDBThread(OptionViewerThread):
         if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
             self.strdbname = "TAQ_%s.db" %(strtime)
         elif nowtime.tm_hour >= 16:
-            self.strdbname = "TAQ_Night_Test_%s.db" %(strtime)
+            self.strdbname = "TAQ_Night_%s.db" %(strtime)
         elif nowtime.tm_hour < 6:
             strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
-            self.strdbname = "TAQ_Night_Test_%s.db" %(strtime)
+            self.strdbname = "TAQ_Night_%s.db" %(strtime)
 
         self.initMemoryDB()
         if not os.path.isfile(self.strdbname):
@@ -45,12 +44,6 @@ class OptionDBThread(OptionViewerThread):
             self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
             self.cursor_file = self.conn_file.cursor()
             df = pd.read_sql("""SELECT * From FutOptTickData""",self.conn_file)
-            # IdSeries = pd.Series(xrange(1,len(df)+1))
-            # self.Id_tag = len(df) + 1
-            # df['Id'] = IdSeries
-            # cols = df.columns.tolist()
-            # cols = cols[-1:] + cols[:-1]
-            # df = df[cols]
             pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory,'sqlite','replace')
         pass
 
@@ -91,7 +84,7 @@ class OptionDBThread(OptionViewerThread):
         self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
         self.cursor_file = self.conn_file.cursor()
         self.cursor_file.execute("DROP TABLE IF EXISTS FutOptTickData")
-        self.cursor_file.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL,
+        self.cursor_file.execute("""CREATE TABLE FutOptTickData(
                                        ShortCD TEXT,
                                        FeedSource TEXT,
                                        TAQ TEXT,
@@ -132,7 +125,6 @@ class OptionDBThread(OptionViewerThread):
             nightshift = 0
         else:
             nightshift = 1
-
 
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             shcode = str(lst[4]) + '000'
@@ -224,7 +216,7 @@ class OptionDBThread(OptionViewerThread):
                        totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
 
             chk = 'Q'
-            #print lst[0], shcode, taqitem
+            print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             shcode = str(lst[4])
@@ -269,7 +261,7 @@ class OptionDBThread(OptionViewerThread):
                        bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
                        totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
             chk = 'Q'
-            #print lst[0], shcode, 'Q'
+            #print lst[0], shcode, taqitem
 
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shcode = str(lst[4])
@@ -277,9 +269,9 @@ class OptionDBThread(OptionViewerThread):
             expectqty = ''
             taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,expectprice,expectqty)
             chk = 'E'
-            #print lst[0], shcode, taqitem
+            print lst[0], shcode, taqitem
 
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
+        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':            
             shcode = str(lst[31 + nightshift])
             lastprice = convert(lst[8 + nightshift])
             lastqty = str(lst[13 + nightshift])
@@ -289,25 +281,29 @@ class OptionDBThread(OptionViewerThread):
                 buysell = 'S'
             else:
                 buysell = ''
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
-            #print lst[0], shcode, 'T'
+			bid1 = convert(lst[21 + nightshift])
+			ask1 = convert(lst[20 + nightshift])
+            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,lastprice,lastqty,buysell)
+            print lst[0], shcode, taqitem
             #print msg
             chk = 'T'
 
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
-            shcode = str(lst[31 + nightshift])
-            lastprice = convert(lst[8 + nightshift])
-            lastqty = str(lst[13 + nightshift])
-            if lst[12 + nightshift] == '+':
-                buysell = 'B'
-            elif lst[12 + nightshift] == '-':
-                buysell = 'S'
-            else:
-                buysell = ''
-            taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,lastprice,lastqty,buysell)
+        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':            
+			shcode = str(lst[31 + nightshift])
+			lastprice = convert(lst[8 + nightshift])
+			lastqty = str(lst[13 + nightshift])
+			if lst[12 + nightshift] == '+':
+				buysell = 'B'
+			elif lst[12 + nightshift] == '-':
+				buysell = 'S'
+			else:
+				buysell = ''
+			bid1 = convert(lst[21 + nightshift])
+			ask1 = convert(lst[20 + nightshift])
+			taqitem = (shcode,str(lst[1]),str(lst[2]),str(lst[3]),strnowtime,bid1,ask1,lastprice,lastqty,buysell)
 
-            #print lst[0], shcode, taqitem
-            chk = 'T'
+			print lst[0], shcode, taqitem
+			chk = 'T'
 
         elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
             if nightshift == 1:
@@ -344,7 +340,7 @@ class OptionDBThread(OptionViewerThread):
                            totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
                 chk = 'Q'
 
-                #print lst[0], shcode, 'Q'
+                print lst[0], shcode, taqitem
 
         elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'futures':
             if nightshift == 1:
@@ -399,7 +395,7 @@ class OptionDBThread(OptionViewerThread):
                        totalbidqty,totalaskqty,totalbidcnt,totalaskcnt)
 
                 chk = 'Q'
-                #print lst[0], shcode, taqitem
+                print lst[0], shcode, taqitem
 
         if chk == 'Q':
             wildcard = ','.join('?'*39)
@@ -415,8 +411,8 @@ class OptionDBThread(OptionViewerThread):
             sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
                                                VALUES(?, ?, ?, ? ,?, ?, ?)"""
         elif chk == 'T':
-            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell)
-                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
+            sqltext = """INSERT INTO FutOptTickData(ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,LastPrice,LastQty,BuySell)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)"""
 
         if chk != '':
             self.cursor_memory.execute(sqltext,taqitem)
@@ -436,15 +432,16 @@ class OptionDBThread(OptionViewerThread):
         if os.path.isfile(self.strdbname):
             print 'read memomry db...'
             try:
+
                 df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE Id > %d """%self.Id_tag,self.conn_memory)
                 self.Id_tag = df_memory['Id'].irow(-1)
-                print self.Id_tag
-                print 'test: write file db...'
-                #df_memory = df_memory.iloc[:,1:len(df_memory.columns)]
-                pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
             except lite.Error as e:
                 print "An error occurred:", e.args[0]
                 return
+            print 'test: write file db...'
+            #pdb.set_trace()
+            df_memory = df_memory.iloc[:,1:len(df_memory.columns)]
+            pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file,'sqlite','append')
 
         else:
             # make new file db
