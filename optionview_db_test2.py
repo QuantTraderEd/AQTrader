@@ -23,7 +23,7 @@ class OptionDBThread(OptionViewerThread):
         self.strdbname = ''
         self.initDB()
         self.Id_tag = -1
-
+        self.time_chk = True
 
     def initDB(self):
         strtime = time.strftime('%Y%m%d',time.localtime())
