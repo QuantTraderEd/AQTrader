@@ -33,6 +33,9 @@ class BackTestFeedingThread(QtCore.QThread):
         cur.execute("""SELECT COUNT(*) FROM FutOptTickData""")
         row = cur.fetchone()
         count = row[0]
+        cur.execute("""SELECT rowid FROM FutOptTickData Where Time > '09:00:00' and Time < '09:01:00' """)
+        row = cur.fetchone()
+        startid = row[0]
         cur.execute("""SELECT * FROM FutOptTickData WHERE rowid = 1""")
         names = map(lambda x: x[0], cur.description)
 
