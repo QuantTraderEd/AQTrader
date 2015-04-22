@@ -1,7 +1,7 @@
 __author__ = 'assa'
 
 import time
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from DBLoaderThread import DBLoaderThread
 
 
@@ -11,6 +11,10 @@ class DBWidget(QtGui.QWidget):
         self.initUI()
         self.initThread()
         pass
+
+    def closeEvent(self, event):
+        setting = QtCore.QSettings("ZeroDBLoader.ini", QtCore.QSettings.IniFormat)
+        setting.setValue("geometry", self.saveGeometry())
 
     def initUI(self):
         self.startPushButton = QtGui.QPushButton(self)
@@ -26,6 +30,10 @@ class DBWidget(QtGui.QWidget):
 
         self.resize(340, 140)
         self.setWindowTitle('DBLoader')
+
+        setting = QtCore.QSettings("ZeroDBLoader.ini", QtCore.QSettings.IniFormat)
+        self.restoreGeometry(setting.value("geometry").toByteArray())
+
         pass
 
     def initThread(self):
@@ -35,11 +43,15 @@ class DBWidget(QtGui.QWidget):
 
     def NotifyThreadEnd(self):
         self.startPushButton.setText('Start')
+        self.onNotify('End Count: ' + str(self._DBLoaderThread.count))
+        self._DBLoaderThread.conn_memory.close()
+        self._DBLoaderThread.conn_file.close()
         pass
 
     def onClick(self):
         strtime = time.strftime('[%H:%M:%S] ')
         if not self._DBLoaderThread.isRunning():
+            self._DBLoaderThread.initDB()
             self.plainTextEditor.appendPlainText(strtime + 'Start Thread')
             self.startPushButton.setText('Stop')
             self._DBLoaderThread.start()
@@ -49,7 +61,7 @@ class DBWidget(QtGui.QWidget):
             self.startPushButton.setText('Start')
         pass
 
-    def onNotify(self,msg):
+    def onNotify(self, msg):
         strtime = time.strftime('[%H:%M:%S] ')
         self.plainTextEditor.appendPlainText(strtime + msg)
         pass
