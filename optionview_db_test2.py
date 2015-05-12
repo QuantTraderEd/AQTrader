@@ -457,10 +457,11 @@ class OptionsDBTest(QtGui.QWidget):
         
     def initUI(self):
         self.button = QtGui.QPushButton('Start', self)
-        self.button.clicked.connect(self.onClick)
-        self.button.move(60, 50)
+        self.button.clicked.connect(self.onClick)        
+        self.vboxlayout = QtGui.QVBoxLayout(self)
+        self.vboxlayout.addWidget(self.button)
         self.setWindowTitle('TAQ_DB')
-        self.resize(200, 120)
+        self.resize(260, 50)
         pass
     
     def initThread(self):
