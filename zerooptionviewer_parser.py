@@ -7,7 +7,7 @@ Created on Tue Apr 17 20:38:29 2015
 
 
 def convert(strprice):
-    return '%.2f' %round(float(strprice),2)
+    return '%.2f' % round(float(strprice),2)
 
 names = [
     'ShortCD',
@@ -17,23 +17,21 @@ names = [
     'Time',
     'BuySell',
     'LastPrice', 'LastQty',
-    'Bid1', 'Ask1','BidQty1', 'AskQty1','BidCnt1', 'AskCnt1',
-    'Bid2', 'Ask2','BidQty2', 'AskQty2','BidCnt2', 'AskCnt2',
-    'Bid3', 'Ask3','BidQty3', 'AskQty3','BidCnt3', 'AskCnt3',
-    'Bid4', 'Ask4','BidQty4', 'AskQty4','BidCnt4', 'AskCnt4',
-    'Bid5', 'Ask5','BidQty5', 'AskQty5','BidCnt5', 'AskCnt5',
+    'Bid1', 'Ask1', 'BidQty1', 'AskQty1','BidCnt1', 'AskCnt1',
+    'Bid2', 'Ask2', 'BidQty2', 'AskQty2','BidCnt2', 'AskCnt2',
+    'Bid3', 'Ask3', 'BidQty3', 'AskQty3','BidCnt3', 'AskCnt3',
+    'Bid4', 'Ask4', 'BidQty4', 'AskQty4','BidCnt4', 'AskCnt4',
+    'Bid5', 'Ask5', 'BidQty5', 'AskQty5','BidCnt5', 'AskCnt5',
     'TotalBidQty', 'TotalAskQty',
     'TotalBidCnt', 'TotalAskCnt']
 
-#msg = ''
-#nightshift = 0
 
-def msgParser(msg, nightshift, returntype=dict, count=-1):
+def msgParser(msg, nightshift=0, returntype=dict, count=-1):
     lst = msg.split(',')
     timestamp = lst[0]
-    feedsource = lst[1]
-    TAQ = lst[2]
-    SecuritiesType = lst[3]
+    feedsource = str(lst[1])
+    TAQ = str(lst[2])
+    SecuritiesType = str(lst[3])
     buysell = ''
     lastprice = ''
     lastqty = ''
@@ -102,7 +100,6 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             askqty5 = str(lst[34])
             bidqty5 = str(lst[27])
 
-
             totalaskqty = str(lst[28])
             totalbidqty = str(lst[17])[:-2]
 
@@ -120,14 +117,14 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             askcnt5 = str(lst[50])
             totalaskcnt = str(lst[45])
 
-        taqlist = [shcode,str(lst[1]),str(lst[2]),str(lst[3]),timestamp,
+        taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
-                   bid1,ask1,bidqty1,askqty1,bidcnt1,askcnt1,
-                   bid2,ask2,bidqty2,askqty2,bidcnt2,askcnt2,
-                   bid3,ask3,bidqty3,askqty3,bidcnt3,askcnt3,
-                   bid4,ask4,bidqty4,askqty4,bidcnt4,askcnt4,
-                   bid5,ask5,bidqty5,askqty5,bidcnt5,askcnt5,
-                   totalbidqty,totalaskqty,totalbidcnt,totalaskcnt]
+                   bid1, ask1, bidqty1, askqty1, bidcnt1, askcnt1,
+                   bid2, ask2, bidqty2, askqty2, bidcnt2, askcnt2,
+                   bid3, ask3, bidqty3, askqty3, bidcnt3, askcnt3,
+                   bid4, ask4, bidqty4, askqty4, bidcnt4, askcnt4,
+                   bid5, ask5, bidqty5, askqty5, bidcnt5, askcnt5,
+                   totalbidqty, totalaskqty, totalbidcnt, totalaskcnt]
 
     elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
         shcode = str(lst[4])
@@ -166,7 +163,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
         bidcnt5 = str(lst[38])
         totalbidcnt = str(lst[39])
 
-        taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+        taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
                    bid1, ask1, bidqty1, askqty1, bidcnt1, askcnt1,
                    bid2, ask2, bidqty2, askqty2, bidcnt2, askcnt2,
@@ -179,7 +176,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
         shcode = str(lst[4])
         expectprice = convert(lst[6])
         expectqty = ''
-        taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+        taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, expectprice, expectqty,
                    None, None, None, None, None, None,
                    None, None, None, None, None, None,
@@ -200,7 +197,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             buysell = ''
         bid1 = convert(lst[21 + nightshift])
         ask1 = convert(lst[20 + nightshift])
-        taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+        taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
                    bid1, ask1, None, None, None, None,
                    None, None, None, None, None, None,
@@ -221,7 +218,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             buysell = ''
         bid1 = convert(lst[22 + nightshift])
         ask1 = convert(lst[21 + nightshift])
-        taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+        taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
                    bid1, ask1, None, None, None, None,
                    None, None, None, None, None, None,
@@ -250,14 +247,13 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             bidqty2 = str(lst[13])
             bidqty3 = str(lst[17])
 
-
             totalaskqty = str(lst[18])
             totalbidqty = str(lst[19])
 
             totalaskcnt = str(lst[20])
             totalbidcnt = str(lst[21])
 
-            taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+            taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                        buysell, lastprice, lastqty,
                        bid1, ask1, bidqty1, askqty1, None, None,
                        bid2, ask2, bidqty2, askqty2, None, None,
@@ -312,7 +308,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
             totalaskcnt = str(lst[38])
             totalbidcnt = str(lst[39])
 
-            taqlist = [shcode, str(lst[1]), str(lst[2]), str(lst[3]), timestamp,
+            taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                        buysell, lastprice, lastqty,
                        bid1, ask1, bidqty1, askqty1, bidcnt1, askcnt1,
                        bid2, ask2, bidqty2, askqty2, bidcnt2, askcnt2,
@@ -320,8 +316,8 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
                        bid4, ask4, bidqty4, askqty4, bidcnt4, askcnt4,
                        bid5, ask5, bidqty5, askqty5, bidcnt5, askcnt5,
                        totalbidqty, totalaskqty, totalbidcnt, totalaskcnt]
-
-        pass
+    else:
+        return None
 
     if returntype == dict:
         taqdict = {}
@@ -337,7 +333,7 @@ def msgParser(msg, nightshift, returntype=dict, count=-1):
         if taqlist[2] == 'Q':
             taqitem = taqlist[0:5] + taqlist[8:]
         elif taqlist[2] == 'T':
-            taqitem = taqlist[0:5] + taqlist[6:8] + taqlist[5:6] +taqlist[8:10]
+            taqitem = taqlist[0:5] + taqlist[6:8] + taqlist[5:6] + taqlist[8:10]
         elif taqlist[2] == 'E':
             taqitem = taqlist[0:5] + taqlist[6:7] + taqlist[5:6]
         if count >= 0: taqitem.insert(0, count)
