@@ -42,14 +42,15 @@ class DBLoaderThread(SubscribeThread):
         if not os.path.isfile(self.strdbname):
             self.initFileDB()
         else:
-            self.MsgNotify.emit('loading from file DB to memory DB...')
             self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
             df = pd.read_sql("""SELECT * From FutOptTickData""", self.conn_file)
-            pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory,'sqlite','replace')
-            self.count = int(df['Id'].irow(-1))
-            self.Id_tag = df['Id'].irow(-1)
-            self.count_remain = self.count % 1000 + 10
-            self.MsgNotify.emit('Start Count: ' + str(self.count))
+            if len(df) > 0:
+                self.MsgNotify.emit('loading from file DB to memory DB...')
+                pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory, 'sqlite', 'replace')
+                self.count = int(df['Id'].irow(-1))
+                self.Id_tag = df['Id'].irow(-1)
+                self.count_remain = self.count % 1000 + 10
+                self.MsgNotify.emit('Start Count: ' + str(self.count))
         pass
 
     def initMemoryDB(self):
@@ -86,7 +87,7 @@ class DBLoaderThread(SubscribeThread):
         pass
 
     def initFileDB(self):
-        self.conn_file = lite.connect(self.strdbname,check_same_thread=False)
+        self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
         self.conn_file.execute("DROP TABLE IF EXISTS FutOptTickData")
         self.conn_file.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY,
                                        ShortCD TEXT,
@@ -164,7 +165,6 @@ class DBLoaderThread(SubscribeThread):
                            row['LastPrice'], row['BuySell']
                            )
 
-
         if chk == 'Q':
             wildcard = ','.join('?'*40)
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1,BidCnt1,AskCnt1,
@@ -182,9 +182,8 @@ class DBLoaderThread(SubscribeThread):
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
 
-        if chk != '':
+        if chk != '' and taqitem:
             try:
-                if not nightshift: print taqitem
                 self.conn_memory.execute(sqltext, taqitem)
                 self.conn_memory.commit()
                 if self.count % 1000 == self.count_remain:
