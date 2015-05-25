@@ -94,19 +94,19 @@ def msgParser(msg, returntype=dict, count=-1):
         askqty10 = str(lst[49])
         bidqty10 = str(lst[50])
 
-        taqlst = [shortcd, feedsource, TAQ, SecuritiesType, timestamp,
-                  buysell, lastprice, lastqty,
-                  bid1, ask1, bidqty1, askqty1,
-                  bid2, ask2, bidqty2, askqty2,
-                  bid3, ask3, bidqty3, askqty3,
-                  bid4, ask4, bidqty4, askqty4,
-                  bid5, ask5, bidqty5, askqty5,
-                  bid6, ask6, bidqty6, askqty6,
-                  bid7, ask7, bidqty7, askqty7,
-                  bid8, ask8, bidqty8, askqty8,
-                  bid9, ask9, bidqty9, askqty9,
-                  bid10, ask10, bidqty10, askqty10,
-                  totalbidqty, totalaskqty]
+        taqlist = [shortcd, feedsource, TAQ, SecuritiesType, timestamp,
+                   buysell, lastprice, lastqty,
+                   bid1, ask1, bidqty1, askqty1,
+                   bid2, ask2, bidqty2, askqty2,
+                   bid3, ask3, bidqty3, askqty3,
+                   bid4, ask4, bidqty4, askqty4,
+                   bid5, ask5, bidqty5, askqty5,
+                   bid6, ask6, bidqty6, askqty6,
+                   bid7, ask7, bidqty7, askqty7,
+                   bid8, ask8, bidqty8, askqty8,
+                   bid9, ask9, bidqty9, askqty9,
+                   bid10, ask10, bidqty10, askqty10,
+                   totalbidqty, totalaskqty]
 
     elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'equity':
         shortcd = 'A' + str(lst[26])
@@ -119,31 +119,45 @@ def msgParser(msg, returntype=dict, count=-1):
             buysell = 'S'
         else:
             buysell = ''
-        bid1 = str(lst[22])
-        ask1 = str(lst[23])
+        bid1 = str(lst[23])
+        ask1 = str(lst[22])
 
         taqlist = [shortcd, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
-                   bid1, ask1, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None]
+                   bid1, ask1, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None]
 
     elif lst[1] == 'xing' and lst[2] == 'E' and lst[3] == 'equity':
-        shortcd = 'A' + str(lst[26])
+        shortcd = 'A' + str(lst[14])
         expectprice = str(lst[5])
         expectqty = str(lst[6])
         # expectrate = str(lst[9])
+        ask1 = str(lst[10])
+        bid1 = str(lst[11])
+        askqty1 = str(lst[12])
+        bidqty1 = str(lst[13])
         taqlist = [shortcd, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, expectprice, expectqty,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None, None, None,
-                   None, None, None, None]
+                   bid1, ask1, bidqty1, askqty1,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None, None, None,
+                   None, None]
     elif lst[1] == 'xing' and lst[2] == 'N' and lst[3] == 'equity':
         return None
     else:
@@ -180,7 +194,7 @@ if __name__ == '__main__':
 
     while True:
         nowtime = dt.datetime.now()
-        strnowtime = dt.datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
+        strnowtime = dt.datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
 
         msg = socket.recv()
         row = msgParser(msg)
