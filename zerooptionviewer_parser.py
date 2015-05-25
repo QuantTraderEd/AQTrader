@@ -207,7 +207,7 @@ def msgParser(msg, nightshift=0, returntype=dict, count=-1):
                    None, None, None, None]
 
     elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'futures':
-        shcode = str(lst[31 + nightshift])
+        shcode = str(lst[32 + nightshift])
         lastprice = convert(lst[8 + nightshift])
         lastqty = str(lst[13 + nightshift])
         if lst[12 + nightshift] == '+':
