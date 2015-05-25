@@ -195,8 +195,8 @@ def msgParser(msg, nightshift=0, returntype=dict, count=-1):
             buysell = 'S'
         else:
             buysell = ''
-        bid1 = convert(lst[21 + nightshift])
-        ask1 = convert(lst[20 + nightshift])
+        bid1 = convert(lst[22 + nightshift])
+        ask1 = convert(lst[21 + nightshift])
         taqlist = [shcode, feedsource, TAQ, SecuritiesType, timestamp,
                    buysell, lastprice, lastqty,
                    bid1, ask1, None, None, None, None,
