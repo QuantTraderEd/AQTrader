@@ -9,6 +9,7 @@ from xing_xaquery_t0425 import XAQuery_t0425
 from xing_xaquery_t0441 import XAQuery_t0441
 from xing_xaquery_t0434 import XAQuery_t0434
 from xing_xaquery_t1102 import XAQuery_t1102
+from xing_xaquery_t2105 import XAQuery_t2105
 
 from xing_xaquery_cexaq21100 import XAQuery_CEXAQ21100
 from xing_xaquery_cexaq21200 import XAQuery_CEXAQ21200
