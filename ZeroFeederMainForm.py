@@ -10,6 +10,7 @@ import sys
 import time
 import zmq
 import ctypes
+import json
 import logging
 import pythoncom
 
@@ -67,6 +68,15 @@ class MainForm(QtGui.QMainWindow):
 
         self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
+        
+        f = open('auto_config','r')
+        auto_config = json.load(f)
+        if auto_config['setauto']:
+            print auto_config
+            self.setAuto = True
+            self.slot_CheckCybosStarter(0,2)
+            self.slot_AutoStartXing(auto_config)        
+        f.close()
 
 
     def __del__(self):
@@ -90,10 +100,11 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(1,2,self.conn_xi)
         self.ui.tableWidget.setItem(0,1,self.status_cy)
         self.ui.tableWidget.setItem(1,1,self.status_xi)
-        #self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
+        # self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
 
         setting = QtCore.QSettings("ZeroFeeder.ini",QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
+        # self.restoreGeometry(setting.value("geometry"))
 
     def initTIMER(self):
         self.ctimer =  QtCore.QTimer()
@@ -277,7 +288,7 @@ class MainForm(QtGui.QMainWindow):
             self.initZMQSender()
             self.initTAQFeederLst()
         else:
-            logger.info(ZMQTickSender.count)
+            logger.info('tick count: %d'%ZMQTickSender.count)
 
         if self.XASession.IsConnected() and boolToggle:
             nowlocaltime = time.localtime()
@@ -381,6 +392,28 @@ class MainForm(QtGui.QMainWindow):
             myform.show()
             myform.exec_()
             self.xingtimer.start(1000)
+            
+    def slot_AutoStartXing(self, auto_config):
+        server = 'hts.ebestsec.co.kr'
+        port = 20001
+        servertype = 0
+        showcerterror = 1
+        user = str(auto_config['id'])
+        password = str(auto_config['pwd'].decode('hex'))
+        certpw = str(auto_config['cetpwd'].decode('hex'))
+        
+        self.XASession.ConnectServer(server,port)
+        #print 'connect server'
+        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)
+                
+        px.XASessionEvents.session = self.XASession
+        self.XASession.flag = True
+        while self.XASession.flag:
+            pythoncom.PumpWaitingMessages()
+            
+        self.xingtimer.start(1000)
+        pass
+        
 
     def slot_CheckCybosStarter(self,row,column):
         if row == 0 and column == 2:
@@ -448,5 +481,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
+    if myform.setAuto:
+        myform.ui.actionFeed.setChecked(True)
     app.exec_()
 
