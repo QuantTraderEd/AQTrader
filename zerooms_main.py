@@ -8,6 +8,7 @@ Created on Sat Oct 19 13:37:02 2013
 import sys
 import time
 import os
+import json
 import pythoncom
 
 import logging
@@ -80,6 +81,14 @@ class MainForm(QtGui.QMainWindow):
 
 
         logger.info('Start ZeroOMS')
+        
+        f = open('auto_config','r')
+        auto_config = json.load(f)
+        if auto_config['setauto']:
+            print auto_config
+            self.setAuto = True
+            self.slot_AutoStartXing(auto_config)        
+        f.close()
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -216,6 +225,27 @@ class MainForm(QtGui.QMainWindow):
             myform.show()
             #myform.exec_()
             self.xingTimer.start(1000)
+            
+    def slot_AutoStartXing(self, auto_config):
+        server = 'hts.ebestsec.co.kr'
+        port = 20001
+        servertype = 0
+        showcerterror = 1
+        user = str(auto_config['id'])
+        password = str(auto_config['pwd'].decode('hex'))
+        certpw = str(auto_config['cetpwd'].decode('hex'))
+        
+        self.XASession.ConnectServer(server,port)
+        #print 'connect server'
+        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)
+                
+        px.XASessionEvents.session = self.XASession
+        self.XASession.flag = True
+        while self.XASession.flag:
+            pythoncom.PumpWaitingMessages()
+            
+        self.xingTimer.start(1000)
+        pass
             
             
     def xingTimerUpdate(self):
