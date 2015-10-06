@@ -9,7 +9,8 @@ import os
 import pandas as pd
 import datetime as dt
 import sqlite3 as lite
-import zerooptionviewer_parser as parser
+import zerooptionviewer_parser as fo_parser
+import zeroequityviewer_parser as eq_parser
 from PyQt4 import QtCore
 from SubscribeReceiverThread import SubscribeThread
 
@@ -21,7 +22,9 @@ class DBLoaderThread(SubscribeThread):
         SubscribeThread.__init__(self, parent, subtype=subtype)
         self.count = 0
         self.count_remain = 10
-        self.Id_tag = -1
+        self.FutOpt_Id_tag = -1
+        self.Equity_Id_tag = -1
+        self.night_chk = 1
         self.time_chk = True
         self.initDB()
         pass
@@ -30,30 +33,36 @@ class DBLoaderThread(SubscribeThread):
         import time
         strtime = time.strftime('%Y%m%d',time.localtime())
         nowtime = time.localtime()
-        if 6 <= nowtime.tm_hour < 16:
+        if 7 <= nowtime.tm_hour < 16:
             self.strdbname = "TAQ_%s.db" % strtime
+            self.night_chk = 0
         elif nowtime.tm_hour >= 16:
             self.strdbname = "TAQ_Night_%s.db" % strtime
-        elif nowtime.tm_hour < 6:
-            strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
+            self.night_chk = 1
+        elif nowtime.tm_hour < 7:
+            # need to imporve part of strtime
+            strtime = "%d%.2d%.2d" %(nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
             self.strdbname = "TAQ_Night_%s.db" % strtime
+            self.night_chk = 1
 
-        self.initMemoryDB()
+        self.initMemoryDB(self.night_chk)
         if not os.path.isfile(self.strdbname):
-            self.initFileDB()
+            self.initFileDB(self.night_chk)
         else:
             self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
+            self.MsgNotify.emit('reading from file DB...')
             df = pd.read_sql("""SELECT * From FutOptTickData""", self.conn_file)
             if len(df) > 0:
                 self.MsgNotify.emit('loading from file DB to memory DB...')
-                pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory, 'sqlite', 'replace')
+                # pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory, 'sqlite', 'replace')
+                df.to_sql("FutOptTickData", self.conn_memory, 'sqlite', if_exists='replace')
                 self.count = int(df['Id'].irow(-1))
-                self.Id_tag = df['Id'].irow(-1)
+                self.FutOpt_Id_tag = df['Id'].irow(-1)
                 self.count_remain = self.count % 1000 + 10
                 self.MsgNotify.emit('Start Count: ' + str(self.count))
         pass
 
-    def initMemoryDB(self):
+    def initMemoryDB(self,night_chk):
         self.conn_memory = lite.connect(":memory:", check_same_thread=False)
         self.conn_memory.execute("DROP TABLE IF EXISTS FutOptTickData")
         # Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
@@ -83,10 +92,43 @@ class DBLoaderThread(SubscribeThread):
                                        TotalBidQty TEXT, TotalAskQty TEXT,
                                        TotalBidCnt TEXT, TotalAskCnt TEXT
                                        )""")
+
+        if not night_chk:
+            self.conn_memory.execute("DROP TABLE IF EXISTS EquityTickData")
+            self.conn_memory.execute("""CREATE TABLE EquityTickData(Id INTEGER NOT NULL PRIMARY KEY,
+                                           ShortCD TEXT,
+                                           FeedSource TEXT,
+                                           TAQ TEXT,
+                                           SecuritiesType TEXT,
+                                           Time TEXT,
+                                           BuySell TEXT,
+                                           LastPrice TEXT, LastQty TEXT,
+                                           Bid1 TEXT, Ask1 TEXT,
+                                           Bid2 TEXT, Ask2 TEXT,
+                                           Bid3 TEXT, Ask3 TEXT,
+                                           Bid4 TEXT, Ask4 TEXT,
+                                           Bid5 TEXT, Ask5 TEXT,
+                                           Bid6 TEXT, Ask6 TEXT,
+                                           Bid7 TEXT, Ask7 TEXT,
+                                           Bid8 TEXT, Ask8 TEXT,
+                                           Bid9 TEXT, Ask9 TEXT,
+                                           Bid10 TEXT, Ask10 TEXT,
+                                           BidQty1 TEXT, AskQty1 TEXT,
+                                           BidQty2 TEXT, AskQty2 TEXT,
+                                           BidQty3 TEXT, AskQty3 TEXT,
+                                           BidQty4 TEXT, AskQty4 TEXT,
+                                           BidQty5 TEXT, AskQty5 TEXT,
+                                           BidQty6 TEXT, AskQty6 TEXT,
+                                           BidQty7 TEXT, AskQty7 TEXT,
+                                           BidQty8 TEXT, AskQty8 TEXT,
+                                           BidQty9 TEXT, AskQty9 TEXT,
+                                           BidQty10 TEXT, AskQty10 TEXT,
+                                           TotalBidQty TEXT, TotalAskQty TEXT
+                                           )""")
         self.conn_memory.commit()
         pass
 
-    def initFileDB(self):
+    def initFileDB(self, night_chk):
         self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
         self.conn_file.execute("DROP TABLE IF EXISTS FutOptTickData")
         self.conn_file.execute("""CREATE TABLE FutOptTickData(Id INTEGER NOT NULL PRIMARY KEY,
@@ -115,6 +157,39 @@ class DBLoaderThread(SubscribeThread):
                                        TotalBidQty TEXT, TotalAskQty TEXT,
                                        TotalBidCnt TEXT, TotalAskCnt TEXT
                                        )""")
+
+        if not night_chk:
+            self.conn_file.execute("DROP TABLE IF EXISTS EquityTickData")
+            self.conn_file.execute("""CREATE TABLE EquityTickData(Id INTEGER NOT NULL PRIMARY KEY,
+                                           ShortCD TEXT,
+                                           FeedSource TEXT,
+                                           TAQ TEXT,
+                                           SecuritiesType TEXT,
+                                           Time TEXT,
+                                           BuySell TEXT,
+                                           LastPrice TEXT, LastQty TEXT,
+                                           Bid1 TEXT, Ask1 TEXT,
+                                           Bid2 TEXT, Ask2 TEXT,
+                                           Bid3 TEXT, Ask3 TEXT,
+                                           Bid4 TEXT, Ask4 TEXT,
+                                           Bid5 TEXT, Ask5 TEXT,
+                                           Bid6 TEXT, Ask6 TEXT,
+                                           Bid7 TEXT, Ask7 TEXT,
+                                           Bid8 TEXT, Ask8 TEXT,
+                                           Bid9 TEXT, Ask9 TEXT,
+                                           Bid10 TEXT, Ask10 TEXT,
+                                           BidQty1 TEXT, AskQty1 TEXT,
+                                           BidQty2 TEXT, AskQty2 TEXT,
+                                           BidQty3 TEXT, AskQty3 TEXT,
+                                           BidQty4 TEXT, AskQty4 TEXT,
+                                           BidQty5 TEXT, AskQty5 TEXT,
+                                           BidQty6 TEXT, AskQty6 TEXT,
+                                           BidQty7 TEXT, AskQty7 TEXT,
+                                           BidQty8 TEXT, AskQty8 TEXT,
+                                           BidQty9 TEXT, AskQty9 TEXT,
+                                           BidQty10 TEXT, AskQty10 TEXT,
+                                           TotalBidQty TEXT, TotalAskQty TEXT
+                                           )""")
         self.conn_file.commit()
         pass
 
@@ -128,44 +203,15 @@ class DBLoaderThread(SubscribeThread):
             if 7 <= nowtime.hour < 17:
                 nightshift = 0
             else:
-                nightshift = 1            
-            taqitem = parser.msgParser(msg, nightshift, tuple, self.count)
-        elif type(msg) == dict:
-            row = msg.copy()
-            chk = row['TAQ']
-            if chk == 'Q':
-                taqitem = (self.count, row['ShortCD'],
-                           row['FeedSource'],
-                           row['TAQ'],
-                           row['SecuritiesType'],
-                           row['Time'],
-                           row['Bid1'], row['Ask1'], row['BidQty1'], row['AskQty1'], row['BidCnt1'], row['AskCnt1'],
-                           row['Bid2'], row['Ask2'], row['BidQty2'], row['AskQty2'], row['BidCnt2'], row['AskCnt2'],
-                           row['Bid3'], row['Ask3'], row['BidQty3'], row['AskQty3'], row['BidCnt3'], row['AskCnt3'],
-                           row['Bid4'], row['Ask4'], row['BidQty4'], row['AskQty4'], row['BidCnt4'], row['AskCnt4'],
-                           row['Bid5'], row['Ask5'], row['BidQty5'], row['AskQty5'], row['BidCnt5'], row['AskCnt5'],
-                           row['TotalBidQty'], row['TotalAskQty'],
-                           row['TotalBidCnt'], row['TotalAskCnt']
-                           )
-            elif chk == 'T':
-                taqitem = (self.count, row['ShortCD'],
-                           row['FeedSource'],
-                           row['TAQ'],
-                           row['SecuritiesType'],
-                           row['Time'],
-                           row['LastPrice'], row['LastQty'], row['BuySell'],
-                           row['Bid1'], row['Ask1']
-                           )
-            elif chk == 'E':
-                taqitem = (self.count, row['ShortCD'],
-                           row['FeedSource'],
-                           row['TAQ'],
-                           row['SecuritiesType'],
-                           row['Time'],
-                           row['LastPrice'], row['BuySell']
-                           )
+                nightshift = 1
+            if lst[3] in ['futures', 'options']:
+                taqitem = fo_parser.msgParser(msg, nightshift, tuple, self.count)
+            elif lst[3] == 'equity':
+                taqitem = eq_parser.msgParser(msg, tuple, self.count)
+        else:
+            return
 
-        if chk == 'Q':
+        if chk == 'Q' and lst[3] in ['futures', 'options']:
             wildcard = ','.join('?'*40)
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,Bid1,Ask1,BidQty1,AskQty1,BidCnt1,AskCnt1,
                                                     Bid2,Ask2,BidQty2,AskQty2,BidCnt2,AskCnt2,
@@ -175,21 +221,53 @@ class DBLoaderThread(SubscribeThread):
                                                     TotalBidQty, TotalAskQty,TotalBidCnt, TotalAskCnt
                                                     )
                                                VALUES(%s)""" % wildcard
-        elif chk == 'E':
+        elif chk == 'E' and lst[3] in ['futures', 'options']:
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
-        elif chk == 'T':
+        elif chk == 'T' and lst[3] in ['futures', 'options']:
+            # print taqitem
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
+        elif chk == 'Q' and lst[3] == 'equity':
+            wildcard = ','.join('?'*48)
+            sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,
+                                                    Bid1,Ask1,BidQty1,AskQty1,
+                                                    Bid2,Ask2,BidQty2,AskQty2,
+                                                    Bid3,Ask3,BidQty3,AskQty3,
+                                                    Bid4,Ask4,BidQty4,AskQty4,
+                                                    Bid5,Ask5,BidQty5,AskQty5,
+                                                    Bid6,Ask6,BidQty6,AskQty6,
+                                                    Bid7,Ask7,BidQty7,AskQty7,
+                                                    Bid8,Ask8,BidQty8,AskQty8,
+                                                    Bid9,Ask9,BidQty9,AskQty9,
+                                                    Bid10,Ask10,BidQty10,AskQty10,
+                                                    TotalBidQty, TotalAskQty
+                                                    )
+                                               VALUES(%s)""" % wildcard
+        elif chk == 'E' and lst[3] == 'equity':
+            sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
+        elif chk == 'T' and lst[3] == 'equity':
+            sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
+                                               VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
+        else:
+            print taqitem
+            print 'no chk type and no parser type'
+            return
 
         if chk != '' and taqitem:
             try:
                 self.conn_memory.execute(sqltext, taqitem)
                 self.conn_memory.commit()
                 if self.count % 1000 == self.count_remain:
-                    cursor = self.conn_memory.execute("""SELECT COUNT(*) FROM FutOptTickData""")
-                    row = cursor.fetchone()
-                    msg = 'Count: %d' % row[0]
+                    cursor_fo = self.conn_memory.execute("""SELECT COUNT(*) FROM FutOptTickData""")
+                    row_fo = cursor_fo.fetchone()
+                    if not self.night_chk:
+                        cursor_eq = self.conn_memory.execute("""SELECT COUNT(*) FROM EquityTickData""")
+                        row_eq = cursor_eq.fetchone()
+                    else:
+                        row_eq = [0]
+                    msg = 'FutOpt Count: %d, Eq Count: %d' % (row_fo[0], row_eq[0])
                     self.MsgNotify.emit(msg)
                 self.count += 1
             except lite.Error as e:
@@ -200,28 +278,40 @@ class DBLoaderThread(SubscribeThread):
             self.time_chk = False
         elif nowtime.second % 60 != 15:
             self.time_chk = True
-
         pass
 
     def onXTimerUpdate(self):
         if os.path.isfile(self.strdbname):
-            self.MsgNotify.emit('replicate memory db to file db, %d, %d' % (self.Id_tag, self.count))
             try:
-                df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE Id > %d """ % self.Id_tag, self.conn_memory)
-                self.Id_tag = df_memory['Id'].irow(-1)
-                pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file, 'sqlite', 'append')
-            except lite.Error as e:
-                msg = "An error occurred:", e.args[0]
+                df_memory = pd.read_sql("""SELECT * From FutOptTickData WHERE Id > %d """ % self.FutOpt_Id_tag, self.conn_memory)
+                if len(df_memory) > 0:
+                    self.FutOpt_Id_tag = df_memory['Id'].irow(-1)
+                    # pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file, 'sqlite', 'append')
+                    df_memory.to_sql("FutOptTickData", self.conn_file, 'sqlite', if_exists='append')
+                    self.MsgNotify.emit('replicate memory db FutOptTickDataTable to file db: %d' % self.FutOpt_Id_tag)
+                else:
+                    return
+            except Exception, e:
+                msg = "An error occurred while futopt replacing : %s" % str(e)
                 self.MsgNotify.emit(msg)
                 return
-            # print 'test: write file db...'
-            # df_memory = df_memory.iloc[:,1:len(df_memory.columns)]
-
-
-        # else:
-            # print 'make new file db'
+            if not self.night_chk:
+                try:
+                    df_memory = pd.read_sql("""SELECT * From EquityTickData WHERE Id > %d """ % self.Equity_Id_tag, self.conn_memory)
+                    if len(df_memory) > 0:
+                        self.Equity_Id_tag = df_memory['Id'].irow(-1)
+                        pd.io.sql.write_frame(df_memory, "EquityTickData", self.conn_file, 'sqlite', 'append')
+                        df_memory.to_sql("EquityTickData", self.conn_file, 'sqlite', if_exists='append')
+                        self.MsgNotify.emit('replicate memory db EquityTickDataTable to file db: %d' % self.Equity_Id_tag)
+                    else:
+                        return
+                except Exception, e:
+                    msg = "An error occurred while eq replacing : %s" % str(e)
+                    self.MsgNotify.emit(msg)
+                    return
         pass
 
     def stop(self):        
         SubscribeThread.stop(self)
+        self.onXTimerUpdate()
         pass
