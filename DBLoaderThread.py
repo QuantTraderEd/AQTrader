@@ -6,6 +6,7 @@ Created on Thu Apr 19 15:00:36 2015
 """
 
 import os
+import redis
 import pandas as pd
 import datetime as dt
 import sqlite3 as lite
@@ -26,6 +27,7 @@ class DBLoaderThread(SubscribeThread):
         self.Equity_Id_tag = -1
         self.night_chk = 1
         self.time_chk = True
+        self.redis_client = 0
         self.initDB()
         pass
 
@@ -33,6 +35,7 @@ class DBLoaderThread(SubscribeThread):
         import time
         strtime = time.strftime('%Y%m%d',time.localtime())
         nowtime = time.localtime()
+        self.redis_client = redis.Redis()
         if 7 <= nowtime.tm_hour < 16:
             self.strdbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
@@ -221,6 +224,8 @@ class DBLoaderThread(SubscribeThread):
                                                     TotalBidQty, TotalAskQty,TotalBidCnt, TotalAskCnt
                                                     )
                                                VALUES(%s)""" % wildcard
+            self.redis_client.hset('bid1_dict', float(taqitem[6]))
+            self.redis_client.hset('ask1_dict', float(taqitem[7]))
         elif chk == 'E' and lst[3] in ['futures', 'options']:
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
@@ -228,6 +233,9 @@ class DBLoaderThread(SubscribeThread):
             # print taqitem
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
+            self.redis_client.hset('lastprice_dict', float(taqitem[1]), float(taqitem[6]))
+            self.redis_client.hset('bid1_dict', float(taqitem[9]))
+            self.redis_client.hset('ask1_dict', float(taqitem[10]))
         elif chk == 'Q' and lst[3] == 'equity':
             wildcard = ','.join('?'*48)
             sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,
@@ -287,7 +295,7 @@ class DBLoaderThread(SubscribeThread):
                 if len(df_memory) > 0:
                     self.FutOpt_Id_tag = df_memory['Id'].irow(-1)
                     # pd.io.sql.write_frame(df_memory, "FutOptTickData", self.conn_file, 'sqlite', 'append')
-                    df_memory.to_sql("FutOptTickData", self.conn_file, 'sqlite', if_exists='append')
+                    df_memory.to_sql("FutOptTickData", self.conn_file, 'sqlite', None, 'append', index=False)
                     self.MsgNotify.emit('replicate memory db FutOptTickDataTable to file db: %d' % self.FutOpt_Id_tag)
                 else:
                     return
@@ -300,8 +308,8 @@ class DBLoaderThread(SubscribeThread):
                     df_memory = pd.read_sql("""SELECT * From EquityTickData WHERE Id > %d """ % self.Equity_Id_tag, self.conn_memory)
                     if len(df_memory) > 0:
                         self.Equity_Id_tag = df_memory['Id'].irow(-1)
-                        pd.io.sql.write_frame(df_memory, "EquityTickData", self.conn_file, 'sqlite', 'append')
-                        df_memory.to_sql("EquityTickData", self.conn_file, 'sqlite', if_exists='append')
+                        # pd.io.sql.write_frame(df_memory, "EquityTickData", self.conn_file, 'sqlite', 'append')
+                        df_memory.to_sql("EquityTickData", self.conn_file, 'sqlite', None, 'append', index=False)
                         self.MsgNotify.emit('replicate memory db EquityTickDataTable to file db: %d' % self.Equity_Id_tag)
                     else:
                         return
