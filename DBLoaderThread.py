@@ -224,8 +224,11 @@ class DBLoaderThread(SubscribeThread):
                                                     TotalBidQty, TotalAskQty,TotalBidCnt, TotalAskCnt
                                                     )
                                                VALUES(%s)""" % wildcard
-            self.redis_client.hset('bid1_dict', float(taqitem[6]))
-            self.redis_client.hset('ask1_dict', float(taqitem[7]))
+            self.redis_client.hset('bid1_dict', taqitem[1], float(taqitem[6]))
+            self.redis_client.hset('ask1_dict', taqitem[1], float(taqitem[7]))
+            self.redis_client.hset('bidqty1_dict', taqitem[1], float(taqitem[8]))
+            self.redis_client.hset('askqty1_dict', taqitem[1], float(taqitem[9]))
+            self.redis_client.hset('mid_dict', taqitem[1], (float(taqitem[6]) + float(taqitem[7])) * .5)
         elif chk == 'E' and lst[3] in ['futures', 'options']:
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,BuySell)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?)"""
@@ -233,9 +236,11 @@ class DBLoaderThread(SubscribeThread):
             # print taqitem
             sqltext = """INSERT INTO FutOptTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
-            self.redis_client.hset('lastprice_dict', float(taqitem[1]), float(taqitem[6]))
-            self.redis_client.hset('bid1_dict', float(taqitem[9]))
-            self.redis_client.hset('ask1_dict', float(taqitem[10]))
+            self.redis_client.hset('lastprice_dict', taqitem[1], float(taqitem[6]))
+            self.redis_client.hset('lastqty_dict', taqitem[1], float(taqitem[7]))
+            self.redis_client.hset('bid1_dict', taqitem[1], float(taqitem[9]))
+            self.redis_client.hset('ask1_dict', taqitem[1], float(taqitem[10]))
+            self.redis_client.hset('mid_dict', taqitem[1], (float(taqitem[9]) + float(taqitem[10])) * .5)
         elif chk == 'Q' and lst[3] == 'equity':
             wildcard = ','.join('?'*48)
             sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,
