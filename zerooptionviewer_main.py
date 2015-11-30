@@ -5,6 +5,7 @@ Created on Tue Jun 10 22:58:29 2014
 @author: assa
 """
 
+import sip
 import sys
 from datetime import datetime
 from PyQt4 import QtGui, QtCore
@@ -27,6 +28,7 @@ class MainForm(QtGui.QMainWindow):
         self.initStrikeList()
         self.initTableWidget()
         self.initThread()
+        sip.setdestroyonexit(False)
 
     def closeEvent(self, event):
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
