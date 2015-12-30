@@ -27,7 +27,7 @@ class LoginForm(QtGui.QDialog):
         self._XASession = XASession
         self.ui.lineEditEtradeServerName.setEchoMode(QtGui.QLineEdit.Password)
         self.ui.comboBoxServerType.activated[str].connect(self.onActivated)
-        self.server = 'hts.ebestsec.co.kr'
+        self.server = 'hts.etrade.co.kr'
         self.servertype = 0
         
     def __del__(self):        

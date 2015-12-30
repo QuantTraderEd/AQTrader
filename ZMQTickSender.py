@@ -28,8 +28,9 @@ class ZMQTickSender:
         msg = timestamp + ',' + msg        
         self.ZMQSocket.send(msg)
         if self.SecuritiesType in ['futures', 'options']:
-            self.count += 1
+            ZMQTickSender.count += 1
         pass
+    
 class ZMQTickSender_New:
     count = 0
     def __init__(self,ZMQSocket=None,FeedSource=None,TAQ=None,SecuritiesType=None):
