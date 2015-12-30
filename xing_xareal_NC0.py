@@ -49,7 +49,7 @@ class XAReal_NC0(SourceReal):
             self.data['ibasis'] = self.GetFieldData('OutBlock','ibasis')
             self.data['openyakcha'] = self.GetFieldData('OutBlock','openyakcha')
             self.data['jgubun'] = self.GetFieldData('OutBlock','jgubun')
-            #self.data['jnilvolume'] = self.GetFieldData('OutBlock','jnilvolume')
+            # self.data['jnilvolume'] = self.GetFieldData('OutBlock','jnilvolume')
             self.data['futcode'] = self.GetFieldData('OutBlock','futcode')
             #===============================================================
             self.data['LastPrice'] = self.GetFieldData('OutBlock', 'price')
@@ -89,7 +89,7 @@ class XAReal_NC0(SourceReal):
             self.data.append(self.GetFieldData('OutBlock','ibasis'))
             self.data.append(self.GetFieldData('OutBlock','openyakcha'))
             self.data.append(self.GetFieldData('OutBlock','jgubun'))
-            #self.data['jnilvolume'] = self.GetFieldData('OutBlock','jnilvolume')
+            # self.data.append(self.GetFieldData('OutBlock','jnilvolume'))
             self.data.append(self.GetFieldData('OutBlock','futcode'))
             self.Notify()
         pass
