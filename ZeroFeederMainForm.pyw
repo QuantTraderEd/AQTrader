@@ -187,7 +187,7 @@ class MainForm(QtGui.QMainWindow):
 
     def initEH0(self):
         NewItemQuote = px.XAReal_EH0(DataType='list')
-        NewItemQuote_New = px.XAReal_EC0(DataType='dictionary')
+        NewItemQuote_New = px.XAReal_EH0(DataType='dictionary')
         if self.ZMQOptionsNightQuoteSender != None:
             NewItemQuote.Attach(self.ZMQOptionsNightQuoteSender)
             NewItemQuote_New.Attach(self.ZMQOptionsNightQuoteSender_test)
