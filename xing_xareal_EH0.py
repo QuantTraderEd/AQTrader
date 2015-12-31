@@ -53,6 +53,7 @@ class XAReal_EH0(SourceReal):
             self.data['TotalAskCnt'] = self.GetFieldData('OutBlock','totoffercnt')
             self.data['TotalBidCnt'] = self.GetFieldData('OutBlock','totbidcnt')
             self.data['ShortCD'] = self.GetFieldData('OutBlock','optcode')
+            self.data['TAQ'] = 'Q'
             self.Notify()
         elif self.DataType == 'list':
             self.data = []
