@@ -42,10 +42,10 @@ class LoginForm(QtGui.QDialog):
 
     def onActivated(self, text):
         if text == 'real server':
-            self.server = 'hts.ebestsec.co.kr'
+            self.server = 'hts.etrade.co.kr'
             self.servertype = 0
         elif text == 'demo server':
-            self.server = 'demo.ebestsec.co.kr'
+            self.server = 'demo.etrade.co.kr'
             self.servertype = 1
         pass
 
