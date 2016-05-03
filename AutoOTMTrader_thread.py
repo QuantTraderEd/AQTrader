@@ -43,7 +43,7 @@ class OptionViewerThread(QtCore.QThread):
 
 
 class ExecutionThread(QtCore.QThread):
-    receiveData = QtCore.pyqtSignal(str)
+    receiveData = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent=None):
         QtCore.QThread.__init__(self, parent)
