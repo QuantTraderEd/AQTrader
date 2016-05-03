@@ -12,7 +12,6 @@ import zmq
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 from ui_AutoOTMTrader import Ui_MainWindow
-# from zerooptionviewer_thread import OptionViewerThread
 from AutoOTMTrader_thread import OptionViewerThread, ExecutionThread
 from ReceiverThread import ReceiverThread
 
@@ -20,7 +19,7 @@ import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
 
 def convert(strprice):
-    return '%.2f' %round(float(strprice),2)
+    return '%.2f' %round(float(strprice), 2)
 
 
 class MainForm(QtGui.QMainWindow):
@@ -63,6 +62,7 @@ class MainForm(QtGui.QMainWindow):
         self._thread.port = 5500
         # self._thread.receiveData[dict].connect(self.onReceiveData)
         self._thread.receiveData[str].connect(self.onReceiveData_Old)
+        self._executionthread.receiveData[dict].connect(self.onReceiveExecution)
 
     def initPositionDB(self):
         self._session = position_db_init.initSession('autotrader_position.db')
@@ -138,16 +138,15 @@ class MainForm(QtGui.QMainWindow):
     def sendOrder(self, shortcd, orderprice, orderqty, buysell):
         if shortcd[:3] == '201' or shortcd[:3] == '301':
             msg = str(buysell) + ',' + str(shortcd) + ',' + str(orderprice) + ',' + str(orderqty)
-            print msg
             self.socket.send(msg)
             msg_in = self.socket.recv()
-            print msg_in
             
     def onClick(self):
-        if not self._thread.isRunning():
+        isThreadRun = self._thread.isRunning() and self._executionthread.isRunning()
+        if not isThreadRun:
             self._thread.start()
             self.ui.pushButton_Start.setText('Stop')
-        else:
+        elif isThreadRun:
             self._thread.terminate()
             self.ui.pushButton_Start.setText('Start')
         pass
@@ -306,8 +305,14 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(pos, 5, bid1)
                 
         pass
-                
-                
+
+    def onReceiveExecution(self, data_dict):
+        exec_data_dict['autotrader_id'] = 'OTM001'
+        exec_data_dict['shortcd'] = data_dict['shortcd']
+        exec_data_dict['execprice'] = data_dict['execprice']
+        exec_data_dict['execqty'] = data_dict['execqty']
+        exec_data_dict['buysell'] = data_dict['buysell']
+        pass
     
 if __name__ == '__main__':
     import sys

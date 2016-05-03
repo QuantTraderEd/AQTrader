@@ -45,7 +45,7 @@ class OptionViewerThread(QtCore.QThread):
 class ExecutionThread(QtCore.QThread):
     receiveData = QtCore.pyqtSignal(str)
 
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         QtCore.QThread.__init__(self, parent)
         self.msg = ''
         self.mt_stop = False
