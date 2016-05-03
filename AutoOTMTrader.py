@@ -17,6 +17,7 @@ from ReceiverThread import ReceiverThread
 
 import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
+from sqlalchemy_pos_update import updateNewPositionEntity
 
 def convert(strprice):
     return '%.2f' %round(float(strprice), 2)
@@ -312,6 +313,7 @@ class MainForm(QtGui.QMainWindow):
         exec_data_dict['execprice'] = data_dict['execprice']
         exec_data_dict['execqty'] = data_dict['execqty']
         exec_data_dict['buysell'] = data_dict['buysell']
+        updateNewPositionEntity(self._session, exec_data_dict)
         pass
     
 if __name__ == '__main__':
