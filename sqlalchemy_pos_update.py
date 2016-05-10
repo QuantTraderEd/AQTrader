@@ -24,13 +24,14 @@ def updateNewPositionEntity(session, exec_data_dict):
                                               old_PositionEntity.avgexecprice * old_PositionEntity.holdqty) / \
                                               (old_PositionEntity.holdqty)
         else:
-            old_PositionEntity.holdqty -= exec_data_dict['execqty']
-            if old_PositionEntity.holdqty == 0:
-                del old_PositionEntity
-            else:
-                old_PositionEntity.holdqty = abs(old_PositionEntity.holdqty)
+            if old_PositionEntity.holdqty == exec_data_dict['execqty']:
+                session.delete(old_PositionEntity)
+            elif old_PositionEntity.holdqty < exec_data_dict['execqty']:
                 old_PositionEntity.avgexecprice = exec_data_dict['execprice']
                 old_PositionEntity.buysell = exec_data_dict['buysell']
+                old_PositionEntity.holdqty = abs(exec_data_dict['execqty'] - old_PositionEntity.holdqty)
+            elif old_PositionEntity.holdqty > exec_data_dict['execqty']:
+                old_PositionEntity.holdqty = old_PositionEntity.holdqty - exec_data_dict['execqty']
 
     session.commit()
     pass
