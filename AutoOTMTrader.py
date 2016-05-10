@@ -68,34 +68,22 @@ class MainForm(QtGui.QMainWindow):
         self._session = position_db_init.initSession('autotrader_position.db')
 
     def test(self):
-        self.redis_client = redis.Redis()
-
-        rows = self._session.query(PositionEntity.shortcd).filter(PositionEntity.holdqty > 0).all()
-        self.shortcd_lst = list(zip(*rows)[0])
-
-        rows = self._session.query(PositionEntity.holdqty).filter(PositionEntity.holdqty > 0).all()
-        self.holdqty_lst = list(zip(*rows)[0])
-
-        rows = self._session.query(PositionEntity.avgexecprice).filter(PositionEntity.holdqty > 0).all()
-        self.avgexecprice_lst = list(zip(*rows)[0])
-
-        rows = self._session.query(PositionEntity.buysell).filter(PositionEntity.holdqty > 0).all()
-        self.buysell_lst = list(zip(*rows)[0])
-
         self.position_dict = {}
         self.avgexecprice_dict = {}
-        
+
         self.ask1_dict = {}
         self.bid1_dict = {}
 
-        self.orderseq = list()
-        
         self.total_pnl = 0
-        self.ui.tableWidget.setRowCount(len(self.shortcd_lst)+1)        
+
+        self.orderseq = list()
+
+        self.redis_client = redis.Redis()
+
+        self.updatePostionTable()
+
         for i in xrange(len(self.shortcd_lst)):
             shortcd = self.shortcd_lst[i]
-            self.position_dict[shortcd] = int(self.holdqty_lst[i])
-            self.avgexecprice_dict[shortcd] = self.avgexecprice_lst[i]
             ask1 = self.redis_client.hget('ask1_dict', shortcd)
             bid1 = self.redis_client.hget('bid1_dict', shortcd)
             self.ask1_dict[shortcd] = float(ask1)
@@ -113,8 +101,7 @@ class MainForm(QtGui.QMainWindow):
                 order_dict['buysell'] = 'buy'
                 self.orderseq.append(order_dict)
             self.total_pnl += pnl
-            self.updateTableWidgetItem(i, 0, self.shortcd_lst[i])
-            self.updateTableWidgetItem(i, 1, str(self.holdqty_lst[i]))
+
             self.updateTableWidgetItem(i, 2, str(pnl))
             self.updateTableWidgetItem(i, 3, str(self.avgexecprice_dict[shortcd]))
             self.updateTableWidgetItem(i, 4, ask1)
@@ -187,8 +174,7 @@ class MainForm(QtGui.QMainWindow):
             print self.total_pnl
             self.total_pnl += pnl_diff
             print self.total_pnl
-            
-            self.updateTableWidgetItem(pos, 1, str(holdqty))
+
             self.updateTableWidgetItem(pos, 2, str(pnl))
             self.updateTableWidgetItem(pos, 4, ask1)
             self.updateTableWidgetItem(pos, 5, bid1)
@@ -202,7 +188,10 @@ class MainForm(QtGui.QMainWindow):
     
     def onReceiveData_Old(self, msg):
         nowtime = dt.datetime.now()
-        lst = msg.split(',')                
+        lst = msg.split(',')
+        shortcd = ''
+        ask1 = 0
+        bid1 = 0
         if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
             if nowtime.hour >= 7 and nowtime.hour < 17:
                 shortcd = lst[4]
@@ -227,36 +216,6 @@ class MainForm(QtGui.QMainWindow):
 
             else:
                 return
-
-            if len(self.orderseq) > 0:
-                if self.orderseq[0]['buysell'] == 'buy':
-                    buysell = 'True'
-                elif self.orderseq[0]['buysell'] == 'sell':
-                    buysell = 'False'
-
-                self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
-                               self.orderseq[0]['orderqty'], buysell)
-                pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
-                liveqty = str(self.orderseq[0]['orderqty'])
-                if buysell == 'sell': liveqty = '-' + liveqty
-                self.updateTableWidgetItem(pos, 6, liveqty)
-                self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
-                del self.orderseq[0]
-
-            if not (shortcd in self.shortcd_lst): return
-            pos = self.shortcd_lst.index(shortcd)
-            print nowtime, shortcd, askqty1, ask1, bid1, bidqty1
-            holdqty = long(self.holdqty_lst[pos])
-            midprice = (float(bid1) + float(ask1)) * 0.5
-            buysell = self.buysell_lst[pos]
-            pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
-            if buysell == 'sell':
-                pnl *= -1.0
-            
-            self.updateTableWidgetItem(pos, 1, str(holdqty))
-            self.updateTableWidgetItem(pos, 2, str(pnl))
-            self.updateTableWidgetItem(pos, 4, ask1)
-            self.updateTableWidgetItem(pos, 5, bid1)
 
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shortcd = lst[4]
@@ -284,35 +243,38 @@ class MainForm(QtGui.QMainWindow):
                 askqty1 = lst[8]
                 bidqty1 = lst[9]
 
-            if len(self.orderseq) > 0:
-                if self.orderseq[0]['buysell'] == 'buy':
-                    buysell = 'True'
-                elif self.orderseq[0]['buysell'] == 'sell':
-                    buysell = 'False'
+        if len(self.orderseq) > 0:
+            if self.orderseq[0]['buysell'] == 'buy':
+                buysell = 'True'
+            elif self.orderseq[0]['buysell'] == 'sell':
+                buysell = 'False'
 
-                self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
-                               self.orderseq[0]['orderqty'], buysell)
-                pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
-                liveqty = str(self.orderseq[0]['orderqty'])
-                if buysell == 'sell': liveqty = '-' + liveqty
-                self.updateTableWidgetItem(pos, 6, liveqty)
-                self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
-                del self.orderseq[0]
+            self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
+                           self.orderseq[0]['orderqty'], buysell)
+            pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
+            liveqty = str(self.orderseq[0]['orderqty'])
+            if buysell == 'sell': liveqty = '-' + liveqty
+            self.updateTableWidgetItem(pos, 6, liveqty)
+            self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
+            del self.orderseq[0]
 
-            if not (shortcd in self.shortcd_lst): return
-            pos = self.shortcd_lst.index(shortcd)
-            print nowtime, shortcd, askqty1, ask1, bid1, bidqty1
-            holdqty = long(self.holdqty_lst[pos])
-            midprice = (float(bid1) + float(ask1)) * 0.5
-            buysell = self.buysell_lst[pos]
-            pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
-            if buysell == 'sell':
-                pnl *= -1.0
+        if not (shortcd in self.shortcd_lst):
+            return
+        elif float(ask1) <= 0 and float(bid1) <= 0:
+            return
 
-            self.updateTableWidgetItem(pos, 1, str(holdqty))
-            self.updateTableWidgetItem(pos, 2, str(pnl))
-            self.updateTableWidgetItem(pos, 4, ask1)
-            self.updateTableWidgetItem(pos, 5, bid1)
+        pos = self.shortcd_lst.index(shortcd)
+        print nowtime, shortcd, askqty1, ask1, bid1, bidqty1
+        holdqty = long(self.holdqty_lst[pos])
+        midprice = (float(bid1) + float(ask1)) * 0.5
+        buysell = self.buysell_lst[pos]
+        pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
+        if buysell == 'sell':
+            pnl *= -1.0
+
+        self.updateTableWidgetItem(pos, 2, str(pnl))
+        self.updateTableWidgetItem(pos, 4, ask1)
+        self.updateTableWidgetItem(pos, 5, bid1)
                 
         pass
 
@@ -325,6 +287,37 @@ class MainForm(QtGui.QMainWindow):
         exec_data_dict['buysell'] = data_dict['buysell']
         updateNewPositionEntity(self._session, exec_data_dict)
         pass
+
+    def updatePostionTable(self):
+        rows = self._session.query(PositionEntity.shortcd).filter(PositionEntity.holdqty > 0).all()
+        self.shortcd_lst = list(zip(*rows)[0])
+
+        rows = self._session.query(PositionEntity.holdqty).filter(PositionEntity.holdqty > 0).all()
+        self.holdqty_lst = list(zip(*rows)[0])
+
+        rows = self._session.query(PositionEntity.avgexecprice).filter(PositionEntity.holdqty > 0).all()
+        self.avgexecprice_lst = list(zip(*rows)[0])
+
+        rows = self._session.query(PositionEntity.buysell).filter(PositionEntity.holdqty > 0).all()
+        self.buysell_lst = list(zip(*rows)[0])
+
+        self.ui.tableWidget.setRowCount(len(self.shortcd_lst)+1)
+
+        for i in xrange(len(self.shortcd_lst)):
+            shortcd = self.shortcd_lst[i]
+            self.position_dict[shortcd] = int(self.holdqty_lst[i])
+            self.avgexecprice_dict[shortcd] = self.avgexecprice_lst[i]
+
+            pos = self.shortcd_lst.index(shortcd)
+            buysell = self.buysell_lst[pos]
+            str_holdqty = str(self.holdqty_lst[i])
+            if buysell == 'sell':
+                str_holdqty = '-' + str_holdqty
+
+            self.updateTableWidgetItem(i, 0, self.shortcd_lst[i])
+            self.updateTableWidgetItem(i, 1, str_holdqty)
+            self.updateTableWidgetItem(i, 3, str(self.avgexecprice_dict[shortcd]))
+
     
 if __name__ == '__main__':
     import sys
