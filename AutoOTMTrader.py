@@ -13,7 +13,7 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 from ui_AutoOTMTrader import Ui_MainWindow
 from AutoOTMTrader_thread import OptionViewerThread, ExecutionThread
-from ReceiverThread import ReceiverThread
+# from ReceiverThread import ReceiverThread
 
 import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
@@ -21,7 +21,6 @@ from sqlalchemy_pos_update import updateNewPositionEntity
 
 def convert(strprice):
     return '%.2f' %round(float(strprice), 2)
-
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
@@ -220,7 +219,7 @@ class MainForm(QtGui.QMainWindow):
             
         elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
             if nowtime.hour >= 7 and nowtime.hour <= 16:
-                shortcd = lst[4]
+                shortcd = str(lst[4])
                 ask1 = convert(lst[6])
                 bid1 = convert(lst[23])
                 askqty1 = lst[11]
@@ -237,6 +236,11 @@ class MainForm(QtGui.QMainWindow):
 
                 self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
                                self.orderseq[0]['orderqty'], buysell)
+                pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
+                liveqty = str(self.orderseq[0]['orderqty'])
+                if buysell == 'sell': liveqty = '-' + liveqty
+                self.updateTableWidgetItem(pos, 6, liveqty)
+                self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
                 del self.orderseq[0]
 
             if not (shortcd in self.shortcd_lst): return
@@ -254,7 +258,6 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(pos, 4, ask1)
             self.updateTableWidgetItem(pos, 5, bid1)
 
-                
         elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
             shortcd = lst[4]
             expectprice = convert(lst[6])
@@ -289,6 +292,11 @@ class MainForm(QtGui.QMainWindow):
 
                 self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
                                self.orderseq[0]['orderqty'], buysell)
+                pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
+                liveqty = str(self.orderseq[0]['orderqty'])
+                if buysell == 'sell': liveqty = '-' + liveqty
+                self.updateTableWidgetItem(pos, 6, liveqty)
+                self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
                 del self.orderseq[0]
 
             if not (shortcd in self.shortcd_lst): return
@@ -300,6 +308,7 @@ class MainForm(QtGui.QMainWindow):
             pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
             if buysell == 'sell':
                 pnl *= -1.0
+
             self.updateTableWidgetItem(pos, 1, str(holdqty))
             self.updateTableWidgetItem(pos, 2, str(pnl))
             self.updateTableWidgetItem(pos, 4, ask1)
@@ -308,6 +317,7 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def onReceiveExecution(self, data_dict):
+        exec_data_dict = dict()
         exec_data_dict['autotrader_id'] = 'OTM001'
         exec_data_dict['shortcd'] = data_dict['shortcd']
         exec_data_dict['execprice'] = data_dict['execprice']
