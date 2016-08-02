@@ -33,11 +33,11 @@ if __name__ == '__main__':
 
     position_info_dict = dict()
     position_info_dict['autotrader_id'] = 'OTM001'
-    position_info_dict['datetime'] = dt.datetime.strptime('2016-05-03 00:09:23.000506', '%Y-%m-%d %H:%M:%S.%f')
+    position_info_dict['datetime'] = dt.datetime.strptime('2016-07-19 10:23:23.000506', '%Y-%m-%d %H:%M:%S.%f')
     position_info_dict['buysell'] = 'sell'
-    position_info_dict['shortcd'] = '201L6265'
-    position_info_dict['avgexecprice'] = 0.07
-    position_info_dict['holdqty'] = 1
+    position_info_dict['shortcd'] = '301L8195'
+    position_info_dict['avgexecprice'] = 0.21
+    position_info_dict['holdqty'] = 0
 
     insertNewPositionEntity(session, position_info_dict)
 
@@ -47,6 +47,9 @@ if __name__ == '__main__':
         print (positionentity.autotrader_id, positionentity.shortcd,
                positionentity.avgexecprice, positionentity.buysell, positionentity.holdqty,
                positionentity.datetime)
+        if positionentity.holdqty == 0:
+            session.delete(positionentity)
 
+    session.commit()
     rows = session.query(PositionEntity.shortcd).all()
     print list(zip(*rows)[0])

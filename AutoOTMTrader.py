@@ -243,7 +243,9 @@ class MainForm(QtGui.QMainWindow):
                 askqty1 = lst[8]
                 bidqty1 = lst[9]
 
-        if len(self.orderseq) > 0:
+        int_nowtime = nowtime.hour * 100 + nowtime.minute
+
+        if len(self.orderseq) > 0 and ((800 <= int_nowtime < 1500) or (int_nowtime >= 1750 or int_nowtime < 400)):
             if self.orderseq[0]['buysell'] == 'buy':
                 buysell = 'True'
             elif self.orderseq[0]['buysell'] == 'sell':
