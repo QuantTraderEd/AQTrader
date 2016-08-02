@@ -140,12 +140,16 @@ class MainForm(QtGui.QMainWindow):
     def initZMQSender(self):
         self.ZMQFuturesTradeSender = ZMQTickSender(self.socket,'xing','T','futures')
         self.ZMQFuturesQuoteSender = ZMQTickSender(self.socket,'cybos','Q','futures')
+        self.ZMQFuturesTradeSender_test = ZMQTickSender_New(self.socket_test,'xing','T','futures')
+        self.ZMQFuturesQuoteSender_test = ZMQTickSender_New(self.socket_test,'xing','Q','futures')
         self.ZMQFuturesExpectSender = ZMQTickSender(self.socket,'cybos','E','futures')
         self.ZMQFuturesNightQuoteSender = ZMQTickSender(self.socket,'xing','Q','futures')
         self.ZMQFuturesNightTradeSender_test = ZMQTickSender_New(self.socket_test,'xing','T','futures')
         self.ZMQFuturesNightQuoteSender_test = ZMQTickSender_New(self.socket_test,'xing','Q','futures')
         self.ZMQOptionsTradeSender = ZMQTickSender(self.socket,'xing','T','options')
         self.ZMQOptionsQuoteSender = ZMQTickSender(self.socket,'cybos','Q','options')
+        self.ZMQOptionsTradeSender_test = ZMQTickSender_New(self.socket_test,'xing','T','options')
+        self.ZMQOptionsQuoteSender_test = ZMQTickSender_New(self.socket_test,'xing','Q','options')
         self.ZMQOptionsNightQuoteSender = ZMQTickSender(self.socket,'xing','Q','options')
         self.ZMQOptionsNightTradeSender_test = ZMQTickSender_New(self.socket_test,'xing','T','options')
         self.ZMQOptionsNightQuoteSender_test = ZMQTickSender_New(self.socket_test,'xing','Q','options')
@@ -172,10 +176,22 @@ class MainForm(QtGui.QMainWindow):
 
     def initOC0(self):
         NewItemTrade = px.XAReal_OC0(DataType='list')
+        NewItemTrade_New = px.XAReal_OC0(DataType='dictionary')
         if self.ZMQOptionsTradeSender != None:
             NewItemTrade.Attach(self.ZMQOptionsTradeSender)
+            NewItemTrade_New.Attach(self.ZMQOptionsTradeSender_test)
             self.OptionTAQFeederDict['OC0'] = NewItemTrade
-
+            self.OptionTAQFeederDict['OC0_New'] = NewItemTrade_New
+            
+    def initOH0(self):
+        # NewItemQuote = px.XAReal_OH0(DataType='list')
+        NewItemQuote_New = px.XAReal_OH0(DataType='dictionary')
+        if self.ZMQOptionsQuoteSender_test != None:
+            # NewItemQuote.Attach(self.ZMQOptionsQuoteSender)
+            NewItemQuote_New.Attach(self.ZMQOptionsQuoteSender_test)
+            # self.OptionTAQFeederDict['OH0'] = NewItemQuote
+            self.OptionTAQFeederDict['OH0_New'] = NewItemQuote_New
+            
     def initEC0(self):
         NewItemTrade = px.XAReal_EC0(DataType='list')
         NewItemTrade_New = px.XAReal_EC0(DataType='dictionary')
@@ -205,6 +221,19 @@ class MainForm(QtGui.QMainWindow):
         NewItemTrade.Attach(self.ZMQFuturesTradeSender)
         NewItemTrade.AdviseRealData()
         self.FutureTAQFeederLst.append(NewItemTrade)
+        #==================================================
+        NewItemTrade_New = px.XAReal_FC0(DataType='dictionary')
+        NewItemTrade_New.Attach(self.ZMQFuturesTradeSender_test)
+        NewItemTrade_New.AdviseRealData()
+        self.FutureTAQFeederLst.append(NewItemTrade_New)
+        
+    def registerFeedItem_FH0(self,shcode):
+        #==================================================
+        NewItemQuote_New = px.XAReal_FC0(shcode,'dictionary')
+        NewItemQuote_New.Attach(self.ZMQFuturesQuoteSender_test)
+        NewItemQuote_New.AdviseRealData()
+        self.FutureTAQFeederLst.append(NewItemQuote_New)
+    
 
     def registerFeedItem_NC0(self,shcode):
         NewItemTrade = px.XAReal_NC0(shcode,'list')
@@ -220,6 +249,8 @@ class MainForm(QtGui.QMainWindow):
     def registerFeedItem_OC0(self,shcode):
         self.OptionTAQFeederDict['OC0'].SetFieldData('InBlock','optcode',shcode)
         self.OptionTAQFeederDict['OC0'].AdviseRealData()
+        self.OptionTAQFeederDict['OC0_New'].SetFieldData('InBlock','optcode',shcode)
+        self.OptionTAQFeederDict['OC0_New'].AdviseRealData()
 
 
     def registerFeedItem_EC0(self,shcode):
@@ -287,6 +318,10 @@ class MainForm(QtGui.QMainWindow):
         NewItemQuote_New.Attach(self.ZMQFuturesNightQuoteSender_test)
         NewItemQuote_New.AdviseRealData()
         self.FutureTAQFeederLst.append(NewItemQuote_New)
+        
+    def registerFeedItem_OH0(self,shcode):
+        self.OptionTAQFeederDict['OH0_New'].SetFieldData('InBlock','optcode',shcode)
+        self.OptionTAQFeederDict['OH0_New'].AdviseRealData()
 
     def registerFeedItem_EH0(self,shcode):
         self.OptionTAQFeederDict['EH0'].SetFieldData('InBlock','optcode',shcode)
@@ -329,7 +364,10 @@ class MainForm(QtGui.QMainWindow):
 
             if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                 self.initOC0()
-                for shcode in self._FeedCodeList.optionshcodelst: self.registerFeedItem_OC0(shcode)
+                self.initOH0()
+                for shcode in self._FeedCodeList.optionshcodelst: 
+                    self.registerFeedItem_OC0(shcode)
+                    self.registerFeedItem_OH0(shcode)
             else:
                 self.initEC0()
                 self.initEH0()
