@@ -31,11 +31,12 @@ class MainForm(QtGui.QMainWindow):
         sip.setdestroyonexit(False)
 
     def closeEvent(self, event):
+        self.mythread.stop()
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
         setting.setValue("geometry",self.saveGeometry())
 
     def initVar(self):
-        self.expireMonthCode = 'K3'
+        self.expireMonthCode = 'L9'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -46,7 +47,9 @@ class MainForm(QtGui.QMainWindow):
         self.myExecuteWidget.initZMQ()
 
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
-        self.restoreGeometry(setting.value("geometry").toByteArray())
+        if setting.value("geometry"): 
+            #self.restoreGeometry(setting.value("geometry"))
+			self.restoreGeometry(setting.value("geometry").toByteArray())
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
@@ -100,7 +103,7 @@ class MainForm(QtGui.QMainWindow):
         
     def initThread(self):
         self.mythread = OptionViewerThread(None)
-        self.mythread.receiveData[str].connect(self.onReceiveData)
+        self.mythread.receiveData[dict].connect(self.onReceiveData)
         
     def initData(self):
         shcode = '201J7267'                    
@@ -164,14 +167,22 @@ class MainForm(QtGui.QMainWindow):
             buysell = False
         elif col == self.synthbidaskcolindex[0]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[0]).text())
-            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
-            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
-            buysell = True
+            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) != None and \
+            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) != None:
+                callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
+                putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+                buysell = True
+            else:
+                return
         elif col == self.synthbidaskcolindex[1]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[1]).text())
-            callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
-            putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
-            buysell = False
+            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) != None and \
+            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) != None:
+                callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
+                putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+                buysell = False
+            else:
+                return
         else:
             return
             
@@ -193,127 +204,89 @@ class MainForm(QtGui.QMainWindow):
         pass
         
         
-    def onReceiveData(self,msg):     
+    def onReceiveData(self,msg_dict):     
         nowtime = datetime.now()
-        lst = msg.split(',')
-        if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                shcode = lst[4]
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[23])
-                askqty1 = lst[11]
-                bidqty1 = lst[28]
-            else:
-                shcode = lst[4]
-                ask1 = convert(lst[29])
-                bid1 = convert(lst[18])
-                askqty1 = lst[30]
-                bidqty1 = lst[19]
-
-            showmsg = '%s, %s, %s, %s' %(askqty1,ask1,bid1,bidqty1)
-            self.statusBar().showMessage(showmsg)
+        shortcd = msg_dict['ShortCD']
+        if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q':
+            shortcd = msg_dict['ShortCD']
+            askqty1 = msg_dict['AskQty1']
+            ask1 = msg_dict['Ask1']
+            bid1 = msg_dict['Bid1']
+            bidqty1 = msg_dict['BidQty1']
             
-        elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour <= 16:
-                shcode = lst[4]
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[23])
-                askqty1 = lst[11]
-                bidqty1 = lst[28]
-            else:
-                return
+            if shortcd[:3] == '101':            
+                showmsg = '%s, %s, %s, %s' %(askqty1,ask1,bid1,bidqty1)
+                self.statusBar().showMessage(showmsg)                
+            return
+            
+        if msg_dict['SecuritiesType'] != 'options': return
+        
+        
+        if msg_dict['TAQ'] == 'Q':
+            askqty1 = msg_dict['AskQty1']
+            ask1 = msg_dict['Ask1']
+            bid1 = msg_dict['Bid1']
+            bidqty1 = msg_dict['BidQty1']
+            
+            #if msg_dict['SecuritiesType'] != 'options': return
+            
+            if shortcd[3:5] != self.expireMonthCode: return
+            pos = self.strikelst.index(shortcd[5:8])
 
-            if shcode[3:5] != self.expireMonthCode: return
-            pos = self.strikelst.index(shcode[5:8])
-
-            if shcode[:3] == '201':
-                self.updateTableWidgetItem(pos,0,shcode)
+            if shortcd[:3] == '201':
+                self.updateTableWidgetItem(pos,0,shortcd)
                 self.updateTableWidgetItem(pos,3,askqty1)
                 self.updateTableWidgetItem(pos,4,ask1)
                 self.updateTableWidgetItem(pos,5,bid1)
                 self.updateTableWidgetItem(pos,6,bidqty1)
-            elif shcode[:3] == '301':
-                self.updateTableWidgetItem(pos,14,shcode)
+            elif shortcd[:3] == '301':
+                self.updateTableWidgetItem(pos,14,shortcd)
                 self.updateTableWidgetItem(pos,8,askqty1)
                 self.updateTableWidgetItem(pos,9,ask1)
                 self.updateTableWidgetItem(pos,10,bid1)
                 self.updateTableWidgetItem(pos,11,bidqty1)
 
-            if not (nowtime.hour == 15 and (nowtime.minute >= 5 or nowtime.minute <= 15)):
+            if not (nowtime.hour == 15 and (nowtime.minute >= 35 or nowtime.minute <= 45)):
                 self.makeSyntheticBid(pos)
                 self.makeSyntheticAsk(pos)
-                                
-                
-        elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
-            shcode = lst[4]
-            expectprice = convert(lst[6])
-            expectqty = 'E'
 
-            if shcode[3:5] != self.expireMonthCode: return
-            pos = self.strikelst.index(shcode[5:8])
+        elif msg_dict['TAQ'] == 'T':
+            lastprice = msg_dict['LastPrice']
+            lastqty = msg_dict['LastQty']
             
-            if shcode[:3] == '201':                
-                self.updateTableWidgetItem(pos,0,shcode)
-                self.updateTableWidgetItem(pos,2,expectprice)
-                self.updateTableWidgetItem(pos,1,expectqty)
-            elif shcode[:3] == '301':                
-                self.updateTableWidgetItem(pos,14,shcode)
-                self.updateTableWidgetItem(pos,12,expectprice) 
-                self.updateTableWidgetItem(pos,13,expectqty)
-            self.makeSyntheticExpect(pos)
-                
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                shcode = lst[31]
-                lastprice = convert(lst[8])
-                lastqty = lst[13]
-            else:
-                shcode = lst[len(lst)-1]
-                lastprice = convert(lst[9])
-                lastqty = lst[14]
-
-            if shcode[3:5] != self.expireMonthCode: return
-            pos = self.strikelst.index(shcode[5:8])
-
-            if shcode[:3] == '201':                
-                self.updateTableWidgetItem(pos,0,shcode)
+            if shortcd[3:5] != self.expireMonthCode: return
+            pos = self.strikelst.index(shortcd[5:8])
+            
+            if shortcd[:3] == '201':                
+                self.updateTableWidgetItem(pos,0,shortcd)
                 self.updateTableWidgetItem(pos,2,lastprice)
                 self.updateTableWidgetItem(pos,1,lastqty)
-            elif shcode[:3] == '301':                
-                self.updateTableWidgetItem(pos,14,shcode)
+            elif shortcd[:3] == '301':                
+                self.updateTableWidgetItem(pos,14,shortcd)
                 self.updateTableWidgetItem(pos,12,lastprice)
-                self.updateTableWidgetItem(pos,13,lastqty)
-
-        elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour <= 16:
-                return
-            else:
-                shcode = lst[len(lst)-1]
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[7])
-                askqty1 = lst[8]
-                bidqty1 = lst[9]
-
-            if shcode[3:5] != self.expireMonthCode: return
-            pos = self.strikelst.index(shcode[5:8])
-
-            if shcode[:3] == '201':
-                self.updateTableWidgetItem(pos,0,shcode)
-                self.updateTableWidgetItem(pos,3,askqty1)
-                self.updateTableWidgetItem(pos,4,ask1)
-                self.updateTableWidgetItem(pos,5,bid1)
-                self.updateTableWidgetItem(pos,6,bidqty1)
-            elif shcode[:3] == '301':
-                self.updateTableWidgetItem(pos,14,shcode)
-                self.updateTableWidgetItem(pos,8,askqty1)
-                self.updateTableWidgetItem(pos,9,ask1)
-                self.updateTableWidgetItem(pos,10,bid1)
-                self.updateTableWidgetItem(pos,11,bidqty1)
-
-            if not (nowtime.hour == 17 and (nowtime.minute >= 0 or nowtime.minute <= 59)):
-                self.makeSyntheticBid(pos)
-                self.makeSyntheticAsk(pos)
+                self.updateTableWidgetItem(pos,13,lastqty)                        
                 
+        elif msg_dict['TAQ'] == 'E' and msg_dict['SecuritiesType'] == 'options':
+            expectprice = msg_dict['LastPrice']
+#            expectqty = 'E'
+#
+#            if shortcd[3:5] != self.expireMonthCode: return
+#            pos = self.strikelst.index(shortcd[5:8])
+#            
+#            if shortcd[:3] == '201':                
+#                self.updateTableWidgetItem(pos,0,shortcd)
+#                self.updateTableWidgetItem(pos,2,expectprice)
+#                self.updateTableWidgetItem(pos,1,expectqty)
+#            elif shortcd[:3] == '301':                
+#                self.updateTableWidgetItem(pos,14,shortcd)
+#                self.updateTableWidgetItem(pos,12,expectprice) 
+#                self.updateTableWidgetItem(pos,13,expectqty)
+#            self.makeSyntheticExpect(pos)
+                
+
+#            if not (nowtime.hour == 17 and (nowtime.minute >= 0 or nowtime.minute <= 59)):
+#                self.makeSyntheticBid(pos)
+#                self.makeSyntheticAsk(pos)
         pass
     
     def makeSyntheticBid(self,pos):
