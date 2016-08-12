@@ -59,6 +59,20 @@ class XAReal_FH0(SourceReal):
             self.data['futcode'] = self.GetFieldData('OutBlock','futcode')
             self.data['danhochk'] = self.GetFieldData('OutBlock','danhochk')
             self.data['alloc_gubun'] = self.GetFieldData('OutBlock','alloc_gubun')
+            #==================================================================
+            for i in xrange(1,6):
+                self.data['Ask%d'%i] = self.GetFieldData('OutBlock','offerho%d'%i)
+                self.data['Bid%d'%i] = self.GetFieldData('OutBlock','bidho%d'%i)
+                self.data['AskQty%d'%i] = self.GetFieldData('OutBlock','offerrem%d'%i)
+                self.data['BidQty%d'%i] = self.GetFieldData('OutBlock','bidrem%d'%i)
+                self.data['AskCnt%d'%i] = self.GetFieldData('OutBlock','offercnt%d'%i)
+                self.data['BidCnt%d'%i] = self.GetFieldData('OutBlock','bidcnt%d'%i)
+                
+            self.data['TotalAskQty'] = self.GetFieldData('OutBlock','totofferrem')
+            self.data['TotalBidQty'] = self.GetFieldData('OutBlock','totbidrem')
+            self.data['TotalAskCnt'] = self.GetFieldData('OutBlock','totoffercnt')
+            self.data['TotalBidCnt'] = self.GetFieldData('OutBlock','totbidcnt')
+            self.data['ShortCD'] = self.GetFieldData('OutBlock','futcode')
             self.Notify()
         elif self.DataType == 'list':
             self.data = []

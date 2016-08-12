@@ -49,6 +49,13 @@ class XAReal_FC0(SourceReal):
             self.data['jgubun'] = self.GetFieldData('OutBlock','jgubun')
             self.data['jnilvolume'] = self.GetFieldData('OutBlock','jnilvolume')
             self.data['futcode'] = self.GetFieldData('OutBlock','futcode')
+            #===============================================================
+            self.data['LastPrice'] = self.GetFieldData('OutBlock', 'price')
+            self.data['LastQty'] = self.GetFieldData('OutBlock', 'cvolume')
+            self.data['BuySell'] = self.GetFieldData('OutBlock','cgubun')
+            self.data['Ask1'] = self.GetFieldData('OutBlock','offerho1')
+            self.data['Bid1'] = self.GetFieldData('OutBlock','bidho1')
+            self.data['ShortCD'] = self.GetFieldData('OutBlock','futcode') 
             self.Notify()
         elif self.DataType == 'list':
             self.data = []
