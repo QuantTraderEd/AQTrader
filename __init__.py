@@ -25,6 +25,8 @@ from xing_xareal_SC2 import XAReal_SC2
 from xing_xareal_SC3 import XAReal_SC3
 from xing_xareal_SC4 import XAReal_SC4
 from xing_xareal_YS3 import XAReal_YS3
+from xing_xareal_YFC import XAReal_YFC
+from xing_xareal_YOC import XAReal_YOC
 
 from xing_xareal_FC0 import XAReal_FC0
 from xing_xareal_FH0 import XAReal_FH0
