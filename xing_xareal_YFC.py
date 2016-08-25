@@ -21,7 +21,10 @@ class XAReal_YFC(SourceReal):
             self.data['jnilysign'] = self.GetFieldData('OutBlock','jnilysign')
             self.data['preychange'] = self.GetFieldData('OutBlock','preychange')
             self.data['jnilydrate'] = self.GetFieldData('OutBlock','jnilydrate')
-            self.data['optcode'] = self.GetFieldData('OutBlock','futcode')
+            self.data['futcode'] = self.GetFieldData('OutBlock','futcode')
+            #==================================================================
+            self.data['ShortCD'] = self.data['futcode']
+            self.data['ExpectPrice'] = self.data['yeprice']
             self.Notify()
         elif self.DataType == 'list':
             self.data = []

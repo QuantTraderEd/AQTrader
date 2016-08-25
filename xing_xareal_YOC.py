@@ -22,6 +22,9 @@ class XAReal_YOC(SourceReal):
             self.data['preychange'] = self.GetFieldData('OutBlock','preychange')
             self.data['jnilydrate'] = self.GetFieldData('OutBlock','jnilydrate')
             self.data['optcode'] = self.GetFieldData('OutBlock','optcode')
+            #==================================================================
+            self.data['ShortCD'] = self.data['optcode']
+            self.data['ExpectPrice'] = self.data['yeprice']
             self.Notify()
         elif self.DataType == 'list':
             self.data = []
