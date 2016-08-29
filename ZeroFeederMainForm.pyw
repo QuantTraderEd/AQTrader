@@ -156,6 +156,8 @@ class MainForm(QtGui.QMainWindow):
         self.ZMQOptionsExpectSender = ZMQTickSender(self.socket,'cybos','E','options')
         self.ZMQEquityTradeSender = ZMQTickSender(self.socket,'xing','T','equity')
         self.ZMQEquityQuoteSender = ZMQTickSender(self.socket,'cybos','Q','equity')
+        self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket_test,'xing','E','futures')
+        self.ZMQOptionsExpectSender_xing = ZMQTickSender_New(self.socket_test,'xing','E','options')
         self.ZMQEquityExpectSender = ZMQTickSender(self.socket,'xing','E','equity')
         self.ZMQIndexExpectSender = ZMQTickSender(self.socket,'cybos','E','index')
         self.ZMQETFNAVSender = ZMQTickSender(self.socket,'xing','N','equity')
@@ -163,6 +165,7 @@ class MainForm(QtGui.QMainWindow):
 
     def initTAQFeederLst(self):
         self.FutureTAQFeederLst = []
+        self.FutureTAQFeederDict = {}
         self.OptionTAQFeederLst = []
         self.OptionTAQFeederDict = {}
         self.EquityTAQFeederLst = []
@@ -211,10 +214,22 @@ class MainForm(QtGui.QMainWindow):
             self.OptionTAQFeederDict['EH0_New'] = NewItemQuote_New
 
     def initFOExpect(self):
-        NewItemOptionExpect = pc.FOExpectCur()
+        NewItemOptionExpect = pc.FOExpectCur()        
         if self.ZMQOptionsExpectSender != None:
             NewItemOptionExpect.Attach(self.ZMQOptionsExpectSender)
             self.OptionTAQFeederDict['OptionExpect'] = NewItemOptionExpect
+            
+    def initYFC(self):
+        NewItemFutureExpect_New = px.XAReal_YFC(DataType='dictionary')
+        if self.ZMQFuturesExpectSender_xing != None:
+            NewItemFutureExpect_New.Attach(self.ZMQFuturesExpectSender_xing)
+            self.FutureTAQFeederDict['YFC'] = NewItemFutureExpect_New
+            
+    def initYOC(self):
+        NewItemOptionExpect_New = px.XAReal_YOC(DataType='dictionary')
+        if self.ZMQOptionsExpectSender_xing != None:
+            NewItemOptionExpect_New.Attach(self.ZMQOptionsExpectSender_xing)
+            self.OptionTAQFeederDict['YOC'] = NewItemOptionExpect_New
 
     def registerFeedItem_FC0(self,shcode):
         NewItemTrade = px.XAReal_FC0(shcode,'list')
@@ -222,14 +237,14 @@ class MainForm(QtGui.QMainWindow):
         NewItemTrade.AdviseRealData()
         self.FutureTAQFeederLst.append(NewItemTrade)
         #==================================================
-        NewItemTrade_New = px.XAReal_FC0(DataType='dictionary')
+        NewItemTrade_New = px.XAReal_FC0(shcode, 'dictionary')
         NewItemTrade_New.Attach(self.ZMQFuturesTradeSender_test)
         NewItemTrade_New.AdviseRealData()
         self.FutureTAQFeederLst.append(NewItemTrade_New)
         
     def registerFeedItem_FH0(self,shcode):
         #==================================================
-        NewItemQuote_New = px.XAReal_FC0(shcode,'dictionary')
+        NewItemQuote_New = px.XAReal_FH0(shcode,'dictionary')
         NewItemQuote_New.Attach(self.ZMQFuturesQuoteSender_test)
         NewItemQuote_New.AdviseRealData()
         self.FutureTAQFeederLst.append(NewItemQuote_New)
@@ -258,6 +273,14 @@ class MainForm(QtGui.QMainWindow):
         self.OptionTAQFeederDict['EC0'].AdviseRealData()
         self.OptionTAQFeederDict['EC0_New'].SetFieldData('InBlock','optcode',shcode)
         self.OptionTAQFeederDict['EC0_New'].AdviseRealData()
+        
+    def registerFeedItem_YFC(self,shcode):
+        self.FutureTAQFeederDict['YFC'].SetFieldData('InBlock','futcode',shcode)
+        self.FutureTAQFeederDict['YFC'].AdviseRealData()
+        
+    def registerFeedItem_YOC(self,shcode):
+        self.OptionTAQFeederDict['YOC'].SetFieldData('InBlock','optcode',shcode)
+        self.OptionTAQFeederDict['YOC'].AdviseRealData()
 
     def registerFeedItem_S3_(self,shcode):
         NewItemTrade = px.XAReal_S3_(shcode,'list')
@@ -355,19 +378,25 @@ class MainForm(QtGui.QMainWindow):
 
         if self.XASession.IsConnected() and boolToggle:
             nowlocaltime = time.localtime()
-            for shcode in self._FeedCodeList.futureshcodelst:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+                self.initYFC()
+                for shcode in self._FeedCodeList.futureshcodelst:
                     self.registerFeedItem_FC0(shcode)
-                else:
+                    self.registerFeedItem_FH0(shcode)
+                    self.registerFeedItem_YFC(shcode)
+            else:
+                for shcode in self._FeedCodeList.futureshcodelst:
                     self.registerFeedItem_NC0(shcode)
                     self.registerFeedItem_NH0(shcode)
 
             if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                 self.initOC0()
                 self.initOH0()
+                self.initYOC()
                 for shcode in self._FeedCodeList.optionshcodelst: 
                     self.registerFeedItem_OC0(shcode)
                     self.registerFeedItem_OH0(shcode)
+                    self.registerFeedItem_YOC(shcode)
             else:
                 self.initEC0()
                 self.initEH0()
