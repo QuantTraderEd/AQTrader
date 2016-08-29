@@ -37,12 +37,12 @@ class ZMQTickSender_New:
         self.ZMQSocket = ZMQSocket
         self.FeedSource = FeedSource
         self.TAQ = TAQ
-        self.SecuritiesType = SecuritiesType
+        self.SecuritiesType = SecuritiesType        
         pass
     
-    def Update(self,subject):
+    def Update(self,subject):        
         if type(subject.data) != dict: return
-        shortcd = subject.data['shortcd']
+        shortcd = subject.data['ShortCD']
         now_dt = datetime.now()
         timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]        
         
@@ -52,7 +52,7 @@ class ZMQTickSender_New:
         msg_dict['FeedSource'] = self.FeedSource
         msg_dict['TAQ'] = self.TAQ
         msg_dict['SecuritiesType'] = self.SecuritiesType
-        msg_dict['Time'] = timestamp
+        msg_dict['TimeStamp'] = timestamp
         
         if self.TAQ == 'T' and self.SecuritiesType in ['futures', 'options']:
             msg_dict['LastPrice'] = subject.data['LastPrice']
@@ -65,24 +65,29 @@ class ZMQTickSender_New:
                 msg_dict['BuySell'] = ''
             msg_dict['Ask1'] = subject.data['Ask1']
             msg_dict['Bid1'] = subject.data['Bid1']
-        elif self.TAQ == 'Q' and self.SecuritiesType in ['futures', 'options']:
+            
+        elif self.TAQ == 'Q' and self.SecuritiesType in ['futures', 'options']:            
             msg_dict['Ask1'] = subject.data['Ask1']
             msg_dict['Bid1'] = subject.data['Bid1']
-            msg_dict['Askqty1'] = subject.data['Askqty1']
-            msg_dict['Bidqty1'] = subject.data['Bidqty1']
+            msg_dict['AskQty1'] = subject.data['AskQty1']
+            msg_dict['BidQty1'] = subject.data['BidQty1']
             msg_dict['Ask2'] = subject.data['Ask2']
             msg_dict['Bid2'] = subject.data['Bid2']
-            msg_dict['Askqty2'] = subject.data['Askqty2']
-            msg_dict['Bidqty2'] = subject.data['Bidqty2']
+            msg_dict['AskQty2'] = subject.data['AskQty2']
+            msg_dict['BidQty2'] = subject.data['BidQty2']
             msg_dict['Ask3'] = subject.data['Ask3']
             msg_dict['Bid3'] = subject.data['Bid3']
-            msg_dict['Askqty3'] = subject.data['Askqty3']
-            msg_dict['Bidqty3'] = subject.data['Bidqty3']
+            msg_dict['AskQty3'] = subject.data['AskQty3']
+            msg_dict['BidQty3'] = subject.data['BidQty3']
             
             msg_dict['TotalAskQty'] = subject.data['TotalAskQty']
             msg_dict['TotalBidQty'] = subject.data['TotalBidQty']
             msg_dict['TotalAskCnt'] = subject.data['TotalAskCnt']
             msg_dict['TotalBidCnt'] = subject.data['TotalBidCnt']
+        elif self.TAQ == 'E' and self.SecuritiesType in ['futures', 'options']:
+            msg_dict['ExpectPrice'] = subject.data['ExpectPrice']
+        else:
+            return
             
         
 #        for i in xrange(len(subject.data)):
