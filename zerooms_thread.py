@@ -128,7 +128,7 @@ class ExecuterThread(QtCore.QThread):
 
         context = zmq.Context()
         self.socket = context.socket(zmq.REP)
-        self.socket.bind("tcp://127.0.0.1:6000")
+        self.socket.bind("tcp://127.0.0.1:6004")
 
         nowtime = datetime.now()
         if nowtime.hour >= 6 and nowtime.hour < 16:
@@ -144,7 +144,8 @@ class ExecuterThread(QtCore.QThread):
         self.logger.info('Ready')
             
         while True:
-            msg = self.socket.recv()
+            if self.mt_stop: break
+            msg_dict = self.socket.recv_pyobj()
             if not self._XASession.IsConnected():
                 self.logger.info('fail: disconnect xsession')
                 self.socket.send('fail: disconnect xsession')
@@ -152,32 +153,42 @@ class ExecuterThread(QtCore.QThread):
             
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
-            strnowtime = strnowtime[:-3]                        
-            #print "Got ",strnowtime ,msg
-            self.logger.info('Got ' + msg)
-            lst = msg.split(',')
-            buysell = ''
-            shcode = lst[1]
-            price = lst[2]
-            qty = lst[3]
-            ordno = ''
-            if lst[0] == 'True':
-                buysell = '2'
-            elif lst[0] == 'False':
-                buysell = '1'
-            elif lst[0] == 'cancl':
-                buysell = 'c'
-                ordno = lst[4]  
-            logmsg = '%s, %s, %s, %s, %s'%(buysell,shcode,price,qty,ordno)
+            strnowtime = strnowtime[:-3]                                    
+            self.logger.info('receive order')
+            #lst = msg.split(',')
+            newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
+            buysell = msg_dict.get('BuySell', ' ')   # 'B' = Buy, 'S' = 'Sell'
+            shortcd = msg_dict('ShortCD', 'NotCD')
+            orderprice = msg_dict.get('OrderPrice', 0)
+            orderqty = msg_dict.get('OrderQty', 0)
+            ordertype = msg_dict['OrderType']   # 1 = Market, 2 = Limit
+            
+            org_ordno = msg_dict.get('OrgOrderNo', -1)
+            
+            logmsg = '%s, %s, %f, %d, %s'%(newamendcancel,
+                                           shortcd,                                           
+                                           orderprice,
+                                           orderqty,
+                                           buysell)
+                                           
             self.logger.info(logmsg)
             
-            if (buysell == '2' or buysell == '1') and shcode[0] == 'A':     
+            if newamendcancel == 'N' and buysell == 'B':
+                buysell = '2'
+            elif newamendcancel == 'N' and buysell == 'S':
+                buysell = '1'
+            elif newamendcancel == 'N':
+                self.logger.info('invalid newamendcancel, buysell')
+                continue
+               
+            
+            if  newamendcancel == 'N' and shortcd[0] == 'A':     
                 # equity new order                       
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[1])    
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[1])
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shcode)) #demo
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(qty))
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(price))
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shortcd)) #demo
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(orderqty))
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(orderprice))
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','BnsTpCode',0,buysell)
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdprcPtnCode',0,'00')        
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','MgntrnCode',0,'000')
@@ -190,17 +201,17 @@ class ExecuterThread(QtCore.QThread):
                     self.xaquery_CSPAT00600.observer.flag = True
                     szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
                     if szMsgCode != '00039' and szMsgCode != '00040':
-                        self.socket.send('errCode: ' + str(szMsgCode))
+                        self.socket.send(str(szMsgCode))
                     else:
-                        self.socket.send('msgCode: ' + str(szMsgCode))                
+                        self.socket.send(str(szMsgCode))
                     
-            elif buysell == 'c' and shcode[0] == 'A':
+            elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order                                   
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(ordno))    
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(org_ordno))
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[1])    
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[1])
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shcode)) #demo
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(qty))                                                
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shortcd)) #demo
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)    
                 self.logger.info(str(ret))
 #                if ret == None:
@@ -212,18 +223,18 @@ class ExecuterThread(QtCore.QThread):
 #                    if szMsgCode != '00039' and szMsgCode != '00040':
 #                        self.socket.send('fail: order')
 #                        continue
-                self.socket.send('done ' + msg)
+                self.socket.send(str(ret))
                 
-            elif (buysell == '2' or buysell == '1') and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
+            elif newamendcancel == 'N' and (shortcd[:3] == '101' or shortcd[:3] == '201' or shortcd[:3] == '301'):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[0])
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shcode))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shortcd))
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(price))
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(qty))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(orderprice))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(orderqty))
                     ret = self.xaquery_CFOAT00100.Request(False)
                     self.logger.info(str(ret))
                     if not ret:
@@ -233,24 +244,24 @@ class ExecuterThread(QtCore.QThread):
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
                         self.logger.info(szMsgCode)
                         if szMsgCode != '00039' and szMsgCode != '00040':
-                            self.socket.send('errCode: ' + str(szMsgCode))
+                            self.socket.send(str(szMsgCode))
                         else:
-                            self.socket.send('msgCode: ' + str(szMsgCode))
+                            self.socket.send(str(szMsgCode))
                 else:
-                    if shcode[:3] == '101':
+                    if shortcd[:3] == '101':
                         self.logger.info('not yet implement... 101')
                         self.socket.send('not yet implement...')
                         return
                     else:
-                        # Eurex Futures, Options new order
+                        # Eurex Options new order
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[0])
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,accountpwd[0])
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shcode))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shortcd))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','BnsTpCode',0,buysell)
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(price))
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(qty))
-                        self.xaquery_CEXAT11100.shortcd = shcode
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(orderprice))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(orderqty))
+                        self.xaquery_CEXAT11100.shortcd = shortcd
                         ret = self.xaquery_CEXAT11100.Request(False)
                         self.logger.info(str(ret))
                         if not ret:
@@ -261,40 +272,43 @@ class ExecuterThread(QtCore.QThread):
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsgCode)
                             if szMsgCode != '00039' and szMsgCode != '00040':
-                                self.socket.send('errCode: ' + str(szMsgCode))
+                                self.socket.send(str(szMsgCode))
                             else:
-                                self.socket.send('msgCode: ' + str(szMsgCode))
+                                self.socket.send(str(szMsgCode))
 
-            elif buysell == 'c' and (shcode[:3] == '101' or shcode[:3] == '201' or shcode[:3] == '301'):
+            elif newamendcancel == 'C' and (shortcd[:3] == '101' or shortcd[:3] == '201' or shortcd[:3] == '301'):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[0])
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shcode)
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(ordno))
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(qty))
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shortcd)
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(org_ordno))
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(orderqty))
                     ret = self.xaquery_CFOAT00300.Request(False)
                     self.socket.send('msgCode: ')
                     self.logger.info(str(ret))
                 else:
-                    if shcode[:3] == '101':
+                    if shortcd[:3] == '101':
                         self.socket.send('not yet implement...')
                         return
                     else:
                         # Eurex Futures, Options new order
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(ordno))
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(org_ordno))
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[0])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[0])
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shcode))
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shortcd))
                         ret = self.xaquery_CEXAT11300.Request(False)
-                        self.socket.send('msgCode: ')
+                        self.socket.send(str(ret))
                         self.logger.info(str(ret))
             else:
-                self.logger.info('fail: other case order')
-                self.socket.send('fail: other case order')
+                self.logger.info('not yet implement other case order')
+                self.socket.send('not yet implement other case order')
     
 
-            
+    def stop(self):
+        self.mt_stop = True
+        pass
+        
     def UpdateDB(self):
         #print "receive update "
         self.logger.info('receive update')
