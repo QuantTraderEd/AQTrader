@@ -151,6 +151,10 @@ class ExecuterThread(QtCore.QThread):
                 self.socket.send('fail: disconnect xsession')
                 continue
             
+            if type(msg_dict) != dict:
+                self.logger.info(str(msg_dict) + 'is not dict')
+                continue
+            
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                                    
@@ -158,10 +162,11 @@ class ExecuterThread(QtCore.QThread):
             #lst = msg.split(',')
             newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
             buysell = msg_dict.get('BuySell', ' ')   # 'B' = Buy, 'S' = 'Sell'
-            shortcd = msg_dict('ShortCD', 'NotCD')
+            shortcd = msg_dict.get('ShortCD', 'NotCD')
             orderprice = msg_dict.get('OrderPrice', 0)
             orderqty = msg_dict.get('OrderQty', 0)
             ordertype = msg_dict['OrderType']   # 1 = Market, 2 = Limit
+            timeinforce = msg_dict.get('TimeInForce','GFD')  # GFD, IOC, FOK
             
             org_ordno = msg_dict.get('OrgOrderNo', -1)
             
@@ -261,7 +266,7 @@ class ExecuterThread(QtCore.QThread):
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(orderprice))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(orderqty))
-                        self.xaquery_CEXAT11100.shortcd = shortcd
+                        self.xaquery_CEXAT11100.shortcd = str(shortcd)
                         ret = self.xaquery_CEXAT11100.Request(False)
                         self.logger.info(str(ret))
                         if not ret:
