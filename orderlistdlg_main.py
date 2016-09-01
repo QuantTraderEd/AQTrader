@@ -28,7 +28,7 @@ class OrderListDialog(QtGui.QDialog):
         
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
-        self.socket.connect("tcp://127.0.0.1:6000")
+        self.socket.connect("tcp://127.0.0.1:6004")
 
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
@@ -74,24 +74,29 @@ class OrderListDialog(QtGui.QDialog):
     def OnCellDoubleClicked(self,row,col):        
         type1 = self.ui.tableWidget.item(row,8).text()
         if col == 0 and (type1 == 'limit'):
-            ordno = self.ui.tableWidget.item(row,col).text()
+            orgordno = self.ui.tableWidget.item(row,col).text()
             
             conn_db = lite.connect(self.strdbname)
             cursor_db = conn_db.cursor()
             cursor_db.execute("""Select ShortCD,UnExecQty From OrderList 
-                                    WHERE OrdNo = ? and Type1 = ? """,(str(ordno),str(type1),))
+                                    WHERE OrdNo = ? and Type1 = ? """, (str(orgordno), str(type1),))
             rows = cursor_db.fetchall()
             cursor_db.close()
             
             if len(rows) == 1:
                 row = rows[0]
-                shcode = row[0]
-                price = ''
+                shortcd = row[0]
                 unexecqty = row[1]
                 
                 if unexecqty > 0:
-                    msg = str('cancl') + ',' + str(shcode) + ',' + str(price) + ',' + str(unexecqty) + ',' + str(ordno)
-                    self.socket.send(msg)
+                    # msg = str('cancl') + ',' + str(shcode) + ',' + str(price) + ',' + str(unexecqty) + ',' + str(ordno)
+                    # self.socket.send(msg)
+                    msg_dict = {}
+                    msg_dict['ShortCD'] =  shortcd                    
+                    msg_dict['OrderQty'] = unexecqty                    
+                    msg_dict['NewAmendCancel'] = 'C'                    
+                    msg_dict['OrgOrderNo'] = orgordno
+                    self.socket.send_pyobj(msg_dict)
                     msg_in = self.socket.recv()
                     print msg_in
             else:
