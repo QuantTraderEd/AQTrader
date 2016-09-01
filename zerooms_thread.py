@@ -230,7 +230,7 @@ class ExecuterThread(QtCore.QThread):
 #                        continue
                 self.socket.send(str(ret))
                 
-            elif newamendcancel == 'N' and (shortcd[:3] == '101' or shortcd[:3] == '201' or shortcd[:3] == '301'):
+            elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
@@ -253,7 +253,7 @@ class ExecuterThread(QtCore.QThread):
                         else:
                             self.socket.send(str(szMsgCode))
                 else:
-                    if shortcd[:3] == '101':
+                    if shortcd[:3] in ['101','105']:
                         self.logger.info('not yet implement... 101')
                         self.socket.send('not yet implement...')
                         return
@@ -281,7 +281,7 @@ class ExecuterThread(QtCore.QThread):
                             else:
                                 self.socket.send(str(szMsgCode))
 
-            elif newamendcancel == 'C' and (shortcd[:3] == '101' or shortcd[:3] == '201' or shortcd[:3] == '301'):
+            elif newamendcancel == 'C' and (shortcd[:3] in ['101','201','301','105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
@@ -293,7 +293,7 @@ class ExecuterThread(QtCore.QThread):
                     self.socket.send('msgCode: ')
                     self.logger.info(str(ret))
                 else:
-                    if shortcd[:3] == '101':
+                    if shortcd[:3] in ['101','105']:
                         self.socket.send('not yet implement...')
                         return
                     else:
