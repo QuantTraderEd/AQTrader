@@ -6,15 +6,18 @@ Created on Sat Jan 15 23:28:45 2014
 """
 
 import sqlite3 as lite
+import logging
 from PyQt4 import QtCore
 from datetime import datetime
 
 class QtViewerCEXAT11300(QtCore.QObject):
     receive = QtCore.pyqtSignal()
     def __init__(self):
-        super(QtViewerCEXAT11300,self).__init__()
+        super(QtViewerCEXAT11300, self).__init__()
         self.dbname = None
         self.flag = True
+        self.logger = logging.getLogger('ZeroOMS.Thread.QtViewerCEXAT11300')
+        self.logger.info('init QtViewerCEXAT11300')
 
     def Update(self, subject):
         print '-' * 20
@@ -35,10 +38,12 @@ class QtViewerCEXAT11300(QtCore.QObject):
             canclqty = subject.data['CancQty']
             type1 = None
             type2 = None
-            print subject.data
+            #print subject.data
 
+            szMsg = subject.data['szMessage']
             chkreq = subject.data['szMessageCode']
-            orderitem = (ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)
+            self.logger.info(szMsg + chkreq)
+            orderitem = (ordno, orgordno, strnowtime, buysell, shcode, canclqty, chkreq)
             #print orderitem
             if self.dbname != None and subject.data['szMessageCode'] == '00156':
                 conn_db = lite.connect(self.dbname)
