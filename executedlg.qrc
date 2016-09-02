@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="newPrefix">
-    <file>resource/Stock Index Down.png</file>
-    <file>resource/Stock Index Up.png</file>
-  </qresource>
-</RCC>

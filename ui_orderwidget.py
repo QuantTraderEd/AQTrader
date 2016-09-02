@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'executewidget.ui'
+# Form implementation generated from reading ui file 'orderwidget.ui'
 #
 # Created: Thu Jul 17 00:37:55 2014
 #      by: PyQt4 UI code generator 4.9.6

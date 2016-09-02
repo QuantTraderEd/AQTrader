@@ -6,7 +6,7 @@ Created on Wed Sep 04 19:40:36 2013
 """
 
 
-class FeedCodeList():
+class FeedCodeList:
     """
     feed code list from read file
     """
@@ -15,6 +15,7 @@ class FeedCodeList():
         self.optionshcodelst = []
         self.equityshcodelst = []
         self.indexshcodelst = []
+
     def ReadCodeListFile(self):
         try:
             feedcodelistfilep = open('feedcodelist.txt','r')

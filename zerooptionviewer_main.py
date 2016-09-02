@@ -1,27 +1,43 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 10 22:58:29 2014
 
-@author: assa
-"""
-
-import sip
 import sys
+import logging
 from datetime import datetime
+import sip
 from PyQt4 import QtGui, QtCore
 from zerooptionviewer_thread import OptionViewerThread
-from zerooptionviewer_executewidget import OptionViewerExecuteWidget
+from zerooptionviewer_orderwidget import OptionViewerOrderWidget
 from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
 
-def convert(strprice):
-    return '%.2f' %round(float(strprice),2)
+logger = logging.getLogger('ZeroOptionViewer')
+logger.setLevel(logging.DEBUG)
 
+# create file handler which logs even debug messages
+fh = logging.FileHandler('ZeroOptionViewer.log')
+# fh = logging.Handlers.RotatingFileHandler('ZeroOptionViewer.log',maxBytes=104857,backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+
+def convert(strprice):
+    return '%.2f' % round(float(strprice), 2)
 
 
 class MainForm(QtGui.QMainWindow):
-    def __init__(self,parent=None):
-        QtGui.QMainWindow.__init__(self,parent)
+    def __init__(self, parent=None):
+        QtGui.QMainWindow.__init__(self, parent)
         self.initVar()
         self.initUI()
         self.initFeedCode()
@@ -33,23 +49,24 @@ class MainForm(QtGui.QMainWindow):
     def closeEvent(self, event):
         self.mythread.stop()
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
-        setting.setValue("geometry",self.saveGeometry())
+        setting.setValue("geometry", self.saveGeometry())
 
     def initVar(self):
-        self.expireMonthCode = 'L9'
+        self.expireMonthCode = 'LA'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.actionStart.triggered.connect(self.onStart)
-        self.resize(800,200)
-        self.myExecuteWidget = OptionViewerExecuteWidget(self)
-        self.myExecuteWidget.initZMQ()
+        self.resize(800, 200)
+        self.myOrderWidget = OptionViewerOrderWidget(self)
+        self.myOrderWidget.initZMQ()
 
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
-        if setting.value("geometry"): 
-            #self.restoreGeometry(setting.value("geometry"))
-			self.restoreGeometry(setting.value("geometry").toByteArray())
+        if setting.value("geometry"):
+            self.restoreGeometry(setting.value("geometry").toByteArray())
+            # self.restoreGeometry(setting.value("geometry"))
+        pass
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
@@ -194,13 +211,13 @@ class MainForm(QtGui.QMainWindow):
         widget.setGeometry(rect)
         
         if col in self.bidaskcolindex:                        
-            self.myExecuteWidget.initMove(widget)
-            self.myExecuteWidget.initOrder(buysell,shcode,price,1)
-            self.myExecuteWidget.show()
+            self.myOrderWidget.initMove(widget)
+            self.myOrderWidget.initOrder(buysell,shcode,price,1)
+            self.myOrderWidget.show()
         elif col in self.synthbidaskcolindex:            
-            self.myExecuteWidget.initMove(widget)
-            self.myExecuteWidget.initSynthOrder(buysell,price,callShCode,callPrice,putShCode,putPrice,1)
-            self.myExecuteWidget.show()
+            self.myOrderWidget.initMove(widget)
+            self.myOrderWidget.initSynthOrder(buysell,price,callShCode,callPrice,putShCode,putPrice,1)
+            self.myOrderWidget.show()
         pass
         
         
@@ -267,20 +284,21 @@ class MainForm(QtGui.QMainWindow):
                 self.updateTableWidgetItem(pos,13,lastqty)                        
                 
         elif msg_dict['TAQ'] == 'E' and msg_dict['SecuritiesType'] == 'options':
-            expectprice = msg_dict['LastPrice']
-#            expectqty = 'E'
-#
-#            if shortcd[3:5] != self.expireMonthCode: return
-#            pos = self.strikelst.index(shortcd[5:8])
-#            
-#            if shortcd[:3] == '201':                
-#                self.updateTableWidgetItem(pos,0,shortcd)
-#                self.updateTableWidgetItem(pos,2,expectprice)
-#                self.updateTableWidgetItem(pos,1,expectqty)
-#            elif shortcd[:3] == '301':                
-#                self.updateTableWidgetItem(pos,14,shortcd)
-#                self.updateTableWidgetItem(pos,12,expectprice) 
-#                self.updateTableWidgetItem(pos,13,expectqty)
+            shortcd = msg_dict['ShortCD']
+            expectprice = msg_dict['ExpectPrice']
+            expectqty = 'E'
+
+            if shortcd[3:5] != self.expireMonthCode: return
+            pos = self.strikelst.index(shortcd[5:8])
+            
+            if shortcd[:3] == '201':                
+                self.updateTableWidgetItem(pos,0,shortcd)
+                self.updateTableWidgetItem(pos,2,expectprice)
+                self.updateTableWidgetItem(pos,1,expectqty)
+            elif shortcd[:3] == '301':                
+                self.updateTableWidgetItem(pos,14,shortcd)
+                self.updateTableWidgetItem(pos,12,expectprice) 
+                self.updateTableWidgetItem(pos,13,expectqty)
 #            self.makeSyntheticExpect(pos)
                 
 
