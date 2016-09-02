@@ -8,7 +8,7 @@ def cybos_convertor(strprice, floating):
     return (strValue)
     
 class OptionViewerThread(QtCore.QThread):
-    receiveData = QtCore.pyqtSignal(str)
+    receiveData = QtCore.pyqtSignal(dict)
 
     def __init__(self,parent=None):
         QtCore.QThread.__init__(self,parent)
@@ -16,22 +16,24 @@ class OptionViewerThread(QtCore.QThread):
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
-        self.mt_pauseCondition = QtCore.QWaitCondition()        
+        self.mt_pauseCondition = QtCore.QWaitCondition()
+        self.port = 5500
 
     def run(self):
         context = zmq.Context()
         self.socket = context.socket(zmq.SUB)
-        self.socket.connect("tcp://127.0.0.1:5500")
+        self.socket.connect("tcp://127.0.0.1:%d"%(self.port))
         self.socket.setsockopt(zmq.SUBSCRIBE,"")  
         
         while True:
-            msg = self.socket.recv()
-            self.receiveData.emit(msg)
-            self.onReceiveData(msg)
-
             self.mutex.lock()
             if self.mt_stop: break
             self.mutex.unlock()
+
+            msg_dict = self.socket.recv_pyobj()
+            self.receiveData.emit(msg_dict)
+            self.onReceiveData(msg_dict)
+
         pass
 
     def onReceiveData(self,msg):

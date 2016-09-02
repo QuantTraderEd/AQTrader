@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 30 23:30:23 2015
 
-@author: assa
-"""
-
-import sip
-import redis
+import logging
 import datetime as dt
 import zmq
+import redis
+import sip
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 from ui_AutoOTMTrader import Ui_MainWindow
@@ -19,15 +15,35 @@ import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
 from sqlalchemy_pos_update import updateNewPositionEntity
 
+logger = logging.getLogger('AutoOTMTrader')
+logger.setLevel(logging.DEBUG)
+
+# create file handler which logs even debug messages
+fh = logging.FileHandler('AutoOTMTrader.log')
+#fh = logging.Handlers.RotatingFileHandler('AutoOTMTrader.log',maxBytes=104857,backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+
 def convert(strprice):
     return '%.2f' %round(float(strprice), 2)
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
-        super(MainForm,self).__init__()
+        super(MainForm, self).__init__()
         self.initUI()
         self.initPositionDB()
-        self.test()
         self.initZMQ()
         self.initThread()
         sip.setdestroyonexit(False)
@@ -48,8 +64,8 @@ class MainForm(QtGui.QMainWindow):
     def initZMQ(self):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
-        self.socket.setsockopt(zmq.RCVTIMEO,2000)
-        self.socket.connect("tcp://127.0.0.1:6000")
+        self.socket.setsockopt(zmq.RCVTIMEO, 2000)
+        self.socket.connect("tcp://127.0.0.1:6004")
         pass
     
     def initThread(self):
@@ -58,16 +74,13 @@ class MainForm(QtGui.QMainWindow):
         # self._thread = ReceiverThread(None)
         self._thread = OptionViewerThread()
         self._executionthread = ExecutionThread()
-        # self._thread.port = 5510
-        self._thread.port = 5500
-        # self._thread.receiveData[dict].connect(self.onReceiveData)
-        self._thread.receiveData[str].connect(self.onReceiveData_Old)
+        self._thread.port = 5501
+        self._thread.receiveData[dict].connect(self.onReceiveData)
+        # self._thread.receiveData[str].connect(self.onReceiveData_Old)
         self._executionthread.receiveData[dict].connect(self.onReceiveExecution)
 
     def initPositionDB(self):
-        self._session = position_db_init.initSession('autotrader_position.db')
 
-    def test(self):
         self.position_dict = {}
         self.avgexecprice_dict = {}
 
@@ -79,15 +92,23 @@ class MainForm(QtGui.QMainWindow):
         self.orderseq = list()
 
         self.redis_client = redis.Redis()
-
+        self._session = position_db_init.initSession('autotrader_position.db')
         self.updatePostionTable()
 
         for i in xrange(len(self.shortcd_lst)):
             shortcd = self.shortcd_lst[i]
             ask1 = self.redis_client.hget('ask1_dict', shortcd)
             bid1 = self.redis_client.hget('bid1_dict', shortcd)
-            self.ask1_dict[shortcd] = float(ask1)
-            self.bid1_dict[shortcd] = float(bid1)
+            if ask1 is not None:
+                self.ask1_dict[shortcd] = float(ask1)
+            else:
+                self.ask1_dict[shortcd] = 0
+                ask1 = 0
+            if bid1 is not None:
+                self.bid1_dict[shortcd] = float(bid1)
+            else:
+                self.bid1_dict[shortcd] = 0
+                bid1 = 0
             midprice = (float(bid1) + float(ask1)) * 0.5
             pos = self.shortcd_lst.index(shortcd)
             buysell = self.buysell_lst[pos]
@@ -123,18 +144,28 @@ class MainForm(QtGui.QMainWindow):
         print self.shortcd_lst
 
     def sendOrder(self, shortcd, orderprice, orderqty, buysell):
-        if shortcd[:3] == '201' or shortcd[:3] == '301':
-            msg = str(buysell) + ',' + str(shortcd) + ',' + str(orderprice) + ',' + str(orderqty)
-            self.socket.send(msg)
+        if shortcd[:3] in ['201', '301']:
+            msg_dict = {}
+            msg_dict['ShortCD'] = shortcd
+            msg_dict['OrderPrice'] = orderprice
+            msg_dict['OrderQty'] = orderqty
+            msg_dict['BuySell'] = buysell
+            msg_dict['NewAmendCancel'] = 'N'
+            msg_dict['OrderType'] = 2  # market = 1 limit = 2
+            msg_dict['TimeInForce'] = 'GFD'
+            logger.info('Send Order->'+str(msg_dict))
+            self.socket.send_pyobj(msg_dict)
             msg_in = self.socket.recv()
+            logger.info('Recv Msg->'+msg_in)
             
     def onClick(self):
-        isThreadRun = self._thread.isRunning() and self._executionthread.isRunning()
+        isThreadRun = self._thread.isRunning()
         if not isThreadRun:
             self._thread.start()
             self.ui.pushButton_Start.setText('Stop')
         elif isThreadRun:
-            self._thread.terminate()
+            self._thread.stop()
+            # self._thread.terminate()
             self.ui.pushButton_Start.setText('Start')
         pass
     
@@ -148,136 +179,56 @@ class MainForm(QtGui.QMainWindow):
             widgetItem.setText(text)
         pass
     
-    def onReceiveData(self, row_dict):
-        if row_dict['TAQ'] == 'Q' and row_dict['SecuritiesType'] == 'options':
-            shortcd = row_dict['ShortCD']
-            ask1 = row_dict['Ask1']
-            bid1 = row_dict['Bid1']
-            askqty1 = row_dict['AskQty1']
-            bidqty1 = row_dict['BidQty1']
-            
-            print row_dict['Time']
-            
+    def onReceiveData(self, msg_dict):
+        if msg_dict['TAQ'] == 'Q' and msg_dict['SecuritiesType'] == 'options':
+            nowtime = dt.datetime.now()
+            shortcd = msg_dict['ShortCD']
+
+            int_nowtime = nowtime.hour * 100 + nowtime.minute
+            if len(self.orderseq) > 0 and ((800 <= int_nowtime < 1500) or (int_nowtime >= 1750 or int_nowtime < 400)):
+                if self.orderseq[0]['buysell'] == 'buy':
+                    buysell = 'B'
+                elif self.orderseq[0]['buysell'] == 'sell':
+                    buysell = 'S'
+
+                self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
+                               self.orderseq[0]['orderqty'], buysell)
+                pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
+                liveqty = str(self.orderseq[0]['orderqty'])
+                if buysell == 'sell': liveqty = '-' + liveqty
+                self.updateTableWidgetItem(pos, 6, liveqty)
+                self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
+                del self.orderseq[0]
+
             if not (shortcd in self.shortcd_lst): return
             pos = self.shortcd_lst.index(shortcd)
-            
+
+            ask1 = float(msg_dict['Ask1'])
+            bid1 = float(msg_dict['Bid1'])
+            askqty1 = int(msg_dict['AskQty1'])
+            bidqty1 = int(msg_dict['BidQty1'])
+
+            print nowtime, str(shortcd), askqty1, ask1, bid1, bidqty1
             holdqty = long(self.holdqty_lst[pos])
-            midprice = (float(bid1) + float(ask1)) * 0.5
+            midprice = (bid1 + ask1) * 0.5
             midprice_old = (self.bid1_dict[shortcd] + self.ask1_dict[shortcd]) * 0.5
-            pnl = (midprice - self.avgexecprice_lst[pos]) * holdqty
             buysell = self.buysell_lst[pos]
+            pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
             pnl_diff = (midprice - midprice_old) * holdqty
             if buysell == 'sell':
                 pnl *= -1.0
-                pnl_diff *= 1.0
-            print shortcd, midprice, midprice_old, pnl, pnl_diff
-            print self.total_pnl
+                pnl_diff *= -1.0
             self.total_pnl += pnl_diff
-            print self.total_pnl
 
             self.updateTableWidgetItem(pos, 2, str(pnl))
-            self.updateTableWidgetItem(pos, 4, ask1)
-            self.updateTableWidgetItem(pos, 5, bid1)
+            self.updateTableWidgetItem(pos, 4, str(ask1))
+            self.updateTableWidgetItem(pos, 5, str(bid1))
             
-            self.updateTableWidgetItem(len(self.shortcd_lst), 3, str(self.total_pnl))
+            self.updateTableWidgetItem(len(self.shortcd_lst), 2, str(self.total_pnl))
+
+            self.ask1_dict[shortcd] = ask1
+            self.bid1_dict[shortcd] = bid1
             
-            self.ask1_dict[shortcd] = float(ask1)
-            self.bid1_dict[shortcd] = float(bid1)
-            
-        pass
-    
-    def onReceiveData_Old(self, msg):
-        nowtime = dt.datetime.now()
-        lst = msg.split(',')
-        shortcd = ''
-        ask1 = 0
-        bid1 = 0
-        if lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'futures':
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                shortcd = lst[4]
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[23])
-                askqty1 = lst[11]
-                bidqty1 = lst[28]
-            else:
-                shortcd = lst[4]
-                ask1 = convert(lst[29])
-                bid1 = convert(lst[18])
-                askqty1 = lst[30]
-                bidqty1 = lst[19]
-            
-        elif lst[1] == 'cybos' and lst[2] == 'Q' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour <= 16:
-                shortcd = str(lst[4])
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[23])
-                askqty1 = lst[11]
-                bidqty1 = lst[28]
-
-            else:
-                return
-
-        elif lst[1] == 'cybos' and lst[2] == 'E' and lst[3] == 'options':
-            shortcd = lst[4]
-            expectprice = convert(lst[6])
-            expectqty = 'E'            
-                
-        elif lst[1] == 'xing' and lst[2] == 'T' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour < 17:
-                shortcd = lst[31]
-                lastprice = convert(lst[8])
-                lastqty = lst[13]
-            else:
-                shortcd = lst[len(lst)-1]
-                lastprice = convert(lst[9])
-                lastqty = lst[14]            
-
-        elif lst[1] == 'xing' and lst[2] == 'Q' and lst[3] == 'options':
-            if nowtime.hour >= 7 and nowtime.hour <= 16:
-                shortcd = str(lst[len(lst)-3])
-
-            else:
-                shortcd = str(lst[len(lst)-1])
-                ask1 = convert(lst[6])
-                bid1 = convert(lst[7])
-                askqty1 = lst[8]
-                bidqty1 = lst[9]
-
-        int_nowtime = nowtime.hour * 100 + nowtime.minute
-
-        if len(self.orderseq) > 0 and ((800 <= int_nowtime < 1500) or (int_nowtime >= 1750 or int_nowtime < 400)):
-            if self.orderseq[0]['buysell'] == 'buy':
-                buysell = 'True'
-            elif self.orderseq[0]['buysell'] == 'sell':
-                buysell = 'False'
-
-            self.sendOrder(self.orderseq[0]['shortcd'], self.orderseq[0]['orderprice'],
-                           self.orderseq[0]['orderqty'], buysell)
-            pos = self.shortcd_lst.index(self.orderseq[0]['shortcd'])
-            liveqty = str(self.orderseq[0]['orderqty'])
-            if buysell == 'sell': liveqty = '-' + liveqty
-            self.updateTableWidgetItem(pos, 6, liveqty)
-            self.updateTableWidgetItem(pos, 7, str(self.orderseq[0]['orderprice']))
-            del self.orderseq[0]
-
-        if not (shortcd in self.shortcd_lst):
-            return
-        elif float(ask1) <= 0 and float(bid1) <= 0:
-            return
-
-        pos = self.shortcd_lst.index(shortcd)
-        print nowtime, shortcd, askqty1, ask1, bid1, bidqty1
-        holdqty = long(self.holdqty_lst[pos])
-        midprice = (float(bid1) + float(ask1)) * 0.5
-        buysell = self.buysell_lst[pos]
-        pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
-        if buysell == 'sell':
-            pnl *= -1.0
-
-        self.updateTableWidgetItem(pos, 2, str(pnl))
-        self.updateTableWidgetItem(pos, 4, ask1)
-        self.updateTableWidgetItem(pos, 5, bid1)
-                
         pass
 
     def onReceiveExecution(self, data_dict):
