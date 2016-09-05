@@ -34,7 +34,7 @@ logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('ZeroFeeder.log')
-#fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+# fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -48,13 +48,14 @@ ch.setFormatter(formatter)
 
 # add the handler to logger
 logger.addHandler(fh)
-#logger.addHandler(ch)
+# logger.addHandler(ch)
 
 class ConsoleObserver:
     def Update(self,subject):
         for i in xrange(len(subject.data)):
             print subject.data[i],
         print
+
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
@@ -135,7 +136,7 @@ class MainForm(QtGui.QMainWindow):
         self.socket = context.socket(zmq.PUB)
         self.socket.bind("tcp://127.0.0.1:5500")
         self.socket_test = context.socket(zmq.PUB)
-        self.socket_test.bind("tcp://127.0.0.1:5501")
+        self.socket_test.bind("tcp://127.0.0.1:5503")
 
     def initZMQSender(self):
         self.ZMQFuturesTradeSender = ZMQTickSender(self.socket,'xing','T','futures')

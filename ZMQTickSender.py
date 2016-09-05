@@ -1,43 +1,42 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 12 07:52:42 2013
-
-@author: Administrator
-"""
-
 
 from datetime import datetime
 
+
 class ZMQTickSender:
     count = 0
-    def __init__(self,ZMQSocket=None,FeedSource=None,FeedType=None,SecuritiesType=None):
+
+    def __init__(self, ZMQSocket=None, feedsource=None, feedtype=None, securitiestype=None):
         self.ZMQSocket = ZMQSocket
-        self.FeedSource = FeedSource
-        self.FeedType = FeedType
-        self.SecuritiesType = SecuritiesType
+        self.feedsource = feedsource
+        self.feedtype = feedtype
+        self.securitiestype = securitiestype
         pass
+
     def Update(self,subject):
         dt = datetime.now()
         timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]        
         msg = ''
-        msg = msg + self.FeedSource 
-        msg = msg + ',' + self.FeedType
-        msg = msg + ',' + self.SecuritiesType
+        msg = msg + self.feedsource
+        msg = msg + ',' + self.feedtype
+        msg = msg + ',' + self.securitiestype
         for i in xrange(len(subject.data)):
             msg = msg + ',' +  str(subject.data[i])
         msg = timestamp + ',' + msg        
         self.ZMQSocket.send(msg)
-        if self.SecuritiesType in ['futures', 'options']:
+        if self.securitiestype in ['futures', 'options']:
             ZMQTickSender.count += 1
         pass
-    
+
+
 class ZMQTickSender_New:
     count = 0
-    def __init__(self,ZMQSocket=None,FeedSource=None,TAQ=None,SecuritiesType=None):
-        self.ZMQSocket = ZMQSocket
-        self.FeedSource = FeedSource
-        self.TAQ = TAQ
-        self.SecuritiesType = SecuritiesType        
+
+    def __init__(self, zmq_socket=None, feedsource=None, taq=None, securitiestype=None):
+        self.zmq_socket = zmq_socket
+        self.feedsource = feedsource
+        self.taq = taq
+        self.securitiestype = securitiestype
         pass
     
     def Update(self,subject):        
@@ -49,12 +48,12 @@ class ZMQTickSender_New:
         msg_dict = {}
         
         msg_dict['ShortCD'] = shortcd
-        msg_dict['FeedSource'] = self.FeedSource
-        msg_dict['TAQ'] = self.TAQ
-        msg_dict['SecuritiesType'] = self.SecuritiesType
+        msg_dict['FeedSource'] = self.feedsource
+        msg_dict['TAQ'] = self.taq
+        msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = timestamp
         
-        if self.TAQ == 'T' and self.SecuritiesType in ['futures', 'options']:
+        if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
             msg_dict['LastPrice'] = subject.data['LastPrice']
             msg_dict['LastQty'] = subject.data['LastQty']
             if subject.data['BuySell'] == '+':
@@ -66,7 +65,7 @@ class ZMQTickSender_New:
             msg_dict['Ask1'] = subject.data['Ask1']
             msg_dict['Bid1'] = subject.data['Bid1']
             
-        elif self.TAQ == 'Q' and self.SecuritiesType in ['futures', 'options']:            
+        elif self.taq == 'Q' and self.securitiestype in ['futures', 'options']:
             msg_dict['Ask1'] = subject.data['Ask1']
             msg_dict['Bid1'] = subject.data['Bid1']
             msg_dict['AskQty1'] = subject.data['AskQty1']
@@ -79,23 +78,26 @@ class ZMQTickSender_New:
             msg_dict['Bid3'] = subject.data['Bid3']
             msg_dict['AskQty3'] = subject.data['AskQty3']
             msg_dict['BidQty3'] = subject.data['BidQty3']
-            
+            if 'Ask4' in subject.data and 'Bid4' in subject.data:
+                msg_dict['Ask4'] = subject.data['Ask4']
+                msg_dict['Bid4'] = subject.data['Bid4']
+                msg_dict['AskQty4'] = subject.data['AskQty4']
+                msg_dict['BidQty4'] = subject.data['BidQty4']
+                msg_dict['Ask5'] = subject.data['Ask5']
+                msg_dict['Bid5'] = subject.data['Bid5']
+                msg_dict['AskQty5'] = subject.data['AskQty5']
+                msg_dict['BidQty5'] = subject.data['BidQty5']
+
             msg_dict['TotalAskQty'] = subject.data['TotalAskQty']
             msg_dict['TotalBidQty'] = subject.data['TotalBidQty']
             msg_dict['TotalAskCnt'] = subject.data['TotalAskCnt']
             msg_dict['TotalBidCnt'] = subject.data['TotalBidCnt']
-        elif self.TAQ == 'E' and self.SecuritiesType in ['futures', 'options']:
+        elif self.taq == 'E' and self.securitiestype in ['futures', 'options']:
             msg_dict['ExpectPrice'] = subject.data['ExpectPrice']
         else:
             return
-            
-        
-#        for i in xrange(len(subject.data)):
-#            msg = msg + ',' +  str(subject.data[i])
-            
-        
-        #self.ZMQSocket.send(msg)
-        self.ZMQSocket.send_pyobj(msg_dict)
-        if self.SecuritiesType in ['futures', 'options']:
+
+        self.zmq_socket.send_pyobj(msg_dict)
+        if self.securitiestype in ['futures', 'options']:
             ZMQTickSender.count += 1
         pass
