@@ -51,5 +51,5 @@ class SubscribeThread(QtCore.QThread):
         self.mt_stop = True
         pass
 
-    def onReceiveData(self,row):
+    def onReceiveData(self, row):
         pass

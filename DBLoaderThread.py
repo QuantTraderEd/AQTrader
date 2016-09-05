@@ -15,7 +15,6 @@ import zeroequityviewer_parser as eq_parser
 from PyQt4 import QtCore
 from SubscribeReceiverThread import SubscribeThread
 
-
 class DBLoaderThread(SubscribeThread):
     MsgNotify = QtCore.pyqtSignal(str)
 
@@ -264,9 +263,9 @@ class DBLoaderThread(SubscribeThread):
             sqltext = """INSERT INTO EquityTickData(Id,ShortCD,FeedSource,TAQ,SecuritiesType,Time,LastPrice,LastQty,BuySell,Bid1,Ask1)
                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?, ?)"""
         else:
-            print taqitem
-            print 'no chk type and no parser type'
-            return
+            #print taqitem
+            #print 'no chk type and no parser type'
+            pass
 
         if chk != '' and taqitem:
             try:

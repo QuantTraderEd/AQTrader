@@ -158,6 +158,7 @@ def msgParser(msg, returntype=dict, count=-1):
                    None, None, None, None,
                    None, None, None, None,
                    None, None]
+        print taqlist
     elif lst[1] == 'xing' and lst[2] == 'N' and lst[3] == 'equity':
         return None
     else:
