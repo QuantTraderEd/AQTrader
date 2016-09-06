@@ -56,9 +56,9 @@ class ZMQTickSender_New:
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
             msg_dict['LastPrice'] = subject.data['LastPrice']
             msg_dict['LastQty'] = subject.data['LastQty']
-            if subject.data['BuySell'] == '+':
+            if subject.data['BuySell'] == '+':      # xing api
                 msg_dict['BuySell'] = 'B'
-            elif subject.data['BuySell'] == '-':
+            elif subject.data['BuySell'] == '-':    # xing api
                 msg_dict['BuySell'] = 'S'
             else:
                 msg_dict['BuySell'] = ''
@@ -87,6 +87,17 @@ class ZMQTickSender_New:
                 msg_dict['Bid5'] = subject.data['Bid5']
                 msg_dict['AskQty5'] = subject.data['AskQty5']
                 msg_dict['BidQty5'] = subject.data['BidQty5']
+            if 'AskCnt4' in subject.data and 'BidCnt4' in subject.data:
+                msg_dict['AskCnt1'] = subject.data['AskCnt1']
+                msg_dict['BidCnt1'] = subject.data['BidCnt1']
+                msg_dict['AskCnt2'] = subject.data['AskCnt2']
+                msg_dict['BidCnt2'] = subject.data['BidCnt2']
+                msg_dict['AskCnt3'] = subject.data['AskCnt3']
+                msg_dict['BidCnt3'] = subject.data['BidCnt3']
+                msg_dict['AskCnt4'] = subject.data['AskCnt4']
+                msg_dict['BidCnt4'] = subject.data['BidCnt4']
+                msg_dict['AskCnt5'] = subject.data['AskCnt5']
+                msg_dict['BidCnt5'] = subject.data['BidCnt5']
 
             msg_dict['TotalAskQty'] = subject.data['TotalAskQty']
             msg_dict['TotalBidQty'] = subject.data['TotalBidQty']
