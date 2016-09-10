@@ -43,68 +43,54 @@ class ZMQTickSender_New:
         if type(subject.data) != dict: return
         shortcd = subject.data['ShortCD']
         now_dt = datetime.now()
-        timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]        
+        # timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
         
         msg_dict = {}
         
-        msg_dict['ShortCD'] = shortcd
+        msg_dict['ShortCD'] = str(shortcd)
         msg_dict['FeedSource'] = self.feedsource
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
-        msg_dict['TimeStamp'] = timestamp
+        msg_dict['TimeStamp'] = now_dt
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
-            msg_dict['LastPrice'] = subject.data['LastPrice']
-            msg_dict['LastQty'] = subject.data['LastQty']
+            msg_dict['LastPrice'] = float(subject.data['LastPrice'])
+            msg_dict['LastQty'] = int(subject.data['LastQty'])
             if subject.data['BuySell'] == '+':      # xing api
                 msg_dict['BuySell'] = 'B'
             elif subject.data['BuySell'] == '-':    # xing api
                 msg_dict['BuySell'] = 'S'
             else:
                 msg_dict['BuySell'] = ''
-            msg_dict['Ask1'] = subject.data['Ask1']
-            msg_dict['Bid1'] = subject.data['Bid1']
+            msg_dict['Ask1'] = float(subject.data['Ask1'])
+            msg_dict['Bid1'] = float(subject.data['Bid1'])
             
         elif self.taq == 'Q' and self.securitiestype in ['futures', 'options']:
-            msg_dict['Ask1'] = subject.data['Ask1']
-            msg_dict['Bid1'] = subject.data['Bid1']
-            msg_dict['AskQty1'] = subject.data['AskQty1']
-            msg_dict['BidQty1'] = subject.data['BidQty1']
-            msg_dict['Ask2'] = subject.data['Ask2']
-            msg_dict['Bid2'] = subject.data['Bid2']
-            msg_dict['AskQty2'] = subject.data['AskQty2']
-            msg_dict['BidQty2'] = subject.data['BidQty2']
-            msg_dict['Ask3'] = subject.data['Ask3']
-            msg_dict['Bid3'] = subject.data['Bid3']
-            msg_dict['AskQty3'] = subject.data['AskQty3']
-            msg_dict['BidQty3'] = subject.data['BidQty3']
-            if 'Ask4' in subject.data and 'Bid4' in subject.data:
-                msg_dict['Ask4'] = subject.data['Ask4']
-                msg_dict['Bid4'] = subject.data['Bid4']
-                msg_dict['AskQty4'] = subject.data['AskQty4']
-                msg_dict['BidQty4'] = subject.data['BidQty4']
-                msg_dict['Ask5'] = subject.data['Ask5']
-                msg_dict['Bid5'] = subject.data['Bid5']
-                msg_dict['AskQty5'] = subject.data['AskQty5']
-                msg_dict['BidQty5'] = subject.data['BidQty5']
-            if 'AskCnt4' in subject.data and 'BidCnt4' in subject.data:
-                msg_dict['AskCnt1'] = subject.data['AskCnt1']
-                msg_dict['BidCnt1'] = subject.data['BidCnt1']
-                msg_dict['AskCnt2'] = subject.data['AskCnt2']
-                msg_dict['BidCnt2'] = subject.data['BidCnt2']
-                msg_dict['AskCnt3'] = subject.data['AskCnt3']
-                msg_dict['BidCnt3'] = subject.data['BidCnt3']
-                msg_dict['AskCnt4'] = subject.data['AskCnt4']
-                msg_dict['BidCnt4'] = subject.data['BidCnt4']
-                msg_dict['AskCnt5'] = subject.data['AskCnt5']
-                msg_dict['BidCnt5'] = subject.data['BidCnt5']
+            for i in xrange(1, 4):
+                msg_dict['Ask%d' % i] = float(subject.data['Ask%d' % i])
+                msg_dict['Bid%d' % i] = float(subject.data['Bid%d' % i])
+                msg_dict['AskQty%d' % i] = int(subject.data['AskQty%d' % i])
+                msg_dict['BidQty%d' % i] = int(subject.data['BidQty%d' % i])
 
-            msg_dict['TotalAskQty'] = subject.data['TotalAskQty']
-            msg_dict['TotalBidQty'] = subject.data['TotalBidQty']
-            msg_dict['TotalAskCnt'] = subject.data['TotalAskCnt']
-            msg_dict['TotalBidCnt'] = subject.data['TotalBidCnt']
+            if 'Ask4' in subject.data and 'Bid4' in subject.data:
+                for i in xrange(4, 6):
+                    msg_dict['Ask%d' % i] = float(subject.data['Ask%d' % i])
+                    msg_dict['Bid%d' % i] = float(subject.data['Bid%d' % i])
+                    msg_dict['AskQty%d' % i] = int(subject.data['AskQty%d' % i])
+                    msg_dict['BidQty%d' % i] = int(subject.data['BidQty%d' % i])
+
+            if 'AskCnt4' in subject.data and 'BidCnt4' in subject.data:
+                for i in xrange(1, 6):
+                    msg_dict['AskCnt%d' % i] = int(subject.data['AskCnt%d' % i])
+                    msg_dict['BidCnt%d' % i] = int(subject.data['BidCnt%d' % i])
+
+            msg_dict['TotalAskQty'] = int(subject.data['TotalAskQty'])
+            msg_dict['TotalBidQty'] = int(subject.data['TotalBidQty'])
+            msg_dict['TotalAskCnt'] = int(subject.data['TotalAskCnt'])
+            msg_dict['TotalBidCnt'] = int(subject.data['TotalBidCnt'])
+
         elif self.taq == 'E' and self.securitiestype in ['futures', 'options']:
-            msg_dict['ExpectPrice'] = subject.data['ExpectPrice']
+            msg_dict['ExpectPrice'] = float(subject.data['ExpectPrice'])
         else:
             return
 
