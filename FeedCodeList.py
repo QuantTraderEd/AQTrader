@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Sep 04 19:40:36 2013
-
-@author: Administrator
-"""
 
 
 class FeedCodeList():
@@ -11,10 +6,11 @@ class FeedCodeList():
     feed code list from read file
     """
     def __init__(self):
-        self.futureshcodelst = []
-        self.optionshcodelst = []
-        self.equityshcodelst = []
-        self.indexshcodelst = []
+        self.futureshortcdlst = []
+        self.optionshortcdlst = []
+        self.equityshortcdlst = []
+        self.indexshortcdlst = []
+
     def ReadCodeListFile(self):
         try:
             feedcodelistfilep = open('feedcodelist.txt','r')
@@ -35,13 +31,13 @@ class FeedCodeList():
             elif line[:-1] == "<Index/>": state = 4
             
             if state == 1 and line[0] != "<":
-                self.futureshcodelst.append(line[:-1])
+                self.futureshortcdlst.append(line[:-1])
             elif state == 2 and line[0] != "<":
-                self.optionshcodelst.append(line[:-1])
+                self.optionshortcdlst.append(line[:-1])
             elif state == 3 and line[0] != "<":
-                self.equityshcodelst.append(line[:-1])
+                self.equityshortcdlst.append(line[:-1])
             elif state == 4 and line[0] != "<":
-                self.indexshcodelst.append(line[:-1])
+                self.indexshortcdlst.append(line[:-1])
             
 
 
@@ -62,10 +58,10 @@ if __name__ == "__main__":
     _feedcodelist = FeedCodeList()
     _feedcodelist.ReadCodeListFile()
     
-    print _feedcodelist.futureshcodelst
-    print _feedcodelist.optionshcodelst
-    print _feedcodelist.equityshcodelst
-    print _feedcodelist.indexshcodelst
+    print _feedcodelist.futureshortcdlst
+    print _feedcodelist.optionshortcdlst
+    print _feedcodelist.equityshortcdlst
+    print _feedcodelist.indexshortcdlst
     
 #    futuresoptionTAQfeederlst = []
 #    equityTAQfeederlst = []
