@@ -1,13 +1,35 @@
 # -*- coding: utf-8 -*-
 
 import time
+import logging
 from PyQt4 import QtGui, QtCore
 from DBLoaderThread import DBLoaderThread
 
+logger = logging.getLogger('DBWidget')
+logger.setLevel(logging.DEBUG)
+
+# create file handler which logs even debug messages
+# fh = logging.FileHandler('DBWidget.log')
+fh = logging.Handlers.RotatingFileHandler('DBWidget.log', maxBytes=10485, backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+# logger.addHandler(ch)
+
 
 class DBWidget(QtGui.QWidget):
-    def __init__(self,parent=None):
-        QtGui.QWidget.__init__(self,parent)
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         self.initUI()
         self.initThread()
         pass
@@ -63,6 +85,7 @@ class DBWidget(QtGui.QWidget):
 
     def onNotify(self, msg):
         strtime = time.strftime('[%H:%M:%S] ')
+        logger.info(msg)
         self.plainTextEditor.appendPlainText(strtime + msg)
         pass
 
