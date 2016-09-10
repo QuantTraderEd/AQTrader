@@ -1,4 +1,4 @@
-__author__ = 'assa'
+# -*- coding: utf-8 -*-
 
 import time
 from PyQt4 import QtGui, QtCore
@@ -44,8 +44,8 @@ class DBWidget(QtGui.QWidget):
     def NotifyThreadEnd(self):
         self.startPushButton.setText('Start')
         self.onNotify('End Count: ' + str(self._DBLoaderThread.count))
-        self._DBLoaderThread.conn_memory.close()
-        self._DBLoaderThread.conn_file.close()
+        # self._DBLoaderThread.conn_memory.close()
+        # self._DBLoaderThread.conn_file.close()
         pass
 
     def onClick(self):
