@@ -64,8 +64,7 @@ class DBLoaderThread(SubscribeThread):
 
         # ORM
         self.MsgNotify.emit('reading from file DB...')
-        # self._file_session, self._file_engine = tickdata_db_init.initSession(self.dbname)
-        self._file_session, self._file_engine = tickdata_db_init.initSession('tickdata_test.db')
+        self._file_session, self._file_engine = tickdata_db_init.initSession(self.dbname)
         self.count = self._file_session.query(TickData).count()
         self.count_fo = self._file_session.query(TickData).filter(
             TickData.securitiestype.in_(['futures', 'options'])).count()
@@ -74,14 +73,17 @@ class DBLoaderThread(SubscribeThread):
 
         if self.count > 0:
             metadata = MetaData(bind=self._file_engine)
-            self._file_session = tickdata_db_init.initSession('tickdata_test.db')[0]
+            self._file_session = tickdata_db_init.initSession(self.dbname)[0]
             q = self._file_session.query(TickData)
             serialized_data = dumps(q.all())
             loads(serialized_data, metadata, self._memo_session)
             self._memo_session.commit()
             count = self._memo_session.query(TickData).count()
+            self._memo_session.close()
 
         self._file_session.close()
+
+        self._memo_session = tickdata_db_init.make_session(self._memo_engine)
 
         self.count_remain = 10
         self.MsgNotify.emit('Start Count: %d' % self.count)
@@ -137,18 +139,18 @@ class DBLoaderThread(SubscribeThread):
             msg = 'FutOpt Count: %d, Eq Count: %d' % (self.count_fo, self.count_eq)
             self.MsgNotify.emit(msg)
         self.count += 1
-
+        print self.count, self.count_fo, self.count_eq
         pass
 
     def onBackup(self):
-        # q = self._memo_session.query(TickData)
-        # serialized_data = dumps(q.all())
-        # self._file_session, self._file_engine = tickdata_db_init.initSession('tickdata_test.db')
-        # self._file_session.merge(serialized_data)
-        # self._file_session.commit()
+        metadata = MetaData(bind=self._memo_engine)
+        q = self._memo_session.query(TickData)
+        serialized_data = dumps(q.all())
+        loads(serialized_data, metadata, self._file_session)
+        self._file_session.commit()
         pass
 
     def stop(self):
-        self.onBackup()
         SubscribeThread.stop(self)
+        self.onBackup()
         pass

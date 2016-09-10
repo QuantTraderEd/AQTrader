@@ -19,10 +19,11 @@ class SubscribeThread(QtCore.QThread):
     def run(self):
         self.mt_stop = False
         self.mt_pause = False
-        port = '5502'
+        port = '5503'
         if self.subType == 'Real':
-            # port = '5501'
-            port = '5503'   # Real_Test
+            port = '5501'
+        if self.subType == 'RealTest':
+            port = '5503'
         elif self.subType == 'BackTest':
             port = '5502'
         else:

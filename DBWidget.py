@@ -37,7 +37,7 @@ class DBWidget(QtGui.QWidget):
         pass
 
     def initThread(self):
-        self._DBLoaderThread = DBLoaderThread(subtype='Real')
+        self._DBLoaderThread = DBLoaderThread(subtype='RealTest')
         self._DBLoaderThread.finished.connect(self.NotifyThreadEnd)
         self._DBLoaderThread.MsgNotify.connect(self.onNotify)
 
