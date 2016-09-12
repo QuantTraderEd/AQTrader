@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Oct 19 15:37:25 2013
 
-@author: Administrator
-"""
 
 import pyxing as px
 import zmq
@@ -22,12 +18,16 @@ from QtViewer.QtViewerSC1 import QtViewerSC1
 from QtViewer.QtViewerC01 import QtViewerC01
 from QtViewer.QtViewerEU1 import QtViewerEU1
 
-class ExecuterThread(QtCore.QThread):
+
+class OrderMachineThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
     
-    def __init__(self,parent=None):
-        super(ExecuterThread,self).__init__(parent)
+    def __init__(self, order_port=6001, exec_report_port=7001, parent=None):
+        super(OrderMachineThread, self).__init__(parent)
         self.initVar()
+        self.order_port = order_port
+        self.exec_report_port = exec_report_port
+        self.init_zmq()
         self.initThread()
         self.initViewer()
         self.initQuery()
@@ -37,14 +37,25 @@ class ExecuterThread(QtCore.QThread):
     def initVar(self):
         self._accountlist = []
         self._servername = ''
+        self.fo_account_index = 0
+        self.eq_account_index = 1
         
     def initThread(self):
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pauseCondition = QtCore.QWaitCondition()
-        
-        
+
+    def init_zmq(self):
+        context = zmq.Context()
+        self.socket = context.socket(zmq.REP)
+        self.socket.bind("tcp://127.0.0.1:%d" % self.order_port)
+        # self.socket = context.socket(zmq.DEALER)
+        # self.socket.connect("tcp://127.0.0.1:6001")
+
+        self.socket_execution_report = context.socket(zmq.PUB)
+        self.socket_execution_report.bind("tcp://127.0.0.1:%d" % self.exec_report_port)
+
     def initViewer(self):
         self.cviewer = ConsoleViewer()
         self.cviewer0 = ConsolViewerSC0()        
@@ -55,8 +66,8 @@ class ExecuterThread(QtCore.QThread):
         self.qtviewer11100 = QtViewerCEXAT11100()
         self.qtviewer11300 = QtViewerCEXAT11300()
         self.qtviewerSC1 = QtViewerSC1()       
-        self.qtviewerC01 = QtViewerC01()
-        self.qtviewerEU1 = QtViewerEU1()
+        self.qtviewerC01 = QtViewerC01(self.socket_execution_report)
+        self.qtviewerEU1 = QtViewerEU1(self.socket_execution_report)
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')                        
@@ -126,10 +137,6 @@ class ExecuterThread(QtCore.QThread):
             accountpwd = []
             return
 
-        context = zmq.Context()
-        self.socket = context.socket(zmq.REP)
-        self.socket.bind("tcp://127.0.0.1:6004")
-
         nowtime = datetime.now()
         if nowtime.hour >= 6 and nowtime.hour < 16:
             self.xareal_SC0.AdviseRealData()
@@ -190,8 +197,8 @@ class ExecuterThread(QtCore.QThread):
 
             if newamendcancel == 'N' and shortcd[0] == 'A':
                 # equity new order                       
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[1])    
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[1])
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shortcd)) #demo
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(orderqty))
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(orderprice))
@@ -214,23 +221,23 @@ class ExecuterThread(QtCore.QThread):
             elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order                                   
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(orgordno))
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[1])    
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[1])
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shortcd)) #demo
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
-                        self.socket.send('OK')
-                        self.logger.info('OK')
-                    else:
-                        self.socket.send('Reject')
-                        self.logger.info('Reject')
+                    self.socket.send('OK')
+                    self.logger.info('OK')
+                else:
+                    self.socket.send('Reject')
+                    self.logger.info('Reject')
                 
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[0])
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[0])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[self.fo_account_index])
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shortcd))
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
@@ -250,14 +257,14 @@ class ExecuterThread(QtCore.QThread):
                         else:
                             self.socket.send(str(szMsgCode))
                 else:
-                    if shortcd[:3] in ['101']:
-                        self.logger.info('not yet implement... 101')
+                    if shortcd[:3] in ['101', '105']:
+                        self.logger.info('not yet implement... 101, 105')
                         self.socket.send('not yet implement...')
-                        return
+                        continue
                     else:
                         # Eurex Options new order
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[0])
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,accountpwd[0])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,accountpwd[self.fo_account_index])
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shortcd))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','BnsTpCode',0,buysell)
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
@@ -278,12 +285,16 @@ class ExecuterThread(QtCore.QThread):
                                 self.socket.send(str(szMsgCode))
                             else:
                                 self.socket.send(str(szMsgCode))
+                            # self.socket.send('async_ret_ok')
+                        else:
+                            self.socket.send('async_rect_error %d' % ret)
+
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options Cancel Order
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[0])
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[0])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[self.fo_account_index])
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shortcd)
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(orgordno))
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(orderqty))
@@ -296,13 +307,14 @@ class ExecuterThread(QtCore.QThread):
                         self.logger.info('Reject')
                 else:
                     if shortcd[:3] in ['101', '105']:
+                        self.logger.info('not yet implement... 101, 105')
                         self.socket.send('not yet implement...')
-                        return
+                        continue
                     else:
                         # Eurex Options Cancel Order
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(orgordno))
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[0])
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[0])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[self.fo_account_index])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shortcd))
                         ret = self.xaquery_CEXAT11300.Request(False)
                         if ret is None:
