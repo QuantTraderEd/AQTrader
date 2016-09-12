@@ -154,9 +154,9 @@ class OrderMachineThread(QtCore.QThread):
         self.logger.info('Ready')
             
         while True:
-            self.mutex.lock()
+            # self.mutex.lock()
             if self.mt_stop: break
-            self.mutex.unlock()
+            # self.mutex.unlock()
 
             msg_dict = self.socket.recv_pyobj()
             if not self._XASession.IsConnected():

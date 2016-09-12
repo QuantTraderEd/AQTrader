@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Oct 19 13:37:02 2013
-
-@author: Administrator
-"""
 
 import sys
 import time
@@ -18,7 +13,7 @@ import sqlite3 as lite
 from PyQt4 import QtCore, QtGui
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
-from zerooms_thread import ExecuterThread
+from zerooms_thread import OrderMachineThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
@@ -30,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('ZeroOMS.log')
-#fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+# fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -48,8 +43,8 @@ logger.addHandler(ch)
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
-        #QtGui.QWidget.__init__(self,parent)
-        super(MainForm,self).__init__(parent)
+        # QtGui.QWidget.__init__(self,parent)
+        super(MainForm, self).__init__(parent)
 
         self.initUI()
 
@@ -69,16 +64,18 @@ class MainForm(QtGui.QMainWindow):
         self.XASession = px.XASession()
         self.XASession.Attach(self.XASession_observer)
         self.accountlist = []
+        self.accountindex = 1
         self.servername = ''
         
         self.initDB()        
         
-        self.executerThread = ExecuterThread()
-        self.executerThread._XASession = proxy(self.XASession)    
-        #self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
-        self.executerThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
-        self.executerThread.finished.connect(self.NotifyThreadEnd)
-
+        self.ordermachineThread = OrderMachineThread(order_port=6001, exec_report_port=7001)
+        self.ordermachineThread._XASession = proxy(self.XASession)
+        # self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
+        self.ordermachineThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
+        self.ordermachineThread.finished.connect(self.NotifyThreadEnd)
+        self.ordermachineThread.fo_account_index = 1
+        self.ordermachineThread.eq_account_index = 0
 
         logger.info('Start ZeroOMS')
         
@@ -116,7 +113,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(0,2,self.conn_xi)
         self.ui.tableWidget.setItem(0,1,self.status_xi)
 
-        self.myOrdListDlg = OrderListDialog()
+        self.myOrdListDlg = OrderListDialog(order_port=6001)
         self.myPositionViewer = ZeroPositionViewer()
         self.myDigitViewer = ZeroDigitViewer()
 
@@ -170,8 +167,6 @@ class MainForm(QtGui.QMainWindow):
             self.conn_db.close()
             logger.info('Init New OrdList DB File')
 
-        
-
 
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -182,7 +177,7 @@ class MainForm(QtGui.QMainWindow):
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
                     self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
                 elif self.servername[0] == 'X':
@@ -195,7 +190,7 @@ class MainForm(QtGui.QMainWindow):
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[0])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
                     self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0000')
                 elif self.servername[0] == 'X':
@@ -206,8 +201,7 @@ class MainForm(QtGui.QMainWindow):
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
-        
-            
+
     def queryTimerUpdate(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and self.NewQuery != None:
             self.NewQuery.flag = True
@@ -216,8 +210,7 @@ class MainForm(QtGui.QMainWindow):
                 pythoncom.PumpWaitingMessages()
             self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
             self.myPositionViewer.onReceiveData(self.exchange,self.NewQuery.data)
-                
-        
+
     def slot_StartXingDlg(self,row,column):
         if row == 0 and column == 2:
             #print("Row %d and Column %d was doblueclicked" % (row,column))
@@ -246,8 +239,7 @@ class MainForm(QtGui.QMainWindow):
             
         self.xingTimer.start(1000)
         pass
-            
-            
+
     def xingTimerUpdate(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             if self.status_xi.text() == 'connect' or self.status_xi.text() == 'connect: 0000':
@@ -263,24 +255,24 @@ class MainForm(QtGui.QMainWindow):
         else:
             self.status_xi.setText('disconnect')
             
-    def slot_ToggleExecute(self,boolToggle):
-        if (not self.executerThread.isRunning()) and boolToggle: #and self.XASession.IsConnected():
+    def slot_ToggleExecute(self, boolToggle):
+        if (not self.ordermachineThread.isRunning()) and boolToggle:
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.servername = self.XASession.GetServerName()
                 self.accountlist = self.XASession.GetAccountList()
-                self.executerThread._accountlist = self.accountlist
-                self.executerThread._servername = self.servername
+                self.ordermachineThread._accountlist = self.accountlist
+                self.ordermachineThread._servername = self.servername
                 #print  self.servername, self.accountlist
-                logmsg = '%s   %s'%(self.servername,self.accountlist[0])
+                logmsg = '%s   %s'%(self.servername,self.accountlist[self.accountindex])
                 logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
-                self.executerThread.start()
+                self.ordermachineThread.start()
                 logger.info('Thread start')
             else:
                 self.ui.actionExecute.setChecked(False)
-        elif self.executerThread.isRunning() and (not boolToggle):
-            self.executerThread.terminate()
+        elif self.ordermachineThread.isRunning() and (not boolToggle):
+            self.ordermachineThread.terminate()
             logger.info('Thread stop')
         pass
 
@@ -294,7 +286,6 @@ class MainForm(QtGui.QMainWindow):
             self.myOrdListDlg.show()
             self.myOrdListDlg.exec_()        
         pass
-
 
     def NotifyOrderListViewer(self):
         #update ordlistDB
@@ -316,6 +307,7 @@ class MainForm(QtGui.QMainWindow):
 class XingXASessionUpdate():
     def __init__(self,status_xi=None):
         self.status_xi = status_xi
+
     def Update(self,subject):
         msg =''
         for item in subject.data:
@@ -330,4 +322,4 @@ if __name__ == "__main__":
     myForm = MainForm()
     myForm.show()        
     app.exec_()
-        
+
