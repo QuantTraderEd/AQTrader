@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Dec 03 20:14:48 2013
-
-@author: Administrator
-"""
 
 import os
 import time
@@ -14,9 +9,10 @@ import sqlite3 as lite
 from PyQt4 import QtGui, QtCore
 from ui_orderlistdlg import Ui_Dialog
 
+
 class OrderListDialog(QtGui.QDialog):
-    def __init__(self):
-        super(OrderListDialog,self).__init__()
+    def __init__(self, order_port=6001):
+        super(OrderListDialog, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)        
         self.ui.pushButton.clicked.connect(self.OnUpdateList)
@@ -25,10 +21,9 @@ class OrderListDialog(QtGui.QDialog):
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
             
         self.ui.tableWidget.cellDoubleClicked.connect(self.OnCellDoubleClicked)
-        
-        context = zmq.Context()
-        self.socket = context.socket(zmq.REQ)
-        self.socket.connect("tcp://127.0.0.1:6004")
+
+        self.order_port = 6001
+        self.init_zmq()
 
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
@@ -46,6 +41,12 @@ class OrderListDialog(QtGui.QDialog):
     def __del__(self):
         if not self.socket.closed:
             self.socket.close()
+        pass
+
+    def init_zmq(self):
+        context = zmq.Context()
+        self.socket = context.socket(zmq.REQ)
+        self.socket.connect("tcp://127.0.0.1:%d" % self.order_port)
         
     def OnUpdateList(self):
         if os.path.isfile(self.strdbname):
@@ -92,7 +93,7 @@ class OrderListDialog(QtGui.QDialog):
                     # msg = str('cancl') + ',' + str(shcode) + ',' + str(price) + ',' + str(unexecqty) + ',' + str(ordno)
                     # self.socket.send(msg)
                     msg_dict = {}
-                    msg_dict['ShortCD'] =  shortcd                    
+                    msg_dict['ShortCD'] = shortcd
                     msg_dict['OrderQty'] = unexecqty                    
                     msg_dict['NewAmendCancel'] = 'C'                    
                     msg_dict['OrgOrderNo'] = orgordno
