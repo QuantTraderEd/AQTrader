@@ -124,6 +124,9 @@ class OrderMachineThread(QtCore.QThread):
 
     
     def run(self):
+        self.mt_stop = False
+        self.mt_pause = False
+
         if len(self._accountlist) == 0 :
             self.logger.info('fail: no account')
             return
@@ -151,7 +154,10 @@ class OrderMachineThread(QtCore.QThread):
         self.logger.info('Ready')
             
         while True:
+            self.mutex.lock()
             if self.mt_stop: break
+            self.mutex.unlock()
+
             msg_dict = self.socket.recv_pyobj()
             if not self._XASession.IsConnected():
                 self.logger.info('fail: disconnect xsession')
