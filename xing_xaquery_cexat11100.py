@@ -15,6 +15,7 @@ class XAQuery_CEXAT11100(SourceQuery):
         super(XAQuery_CEXAT11100,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAT11100.res")
         self.shortcd = ''
+        self.autotrader_id = "0"
         pass
     
     def OnSignal(self):                

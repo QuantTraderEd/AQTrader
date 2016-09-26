@@ -13,6 +13,7 @@ class XAQuery_CEXAT11300(SourceQuery):
     def __init__(self):
         super(XAQuery_CEXAT11300,self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CEXAT11300.res")
+        self.autotrader_id = "0"
         pass
     def OnSignal(self):
         self.data = {}
