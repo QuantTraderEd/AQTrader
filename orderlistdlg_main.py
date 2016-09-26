@@ -57,16 +57,17 @@ class OrderListDialog(QtGui.QDialog):
             rows = cursor_db.fetchall()
             self.ui.tableWidget.setRowCount(len(rows))
 
-    #        print "%s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" %tuple(col_names)
-    #        for row in rows:
-    #            print "%2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
+            # print "%s %s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % tuple(col_names)
+            # for row in rows:
+            #     print "%s %2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
+
             rownum = 0
             for row in rows:
-                for j in range(1,len(row)):
+                for j in range(2, len(row)):
                     if row[j]:
-                        self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(row[j]))
+                        self.ui.tableWidget.setItem(rownum,j-2,QtGui.QTableWidgetItem(row[j]))
                     elif not row[j]:
-                        self.ui.tableWidget.setItem(rownum,j-1,QtGui.QTableWidgetItem(''))
+                        self.ui.tableWidget.setItem(rownum,j-2,QtGui.QTableWidgetItem(''))
                 rownum = rownum + 1
 
             conn_db.close()

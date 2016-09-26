@@ -41,6 +41,7 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+
 class MainForm(QtGui.QMainWindow):
     def __init__(self,parent=None):
         # QtGui.QWidget.__init__(self,parent)
@@ -67,9 +68,11 @@ class MainForm(QtGui.QMainWindow):
         self.accountindex = 1
         self.servername = ''
         
-        self.initDB()        
-        
-        self.ordermachineThread = OrderMachineThread(order_port=6001, exec_report_port=7001)
+        self.initDB()
+        self.order_port = 6001
+        self.exec_report_port = 7001
+        logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
+        self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
         self.ordermachineThread._XASession = proxy(self.XASession)
         # self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
         self.ordermachineThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
@@ -79,12 +82,12 @@ class MainForm(QtGui.QMainWindow):
 
         logger.info('Start ZeroOMS')
         
-        f = open('auto_config','r')
+        f = open('auto_config', 'r')
         auto_config = json.load(f)
         if auto_config['setauto']:
             print auto_config
             self.setAuto = True
-            self.slot_AutoStartXing(auto_config)        
+            self.slot_AutoStartXing(auto_config)
         f.close()
 
     def closeEvent(self, event):
@@ -148,7 +151,8 @@ class MainForm(QtGui.QMainWindow):
             self.conn_db = lite.connect(strdbname)
             self.cursor_db = self.conn_db.cursor()
             self.cursor_db.execute("DROP TABLE IF EXISTS OrderList")
-            self.cursor_db.execute("""CREATE TABLE OrderList(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
+            self.cursor_db.execute("""CREATE TABLE OrderList(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                           AutoTraderID TEXT,
                                            OrdNo TEXT,
                                            OrgOrdNo TEXT,
                                            ExecNo TEXT,

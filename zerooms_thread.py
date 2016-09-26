@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import pyxing as px
 import zmq
 import logging
@@ -39,6 +38,7 @@ class OrderMachineThread(QtCore.QThread):
         self._servername = ''
         self.fo_account_index = 0
         self.eq_account_index = 1
+        self.ordno_dict = {}
         
     def initThread(self):
         self.mt_stop = False
@@ -169,27 +169,30 @@ class OrderMachineThread(QtCore.QThread):
                 continue
             
             nowtime = datetime.now()
-            strnowtime = datetime.strftime(nowtime,"%Y-%m-%d %H:%M:%S.%f")
+            strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                                    
             self.logger.info('receive order')
-            #lst = msg.split(',')
+
             newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
             buysell = msg_dict.get('BuySell', ' ')   # 'B' = Buy, 'S' = 'Sell'
             shortcd = msg_dict.get('ShortCD', 'NotCD')
             orderprice = msg_dict.get('OrderPrice', 0)
             orderqty = msg_dict.get('OrderQty', 0)
             ordertype = msg_dict.get('OrderType', 0)   # 1 = Market, 2 = Limit
-            timeinforce = msg_dict.get('TimeInForce','GFD')  # GFD, IOC, FOK
+            timeinforce = msg_dict.get('TimeInForce', 'GFD')  # GFD, IOC, FOK
+
+            autotrader_id = msg_dict.get('AutoTraderID', '0')
             
             orgordno = msg_dict.get('OrgOrderNo', -1)
             
-            logmsg = '%s, %s, %f, %d, %s, %s'%(newamendcancel,
-                                           shortcd,                                           
-                                           orderprice,
-                                           int(orderqty),
-                                           buysell,
-                                           orgordno,
-                                           )
+            logmsg = '%s, %s, %s, %f, %d, %s, %s' % (
+                     autotrader_id,
+                     newamendcancel,
+                     shortcd,
+                     orderprice,
+                     int(orderqty),
+                     buysell,
+                     orgordno, )
                                            
             self.logger.info(logmsg)
             
@@ -220,6 +223,7 @@ class OrderMachineThread(QtCore.QThread):
                     self.xaquery_CSPAT00600.observer.flag = True
                     szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
                     if szMsgCode != '00039' and szMsgCode != '00040':
+                        self.ordno_dict[autotrader_id] = self.xaquery_CSPAT00600.data['OrdNo']
                         self.socket.send(str(szMsgCode))
                     else:
                         self.socket.send(str(szMsgCode))
@@ -233,6 +237,7 @@ class OrderMachineThread(QtCore.QThread):
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
+                    # self.ordno_dict[autotrader_id] = self.xaquery_CSPAT00800.data['OrdNo']
                     self.socket.send('OK')
                     self.logger.info('OK')
                 else:
@@ -249,6 +254,7 @@ class OrderMachineThread(QtCore.QThread):
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(orderprice))
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(orderqty))
+                    self.xaquery_CFOAT00100.autotrader_id = autotrader_id
                     ret = self.xaquery_CFOAT00100.Request(False)
                     self.logger.info(str(ret))
                     if not ret:
@@ -259,6 +265,7 @@ class OrderMachineThread(QtCore.QThread):
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
                         self.logger.info(szMsg + szMsgCode)
                         if szMsgCode != '00039' and szMsgCode != '00040':
+                            self.ordno_dict[autotrader_id] = self.xaquery_CFOAT00100.data['OrdNo']
                             self.socket.send(str(szMsgCode))
                         else:
                             self.socket.send(str(szMsgCode))
@@ -276,6 +283,7 @@ class OrderMachineThread(QtCore.QThread):
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(orderprice))
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(orderqty))
+                        self.xaquery_CEXAT11100.autotrader_id = autotrader_id
                         self.xaquery_CEXAT11100.shortcd = str(shortcd)
                         ret = self.xaquery_CEXAT11100.Request(False)
                         self.logger.info(str(ret))
@@ -288,6 +296,7 @@ class OrderMachineThread(QtCore.QThread):
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg + szMsgCode)
                             if szMsgCode != '00039' and szMsgCode != '00040':
+                                self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11100.data['OrdNo']
                                 self.socket.send(str(szMsgCode))
                             else:
                                 self.socket.send(str(szMsgCode))
@@ -304,8 +313,10 @@ class OrderMachineThread(QtCore.QThread):
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shortcd)
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(orgordno))
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(orderqty))
+                    self.xaquery_CFOAT00300.autotrader_id = autotrader_id
                     ret = self.xaquery_CFOAT00300.Request(False)
                     if ret is None:
+                        # self.ordno_dict[autotrader_id] = self.xaquery_CFOAT00300.data['OrdNo']
                         self.socket.send('OK')
                         self.logger.info('OK')
                     else:
@@ -322,8 +333,10 @@ class OrderMachineThread(QtCore.QThread):
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[self.fo_account_index])
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shortcd))
+                        self.xaquery_CEXAT11300.autotrader_id = autotrader_id
                         ret = self.xaquery_CEXAT11300.Request(False)
                         if ret is None:
+                            # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
                             self.socket.send('OK')
                             self.logger.info('OK')
                         else:
