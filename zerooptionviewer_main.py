@@ -31,6 +31,7 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+
 def convert(strprice):
     return '%.2f' % round(float(strprice), 2)
 
@@ -52,7 +53,7 @@ class MainForm(QtGui.QMainWindow):
         setting.setValue("geometry", self.saveGeometry())
 
     def initVar(self):
-        self.expireMonthCode = 'LA'
+        self.expireMonthCode = 'LB'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -162,17 +163,17 @@ class MainForm(QtGui.QMainWindow):
             widgetItem.setText(text)
         pass
     
-    def onDoubleClicked(self,row,col):   
+    def onDoubleClicked(self, row, col):
         if col in self.bidaskcolindex:                        
             try:
-                if col in self.bidaskcolindex[0:2]: shcode = self.ui.tableWidget.item(row,0).text()
-                elif col in self.bidaskcolindex[2:4]: shcode = self.ui.tableWidget.item(row,14).text()                
+                if col in self.bidaskcolindex[0:2]: shortcd = self.ui.tableWidget.item(row, 0).text()
+                elif col in self.bidaskcolindex[2:4]: shortcd = self.ui.tableWidget.item(row, 14).text()
             except AttributeError:                    
                 return
         elif col in self.synthbidaskcolindex:
             try:
-                callShCode = self.ui.tableWidget.item(row,0).text()
-                putShCode = self.ui.tableWidget.item(row,14).text()                
+                call_shortcd = self.ui.tableWidget.item(row, 0).text()
+                put_shortcd = self.ui.tableWidget.item(row, 14).text()
             except AttributeError:
                 return
             
@@ -184,19 +185,19 @@ class MainForm(QtGui.QMainWindow):
             buysell = False
         elif col == self.synthbidaskcolindex[0]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[0]).text())
-            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) != None and \
-            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) != None:
-                callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
-                putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) is not None and \
+            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) is not None:
+                call_price = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
+                put_price = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
                 buysell = True
             else:
                 return
         elif col == self.synthbidaskcolindex[1]:
             price = float(self.ui.tableWidget.item(row,self.synthbidaskcolindex[1]).text())
-            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) != None and \
-            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) != None:
-                callPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())            
-                putPrice = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())            
+            if self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2) is not None and \
+            self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2) is not None:
+                call_price = float(self.ui.tableWidget.item(row,self.bidaskcolindex[0]-2).text())
+                put_price = float(self.ui.tableWidget.item(row,self.bidaskcolindex[3]+2).text())
                 buysell = False
             else:
                 return
@@ -205,47 +206,44 @@ class MainForm(QtGui.QMainWindow):
             
         item = self.ui.tableWidget.item(row,col)
         rect = self.ui.tableWidget.visualItemRect(item)
-        winPos = self.pos()
-        rect.moveTo(rect.x() + winPos.x() + rect.width()/2, rect.y() + winPos.y() + rect.height() * 5)
+        win_pos = self.pos()
+        rect.moveTo(rect.x() + win_pos.x() + rect.width()/2, rect.y() + win_pos.y() + rect.height() * 5)
         widget = QtGui.QWidget()
         widget.setGeometry(rect)
         
         if col in self.bidaskcolindex:                        
             self.myOrderWidget.initMove(widget)
-            self.myOrderWidget.initOrder(buysell,shcode,price,1)
+            self.myOrderWidget.initOrder(shortcd, price, 1, buysell)
             self.myOrderWidget.show()
         elif col in self.synthbidaskcolindex:            
             self.myOrderWidget.initMove(widget)
-            self.myOrderWidget.initSynthOrder(buysell,price,callShCode,callPrice,putShCode,putPrice,1)
+            self.myOrderWidget.initSynthOrder(buysell, price, call_shortcd, call_price, put_shortcd, put_price, 1)
             self.myOrderWidget.show()
         pass
-        
-        
-    def onReceiveData(self,msg_dict):     
+
+    def onReceiveData(self, msg_dict):
         nowtime = datetime.now()
         shortcd = msg_dict['ShortCD']
         if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q':
-            shortcd = msg_dict['ShortCD']
             askqty1 = msg_dict['AskQty1']
             ask1 = msg_dict['Ask1']
             bid1 = msg_dict['Bid1']
             bidqty1 = msg_dict['BidQty1']
             
             if shortcd[:3] == '101':            
-                showmsg = '%s, %s, %s, %s' %(askqty1,ask1,bid1,bidqty1)
+                showmsg = '%s, %s, %s, %s' % (askqty1, ask1, bid1, bidqty1)
                 self.statusBar().showMessage(showmsg)                
             return
             
         if msg_dict['SecuritiesType'] != 'options': return
-        
-        
+
         if msg_dict['TAQ'] == 'Q':
             askqty1 = msg_dict['AskQty1']
             ask1 = msg_dict['Ask1']
             bid1 = msg_dict['Bid1']
             bidqty1 = msg_dict['BidQty1']
             
-            #if msg_dict['SecuritiesType'] != 'options': return
+            # if msg_dict['SecuritiesType'] != 'options': return
             
             if shortcd[3:5] != self.expireMonthCode: return
             pos = self.strikelst.index(shortcd[5:8])
@@ -344,9 +342,7 @@ class MainForm(QtGui.QMainWindow):
         except:
             return
         pass
-        
-        
-                    
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()

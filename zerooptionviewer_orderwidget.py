@@ -44,13 +44,23 @@ class OptionViewerOrderWidget(QtGui.QWidget):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.RCVTIMEO, 2000)
-        self.socket.connect("tcp://127.0.0.1:6004")
+        self.socket.connect("tcp://127.0.0.1:6000")
         pass
-    
-    def initOrder(self,buysell=True,shcode='',price=0,qty=0):
-        self.ui.radioButtonBuy.setChecked(buysell)
-        self.ui.radioButtonSell.setChecked(not buysell)
-        self.ui.lineEditShortCode.setText(shcode)
+
+    def initOrder(self, shortcd='', price=0, qty=0, buysell=''):
+        if isinstance(buysell, str):
+            if buysell == 'B':
+                self.ui.radioButtonBuy.setChecked(True)
+                self.ui.radioButtonSell.setChecked(False)
+            elif buysell == 'S':
+                self.ui.radioButtonBuy.setChecked(False)
+                self.ui.radioButtonSell.setChecked(True)
+        elif isinstance(buysell, bool):
+            self.ui.radioButtonBuy.setChecked(buysell)
+            self.ui.radioButtonSell.setChecked(not buysell)
+        else:
+            return
+        self.ui.lineEditShortCode.setText(shortcd)
         self.ui.doubleSpinBoxPrice.setValue(price)
         self.ui.spinBoxQty.setValue(qty)
         self.onToggled()
@@ -73,7 +83,7 @@ class OptionViewerOrderWidget(QtGui.QWidget):
             buysell = 'B'
         else:
             buysell = 'S'
-        shortcd = self.ui.lineEditShortCode.text()
+        shortcd = str(self.ui.lineEditShortCode.text())
         price = self.ui.doubleSpinBoxPrice.value()
         qty = self.ui.spinBoxQty.value()
         if shortcd[:3] in ['201', '301']:
@@ -131,7 +141,7 @@ if __name__ == '__main__':
             self.popup.initZMQ()
             self.popup.ui.doubleSpinBoxPrice.setMaximum(300)
             self.popup.show()
-            self.popup.initOrder('105L9000',250,1,'B')
+            self.popup.initOrder('101LA000',250,1,'B')
             # self.popup.initOrder('301LA215',0.01,1,'B')
 
     app = QtGui.QApplication(sys.argv)
