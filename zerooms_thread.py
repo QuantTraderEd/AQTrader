@@ -166,6 +166,7 @@ class OrderMachineThread(QtCore.QThread):
             
             if type(msg_dict) != dict:
                 self.logger.info(str(msg_dict) + 'is not dict')
+                self.socket.send('fail: msg_dict is not dict')
                 continue
             
             nowtime = datetime.now()
@@ -180,10 +181,13 @@ class OrderMachineThread(QtCore.QThread):
             orderqty = msg_dict.get('OrderQty', 0)
             ordertype = msg_dict.get('OrderType', 0)   # 1 = Market, 2 = Limit
             timeinforce = msg_dict.get('TimeInForce', 'GFD')  # GFD, IOC, FOK
-
             autotrader_id = msg_dict.get('AutoTraderID', '0')
-            
             orgordno = msg_dict.get('OrgOrderNo', -1)
+
+            if not isinstance(orderprice, float):
+                self.logger.info('fail: ' + str(msg_dict) + ' orderprice not float')
+                self.socket.send('fail: orderprice not float')
+                continue
             
             logmsg = '%s, %s, %s, %f, %d, %s, %s' % (
                      autotrader_id,
@@ -263,7 +267,7 @@ class OrderMachineThread(QtCore.QThread):
                         self.xaquery_CFOAT00100.observer.flag = True
                         szMsg = self.xaquery_CFOAT00100.data['szMessage']
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
-                        self.logger.info(szMsg + szMsgCode)
+                        self.logger.info(szMsg.strip() + szMsgCode)
                         if szMsgCode != '00039' and szMsgCode != '00040':
                             self.ordno_dict[autotrader_id] = self.xaquery_CFOAT00100.data['OrdNo']
                             self.socket.send(str(szMsgCode))
@@ -294,7 +298,7 @@ class OrderMachineThread(QtCore.QThread):
                             self.shortcd = ''
                             szMsg = self.xaquery_CEXAT11100.data['szMessage']
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
-                            self.logger.info(szMsg + szMsgCode)
+                            self.logger.info(szMsg.strip() + szMsgCode)
                             if szMsgCode != '00039' and szMsgCode != '00040':
                                 self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11100.data['OrdNo']
                                 self.socket.send(str(szMsgCode))
@@ -380,8 +384,8 @@ class ConsolViewerSC0:
         print '-' * 20
         if type(subject.data).__name__ == 'dict':     
             nowtime = datetime.now()
-            #print 'szMessage',  subject.data['szMessage']
-            #print 'szMessageCode', subject.data['szMessageCode'],             
+            # print 'szMessage',  subject.data['szMessage']
+            # print 'szMessageCode', subject.data['szMessageCode'],
 #            print 'ordno', subject.data['ordno'],
 #            print 'shtcode', subject.data['shtcode'],
 #            print 'bnstp', subject.data['bnstp'],
@@ -391,7 +395,4 @@ class ConsolViewerSC0:
 #            print 'hogagb', subject.data['hogagb'],
 #            print 'OrdTime_home', datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]                        
         self.flag = False
-            
 
-
-            
