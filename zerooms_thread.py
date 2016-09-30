@@ -3,6 +3,7 @@
 import pyxing as px
 import zmq
 import logging
+import redis
 from PyQt4 import QtCore
 from pythoncom import PumpWaitingMessages
 from datetime import datetime
@@ -30,6 +31,7 @@ class OrderMachineThread(QtCore.QThread):
         self.initThread()
         self.initViewer()
         self.initQuery()
+        self.redis_client = redis.Redis()
         self.logger = logging.getLogger('ZeroOMS.Thread')
         self.logger.info('Init Thread')
 
@@ -227,7 +229,8 @@ class OrderMachineThread(QtCore.QThread):
                     self.xaquery_CSPAT00600.observer.flag = True
                     szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
                     if szMsgCode != '00039' and szMsgCode != '00040':
-                        self.ordno_dict[autotrader_id] = self.xaquery_CSPAT00600.data['OrdNo']
+                        # self.ordno_dict[self.xaquery_CSPAT00600.data['OrdNo']] = autotrader_id
+                        # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00600.data['OrdNo'], autotrader_id)
                         self.socket.send(str(szMsgCode))
                     else:
                         self.socket.send(str(szMsgCode))
@@ -241,7 +244,8 @@ class OrderMachineThread(QtCore.QThread):
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))                                                
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
-                    # self.ordno_dict[autotrader_id] = self.xaquery_CSPAT00800.data['OrdNo']
+                    # self.ordno_dict[self.xaquery_CSPAT00800.data['OrdNo']] = autotrader_id
+                    # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00800.data['OrdNo'], autotrader_id)
                     self.socket.send('OK')
                     self.logger.info('OK')
                 else:
@@ -269,7 +273,8 @@ class OrderMachineThread(QtCore.QThread):
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
                         self.logger.info(szMsg.strip() + szMsgCode)
                         if szMsgCode != '00039' and szMsgCode != '00040':
-                            self.ordno_dict[autotrader_id] = self.xaquery_CFOAT00100.data['OrdNo']
+                            self.ordno_dict[self.xaquery_CFOAT00100.data['OrdNo']] = autotrader_id
+                            self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
                             self.socket.send(str(szMsgCode))
                         else:
                             self.socket.send(str(szMsgCode))
@@ -300,7 +305,8 @@ class OrderMachineThread(QtCore.QThread):
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
                             if szMsgCode != '00039' and szMsgCode != '00040':
-                                self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11100.data['OrdNo']
+                                self.ordno_dict[self.xaquery_CEXAT11100.data['OrdNo']] = autotrader_id
+                                self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
                                 self.socket.send(str(szMsgCode))
                             else:
                                 self.socket.send(str(szMsgCode))
@@ -320,7 +326,8 @@ class OrderMachineThread(QtCore.QThread):
                     self.xaquery_CFOAT00300.autotrader_id = autotrader_id
                     ret = self.xaquery_CFOAT00300.Request(False)
                     if ret is None:
-                        # self.ordno_dict[autotrader_id] = self.xaquery_CFOAT00300.data['OrdNo']
+                        # self.ordno_dict[self.xaquery_CFOAT00300.data['OrdNo']] = autotrader_id
+                        # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00300.data['OrdNo'], autotrader_id)
                         self.socket.send('OK')
                         self.logger.info('OK')
                     else:
@@ -341,6 +348,7 @@ class OrderMachineThread(QtCore.QThread):
                         ret = self.xaquery_CEXAT11300.Request(False)
                         if ret is None:
                             # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
+                            # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11300.data['OrdNo'], autotrader_id)
                             self.socket.send('OK')
                             self.logger.info('OK')
                         else:

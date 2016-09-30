@@ -3,6 +3,7 @@
 
 import logging
 import sqlite3 as lite
+import redis
 from PyQt4 import QtCore
 from datetime import datetime
 
@@ -19,6 +20,7 @@ class QtViewerC01(QtCore.QObject):
         self.zmq_socket = zmq_socket
         self.dbname = None
         self.flag = True
+        self.redis_client = redis.Redis()
         self.logger = logging.getLogger('ZeroOMS.Thread.C01')
         self.logger.info('init QtViewerC01')
         
@@ -32,6 +34,7 @@ class QtViewerC01(QtCore.QObject):
             ordno = unicode(int(subject.data['ordno']))
             execno = None
             # execno = subject.data['execno']
+            autotrader_id = self.redis_client.hget('ordno_dict', ordno)
             
             if subject.data['dosugb'] == '2': buysell = 'buy'                
             elif subject.data['dosugb'] == '1': buysell = 'sell'
@@ -43,13 +46,16 @@ class QtViewerC01(QtCore.QObject):
             execprice = subject.data['cheprice']
             execqty = subject.data['chevol']
             unexecqty = None
-            orderitem = (ordno, execno, strnowtime, buysell, shortcd, ordprice, ordqty, execprice, execqty, unexecqty)
+            orderitem = (autotrader_id, ordno, execno, strnowtime, buysell, shortcd, ordprice, ordqty, execprice, execqty, unexecqty)
+            wildcard = '?,' * len(orderitem)
+            wildcard = wildcard[:-1]
 
             if buysell == 'buy': buysell = 'B'
             elif buysell == 'sell': buysell = 'S'
             else: buysell = ''
 
             msg_dict = {}
+            msg_dict['AutoTraderID'] = autotrader_id
             msg_dict['OrdNo'] = ordno
             msg_dict['ExecNo'] = execno
             msg_dict['TimeStamp'] = nowtime
@@ -64,14 +70,17 @@ class QtViewerC01(QtCore.QObject):
 
             self.logger.info(str(orderitem))
 
-            if self.dbname != None:
+            if self.dbname is not None:
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrgOrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty) 
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?, ?)""",orderitem) 
+                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID,OrgOrdNo,ExecNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty)
+                                                VALUES(%s)""" % wildcard, orderitem)
                                                 
                 cursor_db.execute("""Select ExecPrice,ExecQty,UnExecQty From OrderList 
-                                    WHERE OrdNo = ? and ShortCD = ? and ChkReq is not null """, (str(ordno),str(shortcd),))
+                                    WHERE
+                                    OrdNo = ? and
+                                    ShortCD = ? and
+                                    ChkReq is not null """, (str(ordno), str(shortcd), ))
                 rows = cursor_db.fetchall()                
                 unexecqty = 0
                 avgExecPrice = 0

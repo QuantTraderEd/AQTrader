@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 04 18:08:52 2015
-
-@author: assa
-"""
 
 import logging
 import sqlite3 as lite
+import redis
 from PyQt4 import QtCore
 from datetime import datetime
 
+
 def convert(strprice):
-    return '%.2f' %round(float(strprice),2)
+    return '%.2f' % round(float(strprice), 2)
 
 
 class QtViewerEU1(QtCore.QObject):
@@ -22,6 +19,7 @@ class QtViewerEU1(QtCore.QObject):
         self.zmq_socket = zmq_socket
         self.dbname = None
         self.flag = True
+        self.redis_client = redis.Redis()
         self.logger = logging.getLogger('ZeroOMS.Thread.EU1')
         self.logger.info('init QtViewerEU1')
 
@@ -30,11 +28,12 @@ class QtViewerEU1(QtCore.QObject):
         if type(subject.data).__name__ == 'dict':
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-            #print 'szMessage',  subject.data['szMessage']
-            #print 'szMessageCode', subject.data['szMessageCode'],
-            #print subject.data
+            # print 'szMessage',  subject.data['szMessage']
+            # print 'szMessageCode', subject.data['szMessageCode'],
+            # print subject.data
             ordno = subject.data['ordno']
             orgordno = subject.data['orgordno']
+            autotrader_id = self.redis_client.hget('ordno_dict', ordno)
             execno = None
 
             if subject.data['bnstp'] == '2': buysell = 'buy'
@@ -49,13 +48,16 @@ class QtViewerEU1(QtCore.QObject):
             execprice = subject.data['execprc']
             execqty = subject.data['execqty']
             unexecqty = subject.data['unercqty']
-            orderitem = (ordno, strnowtime, buysell, shortcd, ordprice, ordqty, execprice, execqty, unexecqty)
+            orderitem = (autotrader_id, ordno, strnowtime, buysell, shortcd, ordprice, ordqty, execprice, execqty, unexecqty)
+            wildcard = '?,' * len(orderitem)
+            wildcard = wildcard[:-1]
 
             if buysell == 'buy': buysell = 'B'
             elif buysell == 'sell': buysell = 'S'
             else: buysell = ''
 
             msg_dict = {}
+            msg_dict['AutoTraderID'] = autotrader_id
             msg_dict['OrdNo'] = ordno
             msg_dict['ExecNo'] = execno
             msg_dict['TimeStamp'] = nowtime
@@ -70,14 +72,26 @@ class QtViewerEU1(QtCore.QObject):
 
             self.logger.info(str(orderitem))
 
-            if self.dbname != None:
+            if self.dbname is not None:
                 conn_db = lite.connect(self.dbname)
                 cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList(OrgOrdNo,Time,BuySell,ShortCD,Price,Qty,ExecPrice,ExecQty,UnExecQty)
-                                                VALUES(?, ?, ?, ? ,?, ?, ?, ?, ?)""",orderitem)
+                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID,
+                                                           OrgOrdNo,Time,
+                                                           BuySell,
+                                                           ShortCD,
+                                                           Price,
+                                                           Qty,
+                                                           ExecPrice,
+                                                           ExecQty,
+                                                           UnExecQty)
+                                                VALUES(%s)""" % wildcard, orderitem)
 
                 cursor_db.execute("""Select ExecPrice,ExecQty,UnExecQty From OrderList
-                                    WHERE OrdNo = ? and ShortCD = ? and ChkReq is not null """,(str(ordno),str(shortcd),))
+                                    WHERE
+                                    OrdNo = ? and
+                                    ShortCD = ? and
+                                    ChkReq is not null
+                                    """, (str(ordno), str(shortcd), ))
                 rows = cursor_db.fetchall()
                 unexecqty = 0
                 avgExecPrice = 0
@@ -95,10 +109,10 @@ class QtViewerEU1(QtCore.QObject):
 
                 if unexecqty > 0:
                     cursor_db.execute("""Update OrderList Set ExecPrice=?, ExecQty=?, UnExecQty=?
-                                                                    WHERE OrdNo=? and ShortCD = ? and (BuySell = 'buy' or BuySell = 'sell')
-                                                                    and ChkReq is not null
-                                                                    """,
-                                                                    (str(avgExecPrice), str(avgExecQty),str(unexecqty - int(execqty)),str(ordno),str(shortcd),))
+                                        WHERE OrdNo=? and ShortCD = ? and (BuySell = 'buy' or BuySell = 'sell')
+                                        and ChkReq is not null
+                                        """,
+                                        (str(avgExecPrice), str(avgExecQty),str(unexecqty - int(execqty)),str(ordno),str(shortcd),))
                 conn_db.commit()
                 conn_db.close()
                 #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')

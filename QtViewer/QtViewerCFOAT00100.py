@@ -50,7 +50,7 @@ class QtViewerCFOAT00100(QtCore.QObject):
             chkreq = subject.data['szMessageCode']
             
             orderitem = (autotrader_id, ordno, strnowtime, buysell, shcode, price, qty, type1, type2, unexecqty, chkreq)
-            wildcard = "?, " * len(orderitem)
+            wildcard = "?," * len(orderitem)
             wildcard = wildcard[:-1]
             # print orderitem
             if self.dbname != None:
