@@ -47,6 +47,10 @@ class MainForm(QtGui.QMainWindow):
         # QtGui.QWidget.__init__(self,parent)
         super(MainForm, self).__init__(parent)
 
+        self.order_port = 6001
+        self.exec_report_port = 7001
+        self.accountindex = 1
+
         self.initUI()
 
         self.ctimer = QtCore.QTimer()
@@ -65,12 +69,9 @@ class MainForm(QtGui.QMainWindow):
         self.XASession = px.XASession()
         self.XASession.Attach(self.XASession_observer)
         self.accountlist = []
-        self.accountindex = 1
         self.servername = ''
         
         self.initDB()
-        self.order_port = 6001
-        self.exec_report_port = 7001
         logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
         self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
         self.ordermachineThread._XASession = proxy(self.XASession)
@@ -116,7 +117,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(0,2,self.conn_xi)
         self.ui.tableWidget.setItem(0,1,self.status_xi)
 
-        self.myOrdListDlg = OrderListDialog(order_port=6001)
+        self.myOrdListDlg = OrderListDialog(order_port=self.order_port)
         self.myPositionViewer = ZeroPositionViewer()
         self.myDigitViewer = ZeroDigitViewer()
 

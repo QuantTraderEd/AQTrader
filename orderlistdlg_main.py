@@ -22,7 +22,7 @@ class OrderListDialog(QtGui.QDialog):
             
         self.ui.tableWidget.cellDoubleClicked.connect(self.OnCellDoubleClicked)
 
-        self.order_port = 6001
+        self.order_port = order_port
         self.init_zmq()
 
         nowtime = time.localtime()
