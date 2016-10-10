@@ -186,7 +186,7 @@ class OrderMachineThread(QtCore.QThread):
             autotrader_id = msg_dict.get('AutoTraderID', '0')
             orgordno = msg_dict.get('OrgOrderNo', -1)
 
-            if not isinstance(orderprice, float):
+            if not isinstance(orderprice, float) and newamendcancel in ['N', 'A']:
                 self.logger.info('fail: ' + str(msg_dict) + ' orderprice not float')
                 self.socket.send('fail: orderprice not float')
                 continue
@@ -311,7 +311,6 @@ class OrderMachineThread(QtCore.QThread):
                             # self.socket.send('async_ret_ok')
                         else:
                             self.socket.send('async_rect_error %d' % ret)
-
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
