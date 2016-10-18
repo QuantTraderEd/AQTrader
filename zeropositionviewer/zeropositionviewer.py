@@ -50,6 +50,7 @@ class ZeroPositionViewer(QtGui.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.ui.tableWidget.resizeColumnToContents(1)
+        self.ui.tableWidget.resizeRowsToContents()
         
     def initXing(self,XASession=None):
         if XASession != None:
@@ -109,6 +110,7 @@ class ZeroPositionViewer(QtGui.QWidget):
     def onReceiveData(self,exchange,data):
         if exchange == 'KRX':
             self.ui.tableWidget.setRowCount(len(data)-1)
+            self.ui.tableWidget.resizeRowsToContents()
             for i in xrange(1,len(data)):
                 shcode = data[i]['expcode']
                 if data[i]['medocd'] == '1':
@@ -124,8 +126,10 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.updateTableWidgetItem(i-1,1,pos)
                 self.updateTableWidgetItem(i-1,6,pnl)
                 self.updateTableWidgetItem(i-1,7,avgprc)
+
         elif exchange == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2)
+            self.ui.tableWidget.resizeRowsToContents()
             for i in xrange(2,len(data)):
                 shcode = data[i]['FnoIsuNo']
                 if data[i]['BnsTpCode'] == '1':
@@ -139,8 +143,6 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.updateTableWidgetItem(i-2,1,pos)
                 self.updateTableWidgetItem(i-2,6,pnl)
                 self.updateTableWidgetItem(i-2,7,avgprc)
-
-
             
     def updateTableWidgetItem(self,row,col,text):
         widgetItem = self.ui.tableWidget.item(row,col)

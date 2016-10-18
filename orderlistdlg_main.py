@@ -16,7 +16,8 @@ class OrderListDialog(QtGui.QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)        
         self.ui.pushButton.clicked.connect(self.OnUpdateList)
-        self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)        
+        self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.tableWidget.resizeRowsToContents()
         for i in range(self.ui.tableWidget.columnCount()):        
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
             
@@ -56,6 +57,7 @@ class OrderListDialog(QtGui.QDialog):
             col_names = [cn[0] for cn in cursor_db.description]
             rows = cursor_db.fetchall()
             self.ui.tableWidget.setRowCount(len(rows))
+            self.ui.tableWidget.resizeRowsToContents()
 
             # print "%s %s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % tuple(col_names)
             # for row in rows:
