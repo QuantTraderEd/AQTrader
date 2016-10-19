@@ -27,7 +27,10 @@ class observer_t0441:
     def Update(self,subject):
         if len(subject.data) > 0:
             item = subject.data[0]
-            subject.pnl = int(int(item['tsunik']) * 0.001)
+            if item['tsunik'] != '-':
+                subject.pnl = int(int(item['tsunik']) * 0.001)
+            else:
+                subject.pnl = 0
         else:
             subject.pnl = 0
         subject.flag = False

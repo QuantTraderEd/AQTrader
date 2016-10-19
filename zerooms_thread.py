@@ -274,8 +274,7 @@ class OrderMachineThread(QtCore.QThread):
                         self.logger.info(szMsg.strip() + szMsgCode)
                         if szMsgCode in ['00030', '00040']:
                             self.ordno_dict[self.xaquery_CFOAT00100.data['OrdNo']] = autotrader_id
-                            self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'],
-                                                   autotrader_id)
+                            # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
                         self.socket.send(str(szMsgCode))
                 else:
                     if shortcd[:3] in ['101', '105']:
@@ -305,8 +304,7 @@ class OrderMachineThread(QtCore.QThread):
                             self.logger.info(szMsg.strip() + szMsgCode)
                             if szMsgCode in['00030', '00040']:
                                 self.ordno_dict[self.xaquery_CEXAT11100.data['OrdNo']] = autotrader_id
-                                self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'],
-                                                       autotrader_id)
+                                # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
                             self.socket.send(str(szMsgCode))
                             # self.socket.send('async_ret_ok')
                         else:
