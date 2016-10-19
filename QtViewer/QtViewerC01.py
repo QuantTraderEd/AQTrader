@@ -31,7 +31,7 @@ class QtViewerC01(QtCore.QObject):
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
             
-            ordno = unicode(int(subject.data['ordno']))
+            ordno = int(subject.data['ordno'])
             execno = None
             # execno = subject.data['execno']
             autotrader_id = self.redis_client.hget('ordno_dict', ordno)

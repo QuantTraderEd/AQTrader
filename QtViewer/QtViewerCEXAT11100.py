@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3 as lite
+import redis
 from PyQt4 import QtCore
 from datetime import datetime
 
@@ -12,6 +13,7 @@ class QtViewerCEXAT11100(QtCore.QObject):
         super(QtViewerCEXAT11100,self).__init__()
         self.dbname = None
         self.flag = True
+        self.redis_client = redis.Redis()
 
     def Update(self, subject):
         print '-' * 20
@@ -23,6 +25,8 @@ class QtViewerCEXAT11100(QtCore.QObject):
 
             autotrader_id = subject.autotrader_id
             ordno = subject.data['OrdNo']
+            if subject.data['szMessageCode'] in ['00030', '00040']:
+                self.redis_client.hset('ordno_dict', int(ordno), autotrader_id)
 
             if subject.data['BnsTpCode'] == '2': buysell = 'buy'
             elif subject.data['BnsTpCode'] == '1': buysell = 'sell'
