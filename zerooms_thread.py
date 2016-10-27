@@ -41,6 +41,7 @@ class OrderMachineThread(QtCore.QThread):
         self.fo_account_index = 0
         self.eq_account_index = 1
         self.ordno_dict = {}
+        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
         
     def initThread(self):
         self.mt_stop = False
@@ -70,6 +71,8 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewerSC1 = QtViewerSC1()       
         self.qtviewerC01 = QtViewerC01(self.socket_execution_report)
         self.qtviewerEU1 = QtViewerEU1(self.socket_execution_report)
+        # self.qtviewerC01.ordno_dict = proxy(self.ordno_dict)
+        # self.qtviewerEU1.ordno_dict = proxy(self.ordno_dict)
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')                        
@@ -80,6 +83,8 @@ class OrderMachineThread(QtCore.QThread):
         else:
             strtime = "%d%.2d%.2d" %(nowtime.year,nowtime.month,nowtime.day-1)
             self.strdbname = "orderlist_night_%s.db" %(strtime)
+
+        self.strdbname = self.db_path + self.strdbname
         
         self.qtviewer00600.dbname = self.strdbname
         self.qtviewer00800.dbname = self.strdbname
@@ -90,6 +95,11 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewerSC1.dbname = self.strdbname
         self.qtviewerC01.dbname = self.strdbname
         self.qtviewerEU1.dbname = self.strdbname
+
+        self.qtviewer00100.initDB()
+        self.qtviewer00300.initDB()
+        self.qtviewer11100.initDB()
+        self.qtviewer11300.initDB()
         
         self.qtviewer00600.receive.connect(self.UpdateDB)
         self.qtviewer00800.receive.connect(self.UpdateDB)
@@ -174,7 +184,7 @@ class OrderMachineThread(QtCore.QThread):
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]                                    
-            self.logger.info('receive order')
+            self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
             buysell = msg_dict.get('BuySell', ' ')   # 'B' = Buy, 'S' = 'Sell'
@@ -272,8 +282,8 @@ class OrderMachineThread(QtCore.QThread):
                         szMsg = self.xaquery_CFOAT00100.data['szMessage']
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
                         self.logger.info(szMsg.strip() + szMsgCode)
-                        if szMsgCode in ['00030', '00040']:
-                            self.ordno_dict[self.xaquery_CFOAT00100.data['OrdNo']] = autotrader_id
+                        # if szMsgCode in ['00030', '00040']:
+                            # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
                             # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
                         self.socket.send(str(szMsgCode))
                 else:
@@ -302,8 +312,8 @@ class OrderMachineThread(QtCore.QThread):
                             szMsg = self.xaquery_CEXAT11100.data['szMessage']
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
-                            if szMsgCode in['00030', '00040']:
-                                self.ordno_dict[self.xaquery_CEXAT11100.data['OrdNo']] = autotrader_id
+                            # if szMsgCode in['00030', '00040']:
+                                # self.ordno_dict[int(self.xaquery_CEXAT11100.data['OrdNo'])] = autotrader_id
                                 # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
                             self.socket.send(str(szMsgCode))
                             # self.socket.send('async_ret_ok')
@@ -360,7 +370,7 @@ class OrderMachineThread(QtCore.QThread):
         
     def UpdateDB(self):
         #print "receive update "
-        self.logger.info('receive update')
+        self.logger.info('receive_update')
         self.threadUpdateDB.emit()
         pass
 

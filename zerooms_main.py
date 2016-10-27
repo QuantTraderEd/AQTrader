@@ -33,7 +33,8 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 
 # create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 
@@ -70,7 +71,8 @@ class MainForm(QtGui.QMainWindow):
         self.XASession.Attach(self.XASession_observer)
         self.accountlist = []
         self.servername = ''
-        
+
+        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
         self.initDB()
         logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
         self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
@@ -136,7 +138,6 @@ class MainForm(QtGui.QMainWindow):
         if setting.value("DigitViewer_Show").toBool():
             self.myDigitViewer.show()
 
-
     def initDB(self):
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
@@ -147,6 +148,9 @@ class MainForm(QtGui.QMainWindow):
         elif nowtime.tm_hour < 6:
             strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
             strdbname = "orderlist_night_%s.db" %(strtime)
+
+        strdbname = self.db_path + strdbname
+        self.myOrdListDlg.strdbname = strdbname
             
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
