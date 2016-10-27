@@ -31,7 +31,7 @@ class QtViewerEU1(QtCore.QObject):
             # print 'szMessage',  subject.data['szMessage']
             # print 'szMessageCode', subject.data['szMessageCode'],
             # print subject.data
-            ordno = subject.data['ordno']
+            ordno = int(subject.data['ordno'])
             orgordno = subject.data['orgordno']
             autotrader_id = self.redis_client.hget('ordno_dict', ordno)
             execno = None
