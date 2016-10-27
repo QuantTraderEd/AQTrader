@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+import logging
 import sqlite3 as lite
 import redis
 from PyQt4 import QtCore
@@ -14,7 +15,15 @@ class QtViewerCFOAT00100(QtCore.QObject):
         super(QtViewerCFOAT00100, self).__init__()
         self.dbname = None
         self.flag = True
+        self.conn = None
         self.redis_client = redis.Redis()
+        self.logger = logging.getLogger('ZeroOMS.Thread.CFOAT00100')
+        self.logger.info('init QtViewerCFOAT00100')
+
+    def initDB(self):
+        if self.dbname is not None:
+            self.conn = lite.connect(self.dbname)
+        pass
         
     def Update(self, subject):
         # print '-' * 20
@@ -26,7 +35,9 @@ class QtViewerCFOAT00100(QtCore.QObject):
 
             autotrader_id = subject.autotrader_id
             ordno = subject.data['OrdNo']
-            if subject.data['szMessageCode'] in ['00030', '00040']:
+            self.logger.info('Update: OrdNo-> %s, autotrader_id-> %s' % (ordno, autotrader_id))
+            # if subject.data['szMessageCode'] in ['00030', '00040']:
+            if str(ordno).isdigit():
                 self.redis_client.hset('ordno_dict', int(ordno), autotrader_id)
             
             if subject.data['BnsTpCode'] == '2': buysell = 'buy'
@@ -53,10 +64,10 @@ class QtViewerCFOAT00100(QtCore.QObject):
             wildcard = "?," * len(orderitem)
             wildcard = wildcard[:-1]
             # print orderitem
-            if self.dbname != None:
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
-                cursor_db.execute("""INSERT INTO OrderList
+            if type(self.conn) == lite.Connection:
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
+                self.conn.execute("""INSERT INTO OrderList
                                      (AutoTraderID,
                                       OrdNo,
                                       Time,
@@ -69,8 +80,8 @@ class QtViewerCFOAT00100(QtCore.QObject):
                                       UnExecQty,
                                       ChkReq)
                                       VALUES(%s)""" % wildcard, orderitem)
-                conn_db.commit()
-                conn_db.close()                
+                self.conn.commit()
+                # conn_db.close()
                 # self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00600')
                 self.receive.emit()
 

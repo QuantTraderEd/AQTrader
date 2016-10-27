@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import sqlite3 as lite
 import redis
 from PyQt4 import QtCore
@@ -14,6 +15,14 @@ class QtViewerCEXAT11100(QtCore.QObject):
         self.dbname = None
         self.flag = True
         self.redis_client = redis.Redis()
+        self.conn = None
+        self.logger = logging.getLogger('ZeroOMS.Thread.CEXAT11100')
+        self.logger.info('init QtViewerCEXAT11100')
+
+    def initDB(self):
+        if self.dbname is not None:
+            self.conn = lite.connect(self.dbname)
+        pass
 
     def Update(self, subject):
         print '-' * 20
@@ -25,7 +34,9 @@ class QtViewerCEXAT11100(QtCore.QObject):
 
             autotrader_id = subject.autotrader_id
             ordno = subject.data['OrdNo']
-            if subject.data['szMessageCode'] in ['00030', '00040']:
+            self.logger.info('Update: OrdNo-> %s, autotrader_id-> %s' % (ordno, autotrader_id))
+            # if subject.data['szMessageCode'] in ['00030', '00040']:
+            if str(ordno).isdigit():
                 self.redis_client.hset('ordno_dict', int(ordno), autotrader_id)
 
             if subject.data['BnsTpCode'] == '2': buysell = 'buy'
@@ -49,12 +60,12 @@ class QtViewerCEXAT11100(QtCore.QObject):
 
             orderitem = (autotrader_id, ordno,strnowtime,buysell,shcode,price,qty,type1,type2,unexecqty,chkreq)
             # print orderitem
-            if self.dbname != None:
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
+            if type(self.conn) == lite.Connection:
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
                 wildcard = '?,' * len(orderitem)
                 wildcard = wildcard[:-1]
-                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID,
+                self.conn.execute("""INSERT INTO OrderList(AutoTraderID,
                                                            OrdNo,
                                                            Time,
                                                            BuySell,
@@ -66,8 +77,8 @@ class QtViewerCEXAT11100(QtCore.QObject):
                                                            UnExecQty,
                                                            ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
-                conn_db.commit()
-                conn_db.close()
+                self.conn.commit()
+                # conn_db.close()
                 self.receive.emit()
 
         self.flag = False

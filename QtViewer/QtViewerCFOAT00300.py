@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+
+import logging
 import sqlite3 as lite
 from PyQt4 import QtCore
 from datetime import datetime
@@ -9,9 +11,19 @@ class QtViewerCFOAT00300(QtCore.QObject):
     receive = QtCore.pyqtSignal()
 
     def __init__(self):
-        super(QtViewerCFOAT00300,self).__init__()
+        super(QtViewerCFOAT00300, self).__init__()
         self.dbname = None
         self.flag = True
+        self.conn = None
+        self.cursor = None
+        self.logger = logging.getLogger('ZeroOMS.Thread.CFOAT00300')
+        self.logger.info('init QtViewerCFOAT00300')
+
+    def initDB(self):
+        if self.dbname is not None:
+            self.conn = lite.connect(self.dbname)
+            self.cursor = self.conn.cursor()
+        pass
         
     def Update(self, subject):
         # print '-' * 20
@@ -44,39 +56,40 @@ class QtViewerCFOAT00300(QtCore.QObject):
             chkreq = subject.data['szMessageCode']
             orderitem = (autotrader_id,ordno,orgordno,strnowtime,buysell,shcode,canclqty,chkreq)
             
-            if self.dbname != None and subject.data['szMessageCode'] == '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
+            if type(self.conn) == lite.Connection and subject.data['szMessageCode'] == '00156':
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
                 
-                cursor_db.execute("""Select OrdNo, OrgOrdNo From OrderList 
+                self.cursor.execute("""Select OrdNo, OrgOrdNo From OrderList
                                     WHERE OrdNo = ? and ExecNo is null and BuySell = 'cancl' """,(str(ordno),))
-                rows_cancl = cursor_db.fetchall() 
-                
-                
-                cursor_db.execute("""Select UnExecQty From OrderList 
+                rows_cancl = self.cursor.fetchall()
+
+                self.cursor.execute("""Select UnExecQty From OrderList
                                     WHERE OrdNo = ? and ExecNo is null """,(str(orgordno),))
-                rows = cursor_db.fetchall()
+                rows = self.cursor.fetchall()
                 unexecqty = 0
                 if len(rows) == 1:
                     unexecqty = int(rows[0][0])
                 wildcard = '?,' * len(orderitem)
                 wildcard = wildcard[:-1]
-                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID,OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
+                self.conn.execute("""INSERT INTO OrderList(AutoTraderID,OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
                 if len(rows_cancl) == 0 and unexecqty > 0:
-                    cursor_db.execute("""Update OrderList Set UnExecQty=? 
+                    self.conn.execute("""Update OrderList Set UnExecQty=?
                                                     WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """, 
                                                     (str(unexecqty - int(canclqty)),orgordno))
-                conn_db.commit()
-                conn_db.close()
-                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00800')
+                self.conn.commit()
+                # conn_db.close()
+                # self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00800')
                 self.receive.emit()
-            elif self.dbname != None and subject.data['szMessageCode'] != '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
+            elif type(self.conn) == lite.Connection and subject.data['szMessageCode'] != '00156':
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
                 wildcard = '?,' * len(orderitem)
                 wildcard = wildcard[:-1]
-                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,ExecNo,Time,BuySell,ShortCD,ExecQty,ChkReq)
+                self.conn.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
+                self.conn.commit()
+                self.receive.emit()
             
         self.flag = False    

@@ -13,8 +13,16 @@ class QtViewerCEXAT11300(QtCore.QObject):
         super(QtViewerCEXAT11300, self).__init__()
         self.dbname = None
         self.flag = True
-        self.logger = logging.getLogger('ZeroOMS.Thread.QtViewerCEXAT11300')
+        self.conn = None
+        self.cursor = None
+        self.logger = logging.getLogger('ZeroOMS.Thread.CEXAT11300')
         self.logger.info('init QtViewerCEXAT11300')
+
+    def initDB(self):
+        if self.dbname is not None:
+            self.conn = lite.connect(self.dbname)
+            self.cursor = self.conn.cursor()
+        pass
 
     def Update(self, subject):
         print '-' * 20
@@ -43,42 +51,43 @@ class QtViewerCEXAT11300(QtCore.QObject):
             self.logger.info(szMsg + chkreq)
             orderitem = (autotrader_id, ordno, orgordno, strnowtime, buysell, shcode, canclqty, chkreq)
             # print orderitem
-            if self.dbname != None and subject.data['szMessageCode'] == '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
+            if type(self.conn) == lite.Connection and subject.data['szMessageCode'] == '00156':
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
 
-                cursor_db.execute("""Select OrdNo, OrgOrdNo From OrderList
+                self.cursor.execute("""Select OrdNo, OrgOrdNo From OrderList
                                     WHERE OrdNo = ? and ExecNo is null and BuySell = 'cancl' """,(str(ordno),))
-                rows_cancl = cursor_db.fetchall()
+                rows_cancl = self.cursor.fetchall()
 
-
-                cursor_db.execute("""Select UnExecQty From OrderList
+                self.cursor.execute("""Select UnExecQty From OrderList
                                     WHERE OrdNo = ? and ExecNo is null """,(str(orgordno),))
-                rows = cursor_db.fetchall()
+                rows = self.cursor.fetchall()
                 unexecqty = 0
                 if len(rows) == 1:
                     unexecqty = int(rows[0][0])
                 wildcard = '?,' * len(orderitem)
                 wildcard = wildcard[:-1]
-                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
+                self.conn.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
                 # print rows
                 # print rows_cancl
                 # print unexecqty
 
                 if len(rows_cancl) == 0 and unexecqty > 0:
-                    cursor_db.execute("""Update OrderList Set UnExecQty=?
+                    self.conn.execute("""Update OrderList Set UnExecQty=?
                                                     WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """,
                                                     (str(unexecqty - unexecqty),orgordno))
-                conn_db.commit()
-                conn_db.close()
+                self.conn.commit()
+                # conn_db.close()
                 self.receive.emit()
-            elif self.dbname != None and subject.data['szMessageCode'] != '00156':
-                conn_db = lite.connect(self.dbname)
-                cursor_db = conn_db.cursor()
+            elif type(self.conn) == lite.Connection and subject.data['szMessageCode'] != '00156':
+                # conn_db = lite.connect(self.dbname)
+                # cursor_db = conn_db.cursor()
                 wildcard = '?,' * len(orderitem)
                 wildcard = wildcard[:-1]
-                cursor_db.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,ExecNo,Time,BuySell,ShortCD,ExecQty,ChkReq)
+                self.conn.execute("""INSERT INTO OrderList(AutoTraderID, OrdNo,OrgOrdNo,Time,BuySell,ShortCD,Qty,ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
+                self.conn.commit()
+                self.receive.emit()
 
         self.flag = False
