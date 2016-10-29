@@ -27,13 +27,14 @@ class OrderMachineThread(QtCore.QThread):
         self.initVar()
         self.order_port = order_port
         self.exec_report_port = exec_report_port
-        self.init_zmq()
-        self.initThread()
-        self.initViewer()
-        self.initQuery()
         self.redis_client = redis.Redis()
         self.logger = logging.getLogger('ZeroOMS.Thread')
         self.logger.info('Init Thread')
+
+    def init_func(self):
+        self.init_zmq()
+        self.initViewer()
+        self.initQuery()
 
     def initVar(self):
         self._accountlist = []
@@ -41,9 +42,8 @@ class OrderMachineThread(QtCore.QThread):
         self.fo_account_index = 0
         self.eq_account_index = 1
         self.ordno_dict = {}
-        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
-        
-    def initThread(self):
+        self.db_path = ''
+
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
@@ -71,8 +71,6 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewerSC1 = QtViewerSC1()       
         self.qtviewerC01 = QtViewerC01(self.socket_execution_report)
         self.qtviewerEU1 = QtViewerEU1(self.socket_execution_report)
-        # self.qtviewerC01.ordno_dict = proxy(self.ordno_dict)
-        # self.qtviewerEU1.ordno_dict = proxy(self.ordno_dict)
         
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')                        
@@ -187,8 +185,8 @@ class OrderMachineThread(QtCore.QThread):
             self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
-            buysell = msg_dict.get('BuySell', ' ')   # 'B' = Buy, 'S' = 'Sell'
-            shortcd = msg_dict.get('ShortCD', 'NotCD')
+            buysell = msg_dict.get('BuySell', '')   # 'B' = Buy, 'S' = 'Sell'
+            shortcd = msg_dict.get('ShortCD', '')
             orderprice = msg_dict.get('OrderPrice', 0)
             orderqty = msg_dict.get('OrderQty', 0)
             ordertype = msg_dict.get('OrderType', 0)   # 1 = Market, 2 = Limit

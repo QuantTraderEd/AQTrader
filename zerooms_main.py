@@ -48,9 +48,22 @@ class MainForm(QtGui.QMainWindow):
         # QtGui.QWidget.__init__(self,parent)
         super(MainForm, self).__init__(parent)
 
+        # demo
+        # order_port = 6001
+        # exec_report_port = 7001
+        # accountindex = 1
+        # db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
+
+        # real
+        # order_port = 6000
+        # exec_report_port = 7000
+        # accountindex = 0
+        # db_path = 'C:/Python/ZeroTrader/ZeroOMS/orderlist_db/'
+
         self.order_port = 6001
         self.exec_report_port = 7001
         self.accountindex = 1
+        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
 
         self.initUI()
 
@@ -72,16 +85,8 @@ class MainForm(QtGui.QMainWindow):
         self.accountlist = []
         self.servername = ''
 
-        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
         self.initDB()
-        logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
-        self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
-        self.ordermachineThread._XASession = proxy(self.XASession)
-        # self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
-        self.ordermachineThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
-        self.ordermachineThread.finished.connect(self.NotifyThreadEnd)
-        self.ordermachineThread.fo_account_index = 1
-        self.ordermachineThread.eq_account_index = 0
+        self.initThread()
 
         logger.info('Start ZeroOMS')
         
@@ -175,6 +180,23 @@ class MainForm(QtGui.QMainWindow):
                                            )""")
             self.conn_db.close()
             logger.info('Init New OrdList DB File')
+
+    def initThread(self):
+        logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
+        self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
+        self.ordermachineThread._XASession = proxy(self.XASession)
+        self.ordermachineThread.db_path = self.db_path
+        self.ordermachineThread.init_func()
+        # self.connect(self.executerThread,QtCore.SIGNAL("OnUpdateDB (QString)"),self.NotifyOrderListViewer)
+        self.ordermachineThread.threadUpdateDB.connect(self.NotifyOrderListViewer)
+        self.ordermachineThread.finished.connect(self.NotifyThreadEnd)
+        if self.accountindex == 1:
+            self.ordermachineThread.fo_account_index = 1
+            self.ordermachineThread.eq_account_index = 0
+        elif self.accountindex == 0:
+            self.ordermachineThread.fo_account_index = 0
+            self.ordermachineThread.eq_account_index = 1
+        pass
 
 
     def initQuery(self):
