@@ -13,7 +13,7 @@ import sqlite3 as lite
 from PyQt4 import QtCore, QtGui
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
-from zerooms_thread import OrderMachineThread
+from zerooms_thread import OrderMachineThread, OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
@@ -183,7 +183,7 @@ class MainForm(QtGui.QMainWindow):
 
     def initThread(self):
         logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
-        self.ordermachineThread = OrderMachineThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
+        self.ordermachineThread = OrderMachineNewThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
         self.ordermachineThread._XASession = proxy(self.XASession)
         self.ordermachineThread.db_path = self.db_path
         self.ordermachineThread.init_func()
@@ -298,6 +298,7 @@ class MainForm(QtGui.QMainWindow):
                 logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
+                self.ordermachineThread.init_thread_pool()
                 self.ordermachineThread.start()
                 logger.info('Thread start')
             else:
