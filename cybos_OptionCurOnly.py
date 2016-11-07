@@ -33,6 +33,8 @@ class OptionCurOnly(Source):
             self.data['BuySell'] = self.com.GetHeaderValue(21)
             self.data['Ask1'] = self.com.GetHeaderValue(17)
             self.data['Bid1'] = self.com.GetHeaderValue(18)
+            self.data['AskQty1'] = self.com.GetHeaderValue(19)
+            self.data['BidQty1'] = self.com.GetHeaderValue(20)
             self.data['ShortCD'] = self.com.GetHeaderValue(0)
             self.Notify()
         pass
