@@ -47,10 +47,13 @@ class ZMQTickSender_New:
         
         msg_dict = {}
         
-        msg_dict['ShortCD'] = str(shortcd)
+        msg_dict['ShortCD'] = shortcd
         msg_dict['FeedSource'] = self.feedsource
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
+        if shortcd[:3] == '105':
+            self.securitiestype = 'futures'
+            msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = now_dt
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
