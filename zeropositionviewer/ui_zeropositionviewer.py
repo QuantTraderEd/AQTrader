@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'zeropositionviewer.ui'
 #
-# Created: Fri Feb 13 00:00:21 2015
-#      by: PyQt4 UI code generator 4.9.6
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,12 +25,12 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(818, 139)
+        Form.resize(777, 146)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tableWidget = QtGui.QTableWidget(Form)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
-        self.tableWidget.setColumnCount(8)
+        self.tableWidget.setColumnCount(9)
         self.tableWidget.setRowCount(3)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setVerticalHeaderItem(0, item)
@@ -55,6 +54,8 @@ class Ui_Form(object):
         self.tableWidget.setHorizontalHeaderItem(6, item)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(7, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(8, item)
         self.verticalLayout.addWidget(self.tableWidget)
 
         self.retranslateUi(Form)
@@ -71,17 +72,19 @@ class Ui_Form(object):
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("Form", "ShortCD", None))
         item = self.tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("Form", "Pos", None))
+        item.setText(_translate("Form", "Qty", None))
         item = self.tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("Form", "Delta", None))
+        item.setText(_translate("Form", "Mark", None))
         item = self.tableWidget.horizontalHeaderItem(3)
-        item.setText(_translate("Form", "Gamma", None))
+        item.setText(_translate("Form", "TradePrice", None))
         item = self.tableWidget.horizontalHeaderItem(4)
-        item.setText(_translate("Form", "Theta", None))
+        item.setText(_translate("Form", "Delta", None))
         item = self.tableWidget.horizontalHeaderItem(5)
-        item.setText(_translate("Form", "Vega", None))
+        item.setText(_translate("Form", "Gamma", None))
         item = self.tableWidget.horizontalHeaderItem(6)
-        item.setText(_translate("Form", "PnL", None))
+        item.setText(_translate("Form", "Theta", None))
         item = self.tableWidget.horizontalHeaderItem(7)
-        item.setText(_translate("Form", "EntryAvgPrice", None))
+        item.setText(_translate("Form", "Vega", None))
+        item = self.tableWidget.horizontalHeaderItem(8)
+        item.setText(_translate("Form", "P/L Open", None))
 

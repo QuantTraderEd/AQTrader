@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>818</width>
-    <height>139</height>
+    <width>777</width>
+    <height>146</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,17 @@
      </column>
      <column>
       <property name="text">
-       <string>Pos</string>
+       <string>Qty</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Mark</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>TradePrice</string>
       </property>
      </column>
      <column>
@@ -63,12 +73,7 @@
      </column>
      <column>
       <property name="text">
-       <string>PnL</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>EntryAvgPrice</string>
+       <string>P/L Open</string>
       </property>
      </column>
     </widget>

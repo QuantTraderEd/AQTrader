@@ -49,9 +49,18 @@ class ZeroPositionViewer(QtGui.QWidget):
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self.ui.tableWidget.resizeColumnToContents(1)
+        # self.ui.tableWidget.resizeColumnToContents(1)
         self.ui.tableWidget.resizeRowsToContents()
-        
+        self.ui.tableWidget.setColumnWidth(0, 80)   # ShortCD
+        self.ui.tableWidget.setColumnWidth(1, 50)   # Qty
+        self.ui.tableWidget.setColumnWidth(2, 60)   # Mark
+        self.ui.tableWidget.setColumnWidth(3, 70)   # TradePrice
+        self.ui.tableWidget.setColumnWidth(4, 70)   # Delta
+        self.ui.tableWidget.setColumnWidth(5, 70)   # Gamma
+        self.ui.tableWidget.setColumnWidth(6, 70)   # Theta
+        self.ui.tableWidget.setColumnWidth(7, 70)   # Vega
+        self.ui.tableWidget.setColumnWidth(8, 120)   # P/L Open
+
     def initXing(self,XASession=None):
         if XASession != None:
             self.XASession = XASession
@@ -78,18 +87,18 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[0])
-                self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[0])
+                self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0302')
             else:
                 self.exchange = 'EUREX'
                 self.NewQuery = px.XAQuery_CEXAQ31200()
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[0])
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0302')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','BalEvalTp',0,'1')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','FutsPrcEvalTp',0,'1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[0])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
         
         
     def initTIMER(self):
@@ -107,56 +116,60 @@ class ZeroPositionViewer(QtGui.QWidget):
                 pythoncom.PumpWaitingMessages()
             self.onReceiveData(self.exchange,self.NewQuery.data)
             
-    def onReceiveData(self,exchange,data):
+    def onReceiveData(self, exchange, data):
         if exchange == 'KRX':
             self.ui.tableWidget.setRowCount(len(data)-1)
             self.ui.tableWidget.resizeRowsToContents()
-            for i in xrange(1,len(data)):
-                shcode = data[i]['expcode']
+            for i in xrange(1, len(data)):
+                shortcd = data[i]['expcode']
                 if data[i]['medocd'] == '1':
                     pos = u'-' + data[i]['jqty']
                 elif data[i]['medocd'] == '2':
                     pos = data[i]['jqty']
                 else:
                     pos = ''
-                pnl = data[i]['dtsunik1']
-                avgprc = '%.5s'%data[i]['pamt']
+                pnl = "{:,}".format(long(data[i]['dtsunik1']))
+                avgprc = '%.5s' % data[i]['pamt']
+                lastprc = '%.5s' % data[i]['price']
 
-                self.updateTableWidgetItem(i-1,0,shcode)
-                self.updateTableWidgetItem(i-1,1,pos)
-                self.updateTableWidgetItem(i-1,6,pnl)
-                self.updateTableWidgetItem(i-1,7,avgprc)
+                self.updateTableWidgetItem(i-1, 0, shortcd)
+                self.updateTableWidgetItem(i-1, 1, pos)
+                self.updateTableWidgetItem(i-1, 2, lastprc)
+                self.updateTableWidgetItem(i-1, 3, avgprc)
+                self.updateTableWidgetItem(i-1, 8, pnl)
 
         elif exchange == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2)
             self.ui.tableWidget.resizeRowsToContents()
-            for i in xrange(2,len(data)):
-                shcode = data[i]['FnoIsuNo']
+            for i in xrange(2, len(data)):
+                shortcd = data[i]['FnoIsuNo']
                 if data[i]['BnsTpCode'] == '1':
                     pos = u'-' + data[i]['UnsttQty']
                 elif data[i]['BnsTpCode'] == '2':
                     pos = data[i]['UnsttQty']
-                pnl = data[i]['EvalPnl']
-                avgprc = '%.5s'%data[i]['FnoAvrPrc']
+                pnl = "{:,}".format(long(data[i]['EvalPnl']))
+                avgprc = '%.5s' % data[i]['FnoAvrPrc']
+                lastprc = '%.5s' % data[i]['NowPrc']
 
-                self.updateTableWidgetItem(i-2,0,shcode)
-                self.updateTableWidgetItem(i-2,1,pos)
-                self.updateTableWidgetItem(i-2,6,pnl)
-                self.updateTableWidgetItem(i-2,7,avgprc)
+                self.updateTableWidgetItem(i-2, 0, shortcd)
+                self.updateTableWidgetItem(i-2, 1, pos)
+                self.updateTableWidgetItem(i-2, 2, lastprc)
+                self.updateTableWidgetItem(i-2, 3, avgprc)
+                self.updateTableWidgetItem(i-2, 8, pnl)
             
-    def updateTableWidgetItem(self,row,col,text):
-        widgetItem = self.ui.tableWidget.item(row,col)
-        if not widgetItem:
-            NewItem = QtGui.QTableWidgetItem(text)
-            #if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
-            self.ui.tableWidget.setItem(row,col,NewItem)
+    def updateTableWidgetItem(self, row, col, text):
+        widget_item = self.ui.tableWidget.item(row, col)
+        if not widget_item:
+            newitem = QtGui.QTableWidgetItem(text)
+            newitem.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            if col == 0:
+                newitem.setTextAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+            # if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+            self.ui.tableWidget.setItem(row, col, newitem)
         else:
-            widgetItem.setText(text)
+            widget_item.setText(text)
         pass
-                
-                
-        
-        
+
 if __name__ == '__main__':    
     app = QtGui.QApplication(sys.argv)
     myform = ZeroPositionViewer()
