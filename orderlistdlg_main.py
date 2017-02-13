@@ -20,8 +20,10 @@ class OrderListDialog(QtGui.QDialog):
         self.ui.tableWidget.resizeRowsToContents()
         for i in range(self.ui.tableWidget.columnCount()):        
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
-            
+        self.ui.tableWidget.setColumnWidth(5, 80)
         self.ui.tableWidget.cellDoubleClicked.connect(self.OnCellDoubleClicked)
+
+
 
         self.order_port = order_port
         self.init_zmq()
@@ -50,14 +52,18 @@ class OrderListDialog(QtGui.QDialog):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
         self.socket.connect("tcp://127.0.0.1:%d" % self.order_port)
+
+    def init_dbname(self, strdbname):
+        self.strdbname = strdbname
+        self.conn_db = lite.connect(self.strdbname)
+        self.cursor_db = self.conn_db.cursor()
+
         
     def OnUpdateList(self):
         if os.path.isfile(self.strdbname):
-            conn_db = lite.connect(self.strdbname)
-            cursor_db = conn_db.cursor()
-            cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
-            col_names = [cn[0] for cn in cursor_db.description]
-            rows = cursor_db.fetchall()
+            self.cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
+            col_names = [cn[0] for cn in self.cursor_db.description]
+            rows = self.cursor_db.fetchall()
             self.ui.tableWidget.setRowCount(len(rows))
             self.ui.tableWidget.resizeRowsToContents()
 
@@ -74,7 +80,7 @@ class OrderListDialog(QtGui.QDialog):
                         self.ui.tableWidget.setItem(rownum,j-2,QtGui.QTableWidgetItem(''))
                 rownum = rownum + 1
 
-            conn_db.close()
+            # conn_db.close()
         pass
     
     def OnCellDoubleClicked(self,row,col):        
@@ -82,12 +88,12 @@ class OrderListDialog(QtGui.QDialog):
         if col == 0 and (type1 == 'limit'):
             orgordno = self.ui.tableWidget.item(row,col).text()
             
-            conn_db = lite.connect(self.strdbname)
-            cursor_db = conn_db.cursor()
-            cursor_db.execute("""Select ShortCD,UnExecQty From OrderList 
+            # conn_db = lite.connect(self.strdbname)
+            self.cursor_db = self.conn_db.cursor()
+            self.cursor_db.execute("""Select ShortCD,UnExecQty From OrderList
                                     WHERE OrdNo = ? and Type1 = ? """, (str(orgordno), str(type1),))
-            rows = cursor_db.fetchall()
-            cursor_db.close()
+            rows = self.cursor_db.fetchall()
+            # cursor_db.close()
             
             if len(rows) == 1:
                 row = rows[0]
