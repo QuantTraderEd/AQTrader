@@ -544,6 +544,7 @@ class OrderWorkerThread(QtCore.QThread):
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]
+            self.logger.info('-------' * 4)
             self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ')  # 'N' = New, 'A' = Amend, 'C' = Cancel
@@ -652,6 +653,9 @@ class OrderWorkerThread(QtCore.QThread):
                         # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
                         self.socket.send(str(szMsgCode))
+                    else:
+                        self.logger.info('async_ret_error %s' % str(ret))
+                        self.socket.send('async_ret_error %s' % str(ret))
                 else:
                     if shortcd[:3] in ['101', '105']:
                         self.logger.info('not yet implement... 101, 105')
@@ -686,7 +690,8 @@ class OrderWorkerThread(QtCore.QThread):
                             self.socket.send(str(szMsgCode))
                             # self.socket.send('async_ret_ok')
                         else:
-                            self.socket.send('async_rect_error %d' % ret)
+                            self.logger.info('async_ret_error %s' % str(ret))
+                            self.socket.send('async_ret_error %s' % str(ret))
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:

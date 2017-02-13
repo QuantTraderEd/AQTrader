@@ -155,8 +155,7 @@ class MainForm(QtGui.QMainWindow):
             strdbname = "orderlist_night_%s.db" %(strtime)
 
         strdbname = self.db_path + strdbname
-        self.myOrdListDlg.strdbname = strdbname
-            
+
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
             self.cursor_db = self.conn_db.cursor()
@@ -180,6 +179,8 @@ class MainForm(QtGui.QMainWindow):
                                            )""")
             self.conn_db.close()
             logger.info('Init New OrdList DB File')
+
+        self.myOrdListDlg.init_dbname(strdbname)
 
     def initThread(self):
         logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))

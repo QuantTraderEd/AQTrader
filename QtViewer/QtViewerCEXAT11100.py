@@ -60,6 +60,7 @@ class QtViewerCEXAT11100(QtCore.QObject):
 
             orderitem = (autotrader_id, ordno,strnowtime,buysell,shcode,price,qty,type1,type2,unexecqty,chkreq)
             # print orderitem
+            self.logger.info('%s' % str(orderitem))
             if type(self.conn) == lite.Connection:
                 # conn_db = lite.connect(self.dbname)
                 # cursor_db = conn_db.cursor()
@@ -77,7 +78,9 @@ class QtViewerCEXAT11100(QtCore.QObject):
                                                            UnExecQty,
                                                            ChkReq)
                                                 VALUES(%s)""" % wildcard, orderitem)
+                self.logger.info('insert db')
                 self.conn.commit()
+                self.logger.info('commit db')
                 # conn_db.close()
                 self.receive.emit()
 
