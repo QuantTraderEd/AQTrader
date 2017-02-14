@@ -29,6 +29,7 @@ class Ui_Form(object):
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tableWidget = QtGui.QTableWidget(Form)
+        self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
         self.tableWidget.setColumnCount(9)
         self.tableWidget.setRowCount(3)
