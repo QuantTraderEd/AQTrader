@@ -5,9 +5,6 @@ Created on Wed Aug 13 21:56:21 2014
 @author: assa
 """
 
-#import imp
-#imp.load_source('xinglogindlg','..\\xinglogindlg.py')
-
 import os
 import time
 import sys
@@ -99,6 +96,11 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+
+            self.option_greeks_query = px.XAQuery_t2301()
+            obs = observer_cmd()
+            self.option_greeks_query.observer = obs
+
         
         
     def initTIMER(self):
@@ -114,12 +116,35 @@ class ZeroPositionViewer(QtGui.QWidget):
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
-            self.onReceiveData(self.exchange,self.NewQuery.data)
+
+            self.option_greeks_query.flag = True
+            self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201703')
+            self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+            ret = self.option_greeks_query.Request(False)
+            while self.option_greeks_query.flag:
+                pythoncom.PumpWaitingMessages()
+
+            self.option_greeks_query.flag = True
+            self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201704')
+            self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+            ret = self.option_greeks_query.Request(False)
+            while self.option_greeks_query.flag:
+                pythoncom.PumpWaitingMessages()
+
+            self.onReceiveData(self.exchange, self.NewQuery.data)
+
             
     def onReceiveData(self, exchange, data):
         if exchange == 'KRX':
-            self.ui.tableWidget.setRowCount(len(data)-1)
+            self.ui.tableWidget.setRowCount(len(data)-1+1)
             self.ui.tableWidget.resizeRowsToContents()
+
+            total_delta = 0
+            total_gamma = 0
+            total_theta = 0
+            total_vega = 0
+            total_pnl = 0
+
             for i in xrange(1, len(data)):
                 shortcd = data[i]['expcode']
                 if data[i]['medocd'] == '1':
@@ -128,19 +153,61 @@ class ZeroPositionViewer(QtGui.QWidget):
                     pos = data[i]['jqty']
                 else:
                     pos = ''
+
                 pnl = "{:,}".format(long(data[i]['dtsunik1']))
                 avgprc = '%.5s' % data[i]['pamt']
                 lastprc = '%.5s' % data[i]['price']
+
+                # FIXME: switch futures greeks
+
+                delta = float(self.option_greeks_query.block_data[shortcd]['delt']) * int(pos)
+                gamma = float(self.option_greeks_query.block_data[shortcd]['gama']) * int(pos)
+                theta = float(self.option_greeks_query.block_data[shortcd]['ceta']) * int(pos)
+                vega = float(self.option_greeks_query.block_data[shortcd]['vega']) * int(pos)
+
+                total_delta += delta
+                total_gamma += gamma
+                total_theta += theta
+                total_vega += vega
+
+                delta = '%.4f' % delta
+                gamma = '%.4f' % gamma
+                theta = '%.4f' % theta
+                vega = '%.4f' % vega
 
                 self.updateTableWidgetItem(i-1, 0, shortcd)
                 self.updateTableWidgetItem(i-1, 1, pos)
                 self.updateTableWidgetItem(i-1, 2, lastprc)
                 self.updateTableWidgetItem(i-1, 3, avgprc)
+                self.updateTableWidgetItem(i-1, 4, delta)
+                self.updateTableWidgetItem(i-1, 5, gamma)
+                self.updateTableWidgetItem(i-1, 6, theta)
+                self.updateTableWidgetItem(i-1, 7, vega)
                 self.updateTableWidgetItem(i-1, 8, pnl)
 
+            total_delta = '%.4f' % total_delta
+            total_gamma = '%.4f' % total_gamma
+            total_theta = '%.4f' % total_theta
+            total_vega = '%.4f' % total_vega
+            total_pnl = "{:,}".format(total_pnl)
+
+            self.updateTableWidgetItem(len(data) - 1, 0, 'Total')
+            self.updateTableWidgetItem(len(data) - 1, 4, total_delta)
+            self.updateTableWidgetItem(len(data) - 1, 5, total_gamma)
+            self.updateTableWidgetItem(len(data) - 1, 6, total_theta)
+            self.updateTableWidgetItem(len(data) - 1, 7, total_vega)
+            self.updateTableWidgetItem(len(data) - 1, 8, total_pnl)
+
         elif exchange == 'EUREX':
-            self.ui.tableWidget.setRowCount(len(data)-2)
+            self.ui.tableWidget.setRowCount(len(data)-2 + 1)
             self.ui.tableWidget.resizeRowsToContents()
+
+            total_delta = 0
+            total_gamma = 0
+            total_theta = 0
+            total_vega = 0
+            total_pnl = 0
+
             for i in xrange(2, len(data)):
                 shortcd = data[i]['FnoIsuNo']
                 if data[i]['BnsTpCode'] == '1':
@@ -151,11 +218,46 @@ class ZeroPositionViewer(QtGui.QWidget):
                 avgprc = '%.5s' % data[i]['FnoAvrPrc']
                 lastprc = '%.5s' % data[i]['NowPrc']
 
+                # FIXME: switch futures greeks
+
+                delta = float(self.option_greeks_query.block_data[shortcd]['delt']) * int(pos)
+                gamma = float(self.option_greeks_query.block_data[shortcd]['gama']) * int(pos)
+                theta = float(self.option_greeks_query.block_data[shortcd]['ceta']) * int(pos)
+                vega = float(self.option_greeks_query.block_data[shortcd]['vega']) * int(pos)
+
+                total_delta += delta
+                total_gamma += gamma
+                total_theta += theta
+                total_vega += vega
+                total_pnl += long(data[i]['EvalPnl'])
+
+                delta = '%.4f' % delta
+                gamma = '%.4f' % gamma
+                theta = '%.4f' % theta
+                vega = '%.4f' % vega
+
                 self.updateTableWidgetItem(i-2, 0, shortcd)
                 self.updateTableWidgetItem(i-2, 1, pos)
                 self.updateTableWidgetItem(i-2, 2, lastprc)
                 self.updateTableWidgetItem(i-2, 3, avgprc)
+                self.updateTableWidgetItem(i-2, 4, delta)
+                self.updateTableWidgetItem(i-2, 5, gamma)
+                self.updateTableWidgetItem(i-2, 6, theta)
+                self.updateTableWidgetItem(i-2, 7, vega)
                 self.updateTableWidgetItem(i-2, 8, pnl)
+
+            total_delta = '%.4f' % total_delta
+            total_gamma = '%.4f' % total_gamma
+            total_theta = '%.4f' % total_theta
+            total_vega = '%.4f' % total_vega
+            total_pnl = "{:,}".format(total_pnl)
+
+            self.updateTableWidgetItem(len(data)-2, 0, 'Total')
+            self.updateTableWidgetItem(len(data)-2, 4, total_delta)
+            self.updateTableWidgetItem(len(data)-2, 5, total_gamma)
+            self.updateTableWidgetItem(len(data)-2, 6, total_theta)
+            self.updateTableWidgetItem(len(data)-2, 7, total_vega)
+            self.updateTableWidgetItem(len(data)-2, 8, total_pnl)
             
     def updateTableWidgetItem(self, row, col, text):
         widget_item = self.ui.tableWidget.item(row, col)
