@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Aug 13 21:56:21 2014
 
-@author: assa
-"""
 
 import os
 import time
@@ -100,15 +96,14 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.option_greeks_query = px.XAQuery_t2301()
             obs = observer_cmd()
             self.option_greeks_query.observer = obs
-
-        
+        pass
         
     def initTIMER(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             self.ctimer =  QtCore.QTimer()
             self.ctimer.timeout.connect(self.onTimer)
             self.ctimer.start(5000)
-            
+        pass
         
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -131,11 +126,11 @@ class ZeroPositionViewer(QtGui.QWidget):
             while self.option_greeks_query.flag:
                 pythoncom.PumpWaitingMessages()
 
-            self.onReceiveData(self.exchange, self.NewQuery.data)
+            self.onReceiveData(self.exchange, self.NewQuery.data, self.option_greeks_query.block_data)
+        pass
 
-            
-    def onReceiveData(self, exchange, data):
-        if exchange == 'KRX':
+    def onReceiveData(self, exchange_code, data, block_data):
+        if exchange_code == 'KRX':
             self.ui.tableWidget.setRowCount(len(data)-1+1)
             self.ui.tableWidget.resizeRowsToContents()
 
@@ -160,10 +155,10 @@ class ZeroPositionViewer(QtGui.QWidget):
 
                 # FIXME: switch futures greeks
 
-                delta = float(self.option_greeks_query.block_data[shortcd]['delt']) * int(pos)
-                gamma = float(self.option_greeks_query.block_data[shortcd]['gama']) * int(pos)
-                theta = float(self.option_greeks_query.block_data[shortcd]['ceta']) * int(pos)
-                vega = float(self.option_greeks_query.block_data[shortcd]['vega']) * int(pos)
+                delta = float(block_data[shortcd]['delt']) * int(pos)
+                gamma = float(block_data[shortcd]['gama']) * int(pos)
+                theta = float(block_data[shortcd]['ceta']) * int(pos)
+                vega = float(block_data[shortcd]['vega']) * int(pos)
 
                 total_delta += delta
                 total_gamma += gamma
@@ -198,7 +193,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.updateTableWidgetItem(len(data) - 1, 7, total_vega)
             self.updateTableWidgetItem(len(data) - 1, 8, total_pnl)
 
-        elif exchange == 'EUREX':
+        elif exchange_code == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2 + 1)
             self.ui.tableWidget.resizeRowsToContents()
 
@@ -220,10 +215,10 @@ class ZeroPositionViewer(QtGui.QWidget):
 
                 # FIXME: switch futures greeks
 
-                delta = float(self.option_greeks_query.block_data[shortcd]['delt']) * int(pos)
-                gamma = float(self.option_greeks_query.block_data[shortcd]['gama']) * int(pos)
-                theta = float(self.option_greeks_query.block_data[shortcd]['ceta']) * int(pos)
-                vega = float(self.option_greeks_query.block_data[shortcd]['vega']) * int(pos)
+                delta = float(block_data[shortcd]['delt']) * int(pos)
+                gamma = float(block_data[shortcd]['gama']) * int(pos)
+                theta = float(block_data[shortcd]['ceta']) * int(pos)
+                vega = float(block_data[shortcd]['vega']) * int(pos)
 
                 total_delta += delta
                 total_gamma += gamma

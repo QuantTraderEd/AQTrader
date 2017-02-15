@@ -15,7 +15,7 @@ from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import OrderMachineThread, OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
-from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200
+from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200, observer_cmd
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
@@ -204,32 +204,37 @@ class MainForm(QtGui.QMainWindow):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             nowtime = time.localtime()
             if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
-                self.exchange = 'KRX'
-                logger.info(self.exchange)
+                self.exchange_code = 'KRX'
+                logger.info(self.exchange_code)
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('t0441InBlock','accno',0,self.accountlist[self.accountindex])
+                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0 , self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
-                    self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0000')
+                    self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
                 elif self.servername[0] == 'X':
                     # it need the real account pw
-                    self.NewQuery.SetFieldData('t0441InBlock','passwd',0,'0302')
+                    self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0302')
             else:
-                self.exchange = 'EUREX'
-                logger.info(self.exchange)
+                self.exchange_code = 'EUREX'
+                logger.info(self.exchange_code)
                 self.NewQuery = px.XAQuery_CEXAQ31200()
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','RecCnt',0,1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','AcntNo',0,self.accountlist[self.accountindex])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
-                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0000')
+                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
                 elif self.servername[0] == 'X':
                     # it need the real account pw
-                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1','InptPwd',0,'0302')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','BalEvalTp',0,'1')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1','FutsPrcEvalTp',0,'1')
+                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+
+            self.option_greeks_query = px.XAQuery_t2301()
+            obs = observer_cmd()
+            self.option_greeks_query.observer = obs
+        pass
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
@@ -240,16 +245,33 @@ class MainForm(QtGui.QMainWindow):
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
-            self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
-            self.myPositionViewer.onReceiveData(self.exchange,self.NewQuery.data)
 
-    def slot_StartXingDlg(self,row,column):
+            self.option_greeks_query.flag = True
+            self.option_greeks_query.set_data('201703', 'G')
+            ret = self.option_greeks_query.Request(False)
+            while self.option_greeks_query.flag:
+                pythoncom.PumpWaitingMessages()
+
+            self.option_greeks_query.flag = True
+            self.option_greeks_query.set_data('201704', 'G')
+            ret = self.option_greeks_query.Request(False)
+            while self.option_greeks_query.flag:
+                pythoncom.PumpWaitingMessages()
+
+            self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
+            self.myPositionViewer.onReceiveData(self.exchange_code,
+                                                self.NewQuery.data,
+                                                self.option_greeks_query.block_data)
+
+    def slot_StartXingDlg(self, row, column):
         if row == 0 and column == 2:
-            #print("Row %d and Column %d was doblueclicked" % (row,column))
-            myform = LoginForm(self,proxy(self.XASession))
+            # print("Row %d and Column %d was doblueclicked" % (row,column))
+            myform = LoginForm(self, proxy(self.XASession))
             myform.show()
-            #myform.exec_()
+            # myform.exec_()
             self.xingTimer.start(1000)
+
+        pass
             
     def slot_AutoStartXing(self, auto_config):
         server = 'hts.ebestsec.co.kr'
@@ -261,7 +283,7 @@ class MainForm(QtGui.QMainWindow):
         certpw = str(auto_config['cetpwd'].decode('hex'))
         
         self.XASession.ConnectServer(server,port)
-        #print 'connect server'
+        # print 'connect server'
         ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)
                 
         px.XASessionEvents.session = self.XASession
@@ -294,19 +316,19 @@ class MainForm(QtGui.QMainWindow):
                 self.accountlist = self.XASession.GetAccountList()
                 self.ordermachineThread._accountlist = self.accountlist
                 self.ordermachineThread._servername = self.servername
-                #print  self.servername, self.accountlist
+                # print  self.servername, self.accountlist
                 logmsg = '%s   %s'%(self.servername,self.accountlist[self.accountindex])
                 logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
                 self.ordermachineThread.init_thread_pool()
                 self.ordermachineThread.start()
-                logger.info('Thread start')
+                logger.info('OrderMachineThread start')
             else:
                 self.ui.actionExecute.setChecked(False)
         elif self.ordermachineThread.isRunning() and (not boolToggle):
             self.ordermachineThread.terminate()
-            logger.info('Thread stop')
+            logger.info('OrderMachineThread stop')
         pass
 
     def NotifyThreadEnd(self):
@@ -321,7 +343,7 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def NotifyOrderListViewer(self):
-        #update ordlistDB
+        # update ordlistDB
         logger.info('will update ordlistDB')
         self.myOrdListDlg.OnUpdateList()
         pass
