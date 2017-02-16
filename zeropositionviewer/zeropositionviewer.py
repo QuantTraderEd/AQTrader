@@ -164,6 +164,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                 total_gamma += gamma
                 total_theta += theta
                 total_vega += vega
+                total_pnl += long(data[i]['dtsunik1'])
 
                 delta = '%.4f' % delta
                 gamma = '%.4f' % gamma
