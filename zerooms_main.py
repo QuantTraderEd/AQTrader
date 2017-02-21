@@ -112,6 +112,8 @@ class MainForm(QtGui.QMainWindow):
         self.myPositionViewer.close()
         self.myDigitViewer.close()
         logger.info("Close ZeroOMS")
+        event.accept()
+        super(MainForm, self).closeEvent(event)
 
     def initUI(self):
         self.ui = Ui_MainWindow()
