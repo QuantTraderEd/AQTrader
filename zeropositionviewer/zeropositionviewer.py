@@ -70,8 +70,7 @@ class ZeroPositionViewer(QtGui.QWidget):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
             print self.accountlist
-        
-        
+
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             nowtime = time.localtime()
@@ -154,11 +153,16 @@ class ZeroPositionViewer(QtGui.QWidget):
                 lastprc = '%.5s' % data[i]['price']
 
                 # FIXME: switch futures greeks
-
-                delta = float(block_data[shortcd]['delt']) * int(pos)
-                gamma = float(block_data[shortcd]['gama']) * int(pos)
-                theta = float(block_data[shortcd]['ceta']) * int(pos)
-                vega = float(block_data[shortcd]['vega']) * int(pos)
+                if shortcd[0] in ['2', '3']:
+                    delta = float(block_data[shortcd]['delt']) * int(pos)
+                    gamma = float(block_data[shortcd]['gama']) * int(pos)
+                    theta = float(block_data[shortcd]['ceta']) * int(pos)
+                    vega = float(block_data[shortcd]['vega']) * int(pos)
+                else:
+                    delta = 0
+                    gamma = 0
+                    theta = 0
+                    vega = 0
 
                 total_delta += delta
                 total_gamma += gamma
@@ -215,11 +219,16 @@ class ZeroPositionViewer(QtGui.QWidget):
                 lastprc = '%.5s' % data[i]['NowPrc']
 
                 # FIXME: switch futures greeks
-
-                delta = float(block_data[shortcd]['delt']) * int(pos)
-                gamma = float(block_data[shortcd]['gama']) * int(pos)
-                theta = float(block_data[shortcd]['ceta']) * int(pos)
-                vega = float(block_data[shortcd]['vega']) * int(pos)
+                if shortcd[0] in ['2', '3']:
+                    delta = float(block_data[shortcd]['delt']) * int(pos)
+                    gamma = float(block_data[shortcd]['gama']) * int(pos)
+                    theta = float(block_data[shortcd]['ceta']) * int(pos)
+                    vega = float(block_data[shortcd]['vega']) * int(pos)
+                else:
+                    delta = 0
+                    gamma = 0
+                    theta = 0
+                    vega = 0
 
                 total_delta += delta
                 total_gamma += gamma
@@ -247,6 +256,8 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_theta = '%.4f' % total_theta
             total_vega = '%.4f' % total_vega
             total_pnl = "{:,}".format(total_pnl)
+
+            print total_pnl
 
             self.updateTableWidgetItem(len(data)-2, 0, 'Total')
             self.updateTableWidgetItem(len(data)-2, 4, total_delta)
