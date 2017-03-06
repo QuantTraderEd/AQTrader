@@ -15,29 +15,34 @@ sys.path.append(xinglogindlg_dir)
 
 from xinglogindlg import LoginForm
 
+
 class observer_cmd:
-    def Update(self,subject):       
-        subject.flag = False
-        pass
-class observer_t0441:
-    def Update(self,subject):        
+    def Update(self, subject):
         subject.flag = False
         pass
 
+
+class observer_t0441:
+    def Update(self, subject):
+        subject.flag = False
+        pass
+
+
 class observer_CEXAQ31200:
-    def Update(self,subject):
+    def Update(self, subject):
         item = subject.data[1]
         subject.pnl = int((int(item['OptEvalPnlAmt']) + int(item['FutsEvalPnlAmt'])) * 0.001)
         subject.flag = False
         pass
 
+
 class ZeroPositionViewer(QtGui.QWidget):
-    def __init__(self,parent=None):
-        super(ZeroPositionViewer,self).__init__()
+    def __init__(self, parent=None):
+        super(ZeroPositionViewer, self).__init__()
         self.initUI()
-        #self.initXing()
-        #self.initQuery()
-        #self.initTIMER()
+        # self.initXing()
+        # self.initQuery()
+        # self.initTIMER()
         
     def initUI(self):
         self.ui = Ui_Form()
@@ -54,22 +59,21 @@ class ZeroPositionViewer(QtGui.QWidget):
         self.ui.tableWidget.setColumnWidth(7, 70)   # Vega
         self.ui.tableWidget.setColumnWidth(8, 120)   # P/L Open
 
-    def initXing(self,XASession=None):
-        if XASession != None:
+    def initXing(self, XASession=None):
+        if not isinstance(XASession, px.XASession):
+            self.XASession = px.XASession()
+            myform = LoginForm(self, proxy(self.XASession))
+            myform.show()
+            myform.exec_()
+        else:
             self.XASession = XASession
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-                self.accountlist = self.XASession.GetAccountList()
-            return
-
-        self.XASession = px.XASession()
-
-        myform = LoginForm(self,proxy(self.XASession))
-        myform.show()
-        myform.exec_()
 
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
+            self.servername = self.XASession.GetServerName()
             print self.accountlist
+        else:
+            print 'Not IsConnected or No Account'
 
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
@@ -111,19 +115,21 @@ class ZeroPositionViewer(QtGui.QWidget):
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
 
-            self.option_greeks_query.flag = True
-            self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201703')
-            self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
-            ret = self.option_greeks_query.Request(False)
-            while self.option_greeks_query.flag:
-                pythoncom.PumpWaitingMessages()
+            if self.servername[0] == 'X':
+                self.option_greeks_query.flag = True
+                self.option_greeks_query.set_data('201703', 'G')
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201703')
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+                ret = self.option_greeks_query.Request(False)
+                while self.option_greeks_query.flag:
+                    pythoncom.PumpWaitingMessages()
 
-            self.option_greeks_query.flag = True
-            self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201704')
-            self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
-            ret = self.option_greeks_query.Request(False)
-            while self.option_greeks_query.flag:
-                pythoncom.PumpWaitingMessages()
+                self.option_greeks_query.flag = True
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201704')
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+                ret = self.option_greeks_query.Request(False)
+                while self.option_greeks_query.flag:
+                    pythoncom.PumpWaitingMessages()
 
             self.onReceiveData(self.exchange, self.NewQuery.data, self.option_greeks_query.block_data)
         pass
@@ -139,6 +145,8 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_vega = 0
             total_pnl = 0
 
+            print 'P/L day: ', data[0]['tdtsunik']
+
             for i in xrange(1, len(data)):
                 shortcd = data[i]['expcode']
                 if data[i]['medocd'] == '1':
@@ -149,8 +157,8 @@ class ZeroPositionViewer(QtGui.QWidget):
                     pos = ''
 
                 pnl = "{:,}".format(long(data[i]['dtsunik1']))
-                avgprc = '%.5s' % data[i]['pamt']
-                lastprc = '%.5s' % data[i]['price']
+                avgprc = '%.5f' % float(data[i]['pamt'])
+                lastprc = '%.2f' % float(data[i]['price'])
 
                 # FIXME: switch futures greeks
                 if shortcd[0] in ['2', '3']:
@@ -215,8 +223,8 @@ class ZeroPositionViewer(QtGui.QWidget):
                 elif data[i]['BnsTpCode'] == '2':
                     pos = data[i]['UnsttQty']
                 pnl = "{:,}".format(long(data[i]['EvalPnl']))
-                avgprc = '%.5s' % data[i]['FnoAvrPrc']
-                lastprc = '%.5s' % data[i]['NowPrc']
+                avgprc = '%.5f' % float(data[i]['FnoAvrPrc'])
+                lastprc = '%.2f' % float(data[i]['NowPrc'])
 
                 # FIXME: switch futures greeks
                 if shortcd[0] in ['2', '3']:
@@ -257,7 +265,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_vega = '%.4f' % total_vega
             total_pnl = "{:,}".format(total_pnl)
 
-            print total_pnl
+            # print total_pnl
 
             self.updateTableWidgetItem(len(data)-2, 0, 'Total')
             self.updateTableWidgetItem(len(data)-2, 4, total_delta)

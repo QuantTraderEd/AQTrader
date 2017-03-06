@@ -242,28 +242,33 @@ class MainForm(QtGui.QMainWindow):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
 
     def queryTimerUpdate(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and self.NewQuery != None:
+        chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \
+                             isinstance(self.NewQuery, px.XAQuery_t0441)
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and chk_query_instance:
             self.NewQuery.flag = True
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
 
-            self.option_greeks_query.flag = True
-            self.option_greeks_query.set_data('201703', 'G')
-            ret = self.option_greeks_query.Request(False)
-            while self.option_greeks_query.flag:
-                pythoncom.PumpWaitingMessages()
+            if self.servername[0] == 'X':
+                self.option_greeks_query.flag = True
+                self.option_greeks_query.set_data('201703', 'G')
+                ret = self.option_greeks_query.Request(False)
+                while self.option_greeks_query.flag:
+                    pythoncom.PumpWaitingMessages()
 
-            self.option_greeks_query.flag = True
-            self.option_greeks_query.set_data('201704', 'G')
-            ret = self.option_greeks_query.Request(False)
-            while self.option_greeks_query.flag:
-                pythoncom.PumpWaitingMessages()
+                self.option_greeks_query.flag = True
+                self.option_greeks_query.set_data('201704', 'G')
+                ret = self.option_greeks_query.Request(False)
+                while self.option_greeks_query.flag:
+                    pythoncom.PumpWaitingMessages()
 
+            logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
             self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
             self.myPositionViewer.onReceiveData(self.exchange_code,
                                                 self.NewQuery.data,
                                                 self.option_greeks_query.block_data)
+            pass
 
     def slot_StartXingDlg(self, row, column):
         if row == 0 and column == 2:
@@ -319,7 +324,7 @@ class MainForm(QtGui.QMainWindow):
                 self.ordermachineThread._accountlist = self.accountlist
                 self.ordermachineThread._servername = self.servername
                 # print  self.servername, self.accountlist
-                logmsg = '%s   %s'%(self.servername,self.accountlist[self.accountindex])
+                logmsg = '%s   %s' % (self.servername, self.accountlist[self.accountindex])
                 logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
