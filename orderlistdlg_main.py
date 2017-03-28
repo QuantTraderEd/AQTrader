@@ -3,6 +3,7 @@
 import os
 import time
 import sys
+import logging
 import zmq
 import sqlite3 as lite
 
@@ -23,13 +24,15 @@ class OrderListDialog(QtGui.QDialog):
         self.ui.tableWidget.setColumnWidth(5, 80)
         self.ui.tableWidget.cellDoubleClicked.connect(self.OnCellDoubleClicked)
 
+        self.logger = logging.getLogger('ZeroOMS.OrderListDlg')
+        self.logger.info('Init OrderListDlg')
 
 
         self.order_port = order_port
         self.init_zmq()
 
         nowtime = time.localtime()
-        strtime = time.strftime('%Y%m%d',nowtime)
+        strtime = time.strftime('%Y%m%d', nowtime)
 
         self.strdbname = ''
 
@@ -60,27 +63,29 @@ class OrderListDialog(QtGui.QDialog):
 
         
     def OnUpdateList(self):
-        if os.path.isfile(self.strdbname):
-            self.cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
-            col_names = [cn[0] for cn in self.cursor_db.description]
-            rows = self.cursor_db.fetchall()
-            self.ui.tableWidget.setRowCount(len(rows))
-            self.ui.tableWidget.resizeRowsToContents()
+        if not os.path.isfile(self.strdbname):
+            return
 
-            # print "%s %s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % tuple(col_names)
-            # for row in rows:
-            #     print "%s %2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
+        self.cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
+        # col_names = [cn[0] for cn in self.cursor_db.description]
+        rows = self.cursor_db.fetchall()
+        self.ui.tableWidget.setRowCount(len(rows))
+        self.ui.tableWidget.resizeRowsToContents()
 
-            rownum = 0
-            for row in rows:
-                for j in range(2, len(row)):
-                    if row[j]:
-                        self.ui.tableWidget.setItem(rownum,j-2,QtGui.QTableWidgetItem(row[j]))
-                    elif not row[j]:
-                        self.ui.tableWidget.setItem(rownum,j-2,QtGui.QTableWidgetItem(''))
-                rownum = rownum + 1
+        # print "%s %s %2s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % tuple(col_names)
+        # for row in rows:
+        #     print "%s %2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
 
-            # conn_db.close()
+        rownum = 0
+        for row in rows:
+            for j in range(2, len(row)):
+                if row[j]:
+                    self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(row[j]))
+                elif not row[j]:
+                    self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(''))
+            rownum = rownum + 1
+
+        self.adjust_transaction_reversion()
         pass
     
     def OnCellDoubleClicked(self,row,col):        
@@ -114,7 +119,54 @@ class OrderListDialog(QtGui.QDialog):
             else:
                 print 'rows > 1 @ orderlistdlgCanclOrder'
         pass
-        
+
+    def adjust_transaction_reversion(self):
+        sqltext = """
+        SELECT
+            OrdNo,
+            Qty
+        FROM
+            OrderList
+        WHERE
+            UnExecQty > 0 AND
+            -- OrdNo = 20955 AND
+            ChkReq IN ('00040', '00039')
+        """
+        self.cursor_db.execute(sqltext)
+        rows = self.cursor_db.fetchall()
+        for row in rows:
+            orgordno = row[0]
+            orderqty = row[1]
+            sqltext = """
+            SELECT
+                SUM(ExecPrice * ExecQty),
+                SUM(ExecQty)
+            FROM
+                OrderList
+            WHERE
+                OrgOrdNo = %s
+            """ % orgordno
+            self.cursor_db.execute(sqltext)
+            exec_row = self.cursor_db.fetchone()
+
+            exec_qty_sum = exec_row[1]
+            avg_exec_price = float(exec_row[0]) / exec_qty_sum
+            unexecqty = int(orderqty) - int(exec_qty_sum)
+            # print avg_exec_price, exec_qty_sum, unexecqty
+            self.logger.info('adjust execqty of ordno-> %s' % orgordno)
+            self.cursor_db.execute("""Update
+                                        OrderList
+                                      Set
+                                        ExecPrice=?,
+                                        ExecQty=?,
+                                        UnExecQty=?
+                                      WHERE
+                                        OrdNo=?  AND
+                                        ChkReq IN ('00040', '00039')
+                                   """, (str(avg_exec_price), str(exec_qty_sum), str(unexecqty), orgordno))
+        self.conn_db.commit()
+        pass
+
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

@@ -58,7 +58,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Price</string>
+       <string>OrderPrice</string>
       </property>
      </column>
      <column>
