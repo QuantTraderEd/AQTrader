@@ -45,7 +45,8 @@ class ZeroPositionViewer(QtGui.QWidget):
         # self.initQuery()
         # self.initTIMER()
         self.logger = logging.getLogger('ZeroOMS.PositionViewer')
-
+        self.logger.info('Init PositionViewer')
+        
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
@@ -85,16 +86,16 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.NewQuery = px.XAQuery_t0441()
                 obs = observer_t0441()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[0])
-                self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0302')
+                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
+                self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
             else:
                 self.exchange = 'EUREX'
                 self.NewQuery = px.XAQuery_CEXAQ31200()
                 obs = observer_CEXAQ31200()
                 self.NewQuery.observer = obs
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[0])
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
+                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
 
