@@ -140,7 +140,8 @@ class OrderListDialog(QtGui.QDialog):
             sqltext = """
             SELECT
                 SUM(ExecPrice * ExecQty),
-                SUM(ExecQty)
+                SUM(ExecQty),
+                ChkReq
             FROM
                 OrderList
             WHERE
@@ -148,6 +149,8 @@ class OrderListDialog(QtGui.QDialog):
             """ % orgordno
             self.cursor_db.execute(sqltext)
             exec_row = self.cursor_db.fetchone()
+            if not exec_row[2]:
+                continue
 
             exec_qty_sum = exec_row[1]
             avg_exec_price = float(exec_row[0]) / exec_qty_sum
@@ -166,10 +169,12 @@ class OrderListDialog(QtGui.QDialog):
                                    """, (str(avg_exec_price), str(exec_qty_sum), str(unexecqty), orgordno))
         self.conn_db.commit()
         pass
-
+        
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
+    mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170317.db')
+    mydlg.adjust_transaction_reversion()
     mydlg.show()
     app.exec_()   
