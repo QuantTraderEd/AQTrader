@@ -263,7 +263,7 @@ class MainForm(QtGui.QMainWindow):
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
-            logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
+            # logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
             self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
             self.myPositionViewer.onReceiveData(self.exchange_code,
                                                 self.NewQuery.data,

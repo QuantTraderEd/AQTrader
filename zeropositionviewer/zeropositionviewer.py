@@ -4,6 +4,7 @@
 import os
 import time
 import sys
+import logging
 import pythoncom
 import pyxing as px
 from PyQt4 import QtGui, QtCore
@@ -43,7 +44,8 @@ class ZeroPositionViewer(QtGui.QWidget):
         # self.initXing()
         # self.initQuery()
         # self.initTIMER()
-        
+        self.logger = logging.getLogger('ZeroOMS.PositionViewer')
+
     def initUI(self):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
@@ -102,8 +104,8 @@ class ZeroPositionViewer(QtGui.QWidget):
         pass
         
     def initTIMER(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.ctimer =  QtCore.QTimer()
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+            self.ctimer = QtCore.QTimer()
             self.ctimer.timeout.connect(self.onTimer)
             self.ctimer.start(5000)
         pass
@@ -145,7 +147,8 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_vega = 0
             total_pnl = 0
 
-            print 'P/L day: ', data[0]['tdtsunik']
+            # self.logger('P/L Day: %d' % long(data[0]['tdtsunik']))
+            print 'P/L Day: ', data[0]['tdtsunik']
 
             for i in xrange(1, len(data)):
                 shortcd = data[i]['expcode']
