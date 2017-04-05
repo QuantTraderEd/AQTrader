@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'AutoOTMTrader.ui'
 #
-# Created: Tue Apr 19 00:17:40 2016
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -62,9 +61,6 @@ class Ui_MainWindow(object):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 633, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(MainWindow)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
-        MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -75,9 +71,9 @@ class Ui_MainWindow(object):
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ShortCD", None))
         item = self.tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "Pos", None))
+        item.setText(_translate("MainWindow", "Qty", None))
         item = self.tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "PnL", None))
+        item.setText(_translate("MainWindow", "P/L Open", None))
         item = self.tableWidget.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "AvgPrice", None))
         item = self.tableWidget.horizontalHeaderItem(4)
@@ -85,7 +81,7 @@ class Ui_MainWindow(object):
         item = self.tableWidget.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "Bid", None))
         item = self.tableWidget.horizontalHeaderItem(6)
-        item.setText(_translate("MainWindow", "LivePos", None))
+        item.setText(_translate("MainWindow", "LiveQty", None))
         item = self.tableWidget.horizontalHeaderItem(7)
         item.setText(_translate("MainWindow", "OrdPrice", None))
         self.pushButton_Start.setText(_translate("MainWindow", "Start", None))

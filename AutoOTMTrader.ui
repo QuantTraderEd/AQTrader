@@ -38,12 +38,12 @@
       </column>
       <column>
        <property name="text">
-        <string>Pos</string>
+        <string>Qty</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>PnL</string>
+        <string>P/L Open</string>
        </property>
       </column>
       <column>
@@ -63,7 +63,7 @@
       </column>
       <column>
        <property name="text">
-        <string>LivePos</string>
+        <string>LiveQty</string>
        </property>
       </column>
       <column>
@@ -92,7 +92,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
