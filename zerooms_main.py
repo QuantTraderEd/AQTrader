@@ -7,6 +7,7 @@ import json
 import pythoncom
 
 import logging
+import datetime as dt
 import pyxing as px
 import sqlite3 as lite
 
@@ -19,6 +20,8 @@ from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
+
+import CommUtil.ExpireDateUtil as ExpireDateUtil
 
 logger = logging.getLogger('ZeroOMS')
 logger.setLevel(logging.DEBUG)
@@ -87,6 +90,7 @@ class MainForm(QtGui.QMainWindow):
 
         self.initDB()
         self.initThread()
+        self.initExpireDateUtil()
 
         logger.info('Start ZeroOMS')
         
@@ -201,6 +205,14 @@ class MainForm(QtGui.QMainWindow):
             self.ordermachineThread.eq_account_index = 1
         pass
 
+    def initExpireDateUtil(self):
+        self.expiredate_util = ExpireDateUtil.ExpireDateUtil()
+        now_dt = dt.datetime.now()
+        today = now_dt.strftime('%Y%m%d')
+
+        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        expire_date_lst = self.expiredate_util.make_expire_date(today)
+        print expire_date_lst
 
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -252,13 +264,13 @@ class MainForm(QtGui.QMainWindow):
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data('201703', 'G')
+                self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data('201704', 'G')
+                self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
