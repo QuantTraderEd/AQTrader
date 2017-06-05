@@ -212,7 +212,7 @@ class MainForm(QtGui.QMainWindow):
 
         self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
         expire_date_lst = self.expiredate_util.make_expire_date(today)
-        print expire_date_lst
+        logger.info('%s' % ','.join(expire_date_lst))
 
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -270,7 +270,7 @@ class MainForm(QtGui.QMainWindow):
                     pythoncom.PumpWaitingMessages()
 
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
+                self.option_greeks_query.set_data(self.expiredate_util.back_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
@@ -280,7 +280,7 @@ class MainForm(QtGui.QMainWindow):
             self.myPositionViewer.onReceiveData(self.exchange_code,
                                                 self.NewQuery.data,
                                                 self.option_greeks_query.block_data)
-            pass
+        pass
 
     def slot_StartXingDlg(self, row, column):
         if row == 0 and column == 2:
@@ -330,6 +330,16 @@ class MainForm(QtGui.QMainWindow):
             
     def slot_ToggleExecute(self, boolToggle):
         if (not self.ordermachineThread.isRunning()) and boolToggle:
+
+            now_dt = dt.datetime.now()
+            strdate = now_dt.strftime('%Y%m%d')
+            is_expiredate = self.expiredate_util.is_expire_date(strdate)
+            if is_expiredate:
+                now_dt = dt.datetime.now() + dt.timedelta(days=1)
+                strdate = now_dt.strftime('%Y%m%d')
+                expire_date_lst = self.expiredate_util.make_expire_date(strdate)
+                logger.info('%s %s' % (strdate, ','.join(expire_date_lst)))
+
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.servername = self.XASession.GetServerName()
                 self.accountlist = self.XASession.GetAccountList()
