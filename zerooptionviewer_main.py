@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import logging
-from datetime import datetime
+import datetime as dt
 import sip
 from PyQt4 import QtGui, QtCore
 from zerooptionviewer_thread import OptionViewerThread
 from zerooptionviewer_orderwidget import OptionViewerOrderWidget
 from ui_zerooptionviewer import Ui_MainWindow
 from FeedCodeList import FeedCodeList
+import CommUtil.ExpireDateUtil as ExpireDateUtil
 
 logger = logging.getLogger('ZeroOptionViewer')
 logger.setLevel(logging.DEBUG)
@@ -39,7 +41,7 @@ def convert(strprice):
 class MainForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.initVar()
+        self.initExpireDateUtil()
         self.initUI()
         self.initFeedCode()
         self.initStrikeList()
@@ -51,9 +53,6 @@ class MainForm(QtGui.QMainWindow):
         self.mythread.stop()
         setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
-
-    def initVar(self):
-        self.expireMonthCode = 'LB'
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -71,7 +70,7 @@ class MainForm(QtGui.QMainWindow):
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()
+        self._FeedCodeList.ReadCodeListFile()        
         #for item in self._FeedCodeList.optionshcodelst:
         #    print item
 
@@ -122,6 +121,17 @@ class MainForm(QtGui.QMainWindow):
     def initThread(self):
         self.mythread = OptionViewerThread(None)
         self.mythread.receiveData[dict].connect(self.onReceiveData)
+
+    def initExpireDateUtil(self):
+        self.expiredate_util = ExpireDateUtil.ExpireDateUtil()
+        now_dt = dt.datetime.now()
+        today = now_dt.strftime('%Y%m%d')
+
+        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        expire_shortcd_lst = self.expiredate_util.make_expire_shortcd(today)
+        logger.info('%s' % ','.join(expire_shortcd_lst))
+        self.expireMonthCode = expire_shortcd_lst[0]
+        logger.info('ExpireMonthCode: %s' % self.expireMonthCode)
         
     def initData(self):
         shcode = '201J7267'                    
@@ -222,9 +232,10 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def onReceiveData(self, msg_dict):
-        nowtime = datetime.now()
+        nowtime = dt.datetime.now()
         shortcd = msg_dict['ShortCD']
-        if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q':
+        frontfutures_shortcd = self._FeedCodeList.futureshcodelst[0]
+        if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q' and shortcd == frontfutures_shortcd:
             askqty1 = msg_dict['AskQty1']
             ask1 = msg_dict['Ask1']
             bid1 = msg_dict['Bid1']
