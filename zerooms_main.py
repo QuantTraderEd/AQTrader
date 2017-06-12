@@ -334,7 +334,7 @@ class MainForm(QtGui.QMainWindow):
             now_dt = dt.datetime.now()
             strdate = now_dt.strftime('%Y%m%d')
             is_expiredate = self.expiredate_util.is_expire_date(strdate)
-            if is_expiredate:
+            if is_expiredate and now_dt.hour >= 17:
                 now_dt = dt.datetime.now() + dt.timedelta(days=1)
                 strdate = now_dt.strftime('%Y%m%d')
                 expire_date_lst = self.expiredate_util.make_expire_date(strdate)

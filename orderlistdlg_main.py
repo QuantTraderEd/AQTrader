@@ -177,7 +177,8 @@ class OrderListDialog(QtGui.QDialog):
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
-    mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
+    # mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
+    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_night_20170419.db')
     mydlg.adjust_transaction_reversion()
     mydlg.show()
     app.exec_()   
