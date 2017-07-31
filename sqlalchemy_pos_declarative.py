@@ -13,6 +13,7 @@ class PositionEntity(Base):
     buysell = Column(String)
     avgexecprice = Column(Float)
     holdqty = Column(Integer)
+    # liveqty = Column(Integer)
 
 # engine = create_engine('sqlite:///entityorder_20151007.db')
 # engine = create_engine('sqlite:////home/s450022/python/comm/orderentity_20151012.db')
