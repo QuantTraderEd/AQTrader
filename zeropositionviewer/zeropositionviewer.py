@@ -138,6 +138,13 @@ class ZeroPositionViewer(QtGui.QWidget):
         pass
 
     def onReceiveData(self, exchange_code, data, block_data):
+
+        greek_default_dict = dict()
+        greek_default_dict['delt'] = 0.0
+        greek_default_dict['gama'] = 0.0
+        greek_default_dict['ceta'] = 0.0
+        greek_default_dict['vega'] = 0.0
+
         if exchange_code == 'KRX':
             self.ui.tableWidget.setRowCount(len(data)-1+1)
             self.ui.tableWidget.resizeRowsToContents()
@@ -166,10 +173,10 @@ class ZeroPositionViewer(QtGui.QWidget):
 
                 # FIXME: switch futures greeks
                 if shortcd[0] in ['2', '3']:
-                    delta = float(block_data[shortcd]['delt']) * int(pos)
-                    gamma = float(block_data[shortcd]['gama']) * int(pos)
-                    theta = float(block_data[shortcd]['ceta']) * int(pos)
-                    vega = float(block_data[shortcd]['vega']) * int(pos)
+                    delta = float(block_data.get(shortcd, greek_default_dict)['delt']) * int(pos)
+                    gamma = float(block_data.get(shortcd, greek_default_dict)['gama']) * int(pos)
+                    theta = float(block_data.get(shortcd, greek_default_dict)['ceta']) * int(pos)
+                    vega = float(block_data.get(shortcd, greek_default_dict)['vega']) * int(pos)
                 else:
                     delta = 0
                     gamma = 0
@@ -204,6 +211,9 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_pnl = "{:,}".format(total_pnl)
 
             self.updateTableWidgetItem(len(data) - 1, 0, 'Total')
+            self.updateTableWidgetItem(len(data) - 1, 1, '')
+            self.updateTableWidgetItem(len(data) - 1, 2, '')
+            self.updateTableWidgetItem(len(data) - 1, 3, '')
             self.updateTableWidgetItem(len(data) - 1, 4, total_delta)
             self.updateTableWidgetItem(len(data) - 1, 5, total_gamma)
             self.updateTableWidgetItem(len(data) - 1, 6, total_theta)
@@ -232,10 +242,10 @@ class ZeroPositionViewer(QtGui.QWidget):
 
                 # FIXME: switch futures greeks
                 if shortcd[0] in ['2', '3']:
-                    delta = float(block_data[shortcd]['delt']) * int(pos)
-                    gamma = float(block_data[shortcd]['gama']) * int(pos)
-                    theta = float(block_data[shortcd]['ceta']) * int(pos)
-                    vega = float(block_data[shortcd]['vega']) * int(pos)
+                    delta = float(block_data.get(shortcd, greek_default_dict)['delt']) * int(pos)
+                    gamma = float(block_data.get(shortcd, greek_default_dict)['gama']) * int(pos)
+                    theta = float(block_data.get(shortcd, greek_default_dict)['ceta']) * int(pos)
+                    vega = float(block_data.get(shortcd, greek_default_dict)['vega']) * int(pos)
                 else:
                     delta = 0
                     gamma = 0
@@ -272,6 +282,9 @@ class ZeroPositionViewer(QtGui.QWidget):
             # print total_pnl
 
             self.updateTableWidgetItem(len(data)-2, 0, 'Total')
+            self.updateTableWidgetItem(len(data)-2, 1, '')
+            self.updateTableWidgetItem(len(data)-2, 2, '')
+            self.updateTableWidgetItem(len(data)-2, 3, '')
             self.updateTableWidgetItem(len(data)-2, 4, total_delta)
             self.updateTableWidgetItem(len(data)-2, 5, total_gamma)
             self.updateTableWidgetItem(len(data)-2, 6, total_theta)
