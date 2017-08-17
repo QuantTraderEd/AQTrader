@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'zerooptionviewer.ui'
+# Form implementation generated from reading ui file 'ZeroOptionviewer.ui'
 #
-# Created: Thu May 14 19:45:04 2015
-#      by: PyQt4 UI code generator 4.9.6
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -40,6 +39,7 @@ class Ui_MainWindow(object):
         self.tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setAlternatingRowColors(True)
+        self.tableWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableWidget.setShowGrid(True)
         self.tableWidget.setRowCount(3)
         self.tableWidget.setColumnCount(17)
