@@ -383,9 +383,9 @@ class MainForm(QtGui.QMainWindow):
             pos = self.position_shortcd_lst.index(shortcd)
             buysell = self.buysell_lst[pos]
             pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
-            if buysell == 'sell': pnl *= -1.0
+            if buysell in ['sell', 'S']: pnl *= -1.0
             str_holdqty = str(self.holdqty_lst[i])
-            if buysell == 'sell':
+            if buysell in ['sell', 'S']:
                 str_holdqty = '-' + str_holdqty
 
             self.updateTableWidgetItem(i, 0, self.position_shortcd_lst[i])
