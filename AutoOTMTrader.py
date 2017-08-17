@@ -313,9 +313,9 @@ class MainForm(QtGui.QMainWindow):
                 pnl_diff *= -1.0
             self.total_pnl += pnl_diff
 
-            self.updateTableWidgetItem(pos, 2, str(pnl))
-            self.updateTableWidgetItem(pos, 4, str(ask1))
-            self.updateTableWidgetItem(pos, 5, str(bid1))
+            self.updateTableWidgetItem(pos, 2, '%.3f' % pnl)
+            self.updateTableWidgetItem(pos, 4, '%.2f' % ask1)
+            self.updateTableWidgetItem(pos, 5, '%.2f' % bid1)
             
             self.updateTableWidgetItem(len(self.position_shortcd_lst), 2, str(self.total_pnl))
 
@@ -392,8 +392,8 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(i, 1, str_holdqty)
             self.updateTableWidgetItem(i, 2, "%.3f" % pnl)
             self.updateTableWidgetItem(i, 3, "%.3f" % self.avgexecprice_dict[shortcd])
-            self.updateTableWidgetItem(i, 4, "%s" % ask1)
-            self.updateTableWidgetItem(i, 5, "%s" % bid1)
+            self.updateTableWidgetItem(i, 4, "%.2f" % float(ask1))
+            self.updateTableWidgetItem(i, 5, "%.2f" % float(bid1))
 
             self.total_pnl += pnl
 
