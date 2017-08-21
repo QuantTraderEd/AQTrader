@@ -276,6 +276,8 @@ class MainForm(QtGui.QMainWindow):
                     pythoncom.PumpWaitingMessages()
 
             # logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
+            # print self.servername
+            # print self.option_greeks_query.block_data
             self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
             self.myPositionViewer.onReceiveData(self.exchange_code,
                                                 self.NewQuery.data,
@@ -341,12 +343,12 @@ class MainForm(QtGui.QMainWindow):
                 logger.info('%s %s' % (strdate, ','.join(expire_date_lst)))
 
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-                self.servername = self.XASession.GetServerName()
+                self.servername = (self.XASession.GetServerName()).strip()
                 self.accountlist = self.XASession.GetAccountList()
                 self.ordermachineThread._accountlist = self.accountlist
                 self.ordermachineThread._servername = self.servername
                 # print  self.servername, self.accountlist
-                logmsg = '%s   %s' % (self.servername, self.accountlist[self.accountindex])
+                logmsg = 'servername: %s   account_no: %s' % (self.servername, self.accountlist[self.accountindex])
                 logger.info(logmsg)
                 self.initQuery()
                 self.queryTimer.start(10000)
@@ -357,6 +359,7 @@ class MainForm(QtGui.QMainWindow):
                 self.ui.actionExecute.setChecked(False)
         elif self.ordermachineThread.isRunning() and (not boolToggle):
             self.ordermachineThread.terminate()
+            self.ordermachineThread.wait()
             logger.info('OrderMachineThread stop')
         pass
 

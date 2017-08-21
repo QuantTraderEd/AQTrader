@@ -149,7 +149,7 @@ class OrderMachineThread(QtCore.QThread):
 
         if self._servername[:3] == 'MIS':
             accountpwd = ['0000','0000']
-        elif self._servername[:1] == 'X':
+        elif self._servername == 'X14': #'SERVER20':
             accountpwd = ['0302','']
         else:
             self.logger.info('fail: not available servername')
@@ -510,6 +510,20 @@ class OrderWorkerThread(QtCore.QThread):
         self.xaquery_CEXAT11300.observer = self.qtviewer11300
 
     def run(self):
+        if len(self._accountlist) == 0:
+            self.logger.info('fail: no account')
+            return
+
+        if self._servername[:3] == 'MIS':
+            accountpwd = ['0000', '0000']
+        elif self._servername == 'X14': # 'SERVER20':
+            accountpwd = ['0302', '']
+        else:
+            self.logger.info('servername: ' + self._servername)
+            self.logger.info('fail: not available servername')
+            accountpwd = []
+            return
+
         while True:
             # data = self.socket.recv_pyobj()
             # logmsg = "Thread_Id: [%d] Recv request: [%s]" % (self.thread_id, data)
@@ -518,18 +532,7 @@ class OrderWorkerThread(QtCore.QThread):
             # time.sleep(1)
             #
             # self.socket.send(b"World")
-            if len(self._accountlist) == 0:
-                self.logger.info('fail: no account')
-                return
 
-            if self._servername[:3] == 'MIS':
-                accountpwd = ['0000', '0000']
-            elif self._servername[:1] == 'X':
-                accountpwd = ['0302', '']
-            else:
-                self.logger.info('fail: not available servername')
-                accountpwd = []
-                return
             msg_dict = self.socket.recv_pyobj()
             if not self._XASession.IsConnected():
                 self.logger.info('fail: disconnect xsession')
