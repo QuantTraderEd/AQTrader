@@ -28,7 +28,7 @@ class observer_t0441:
         if len(subject.data) > 0:
             item = subject.data[0]
             if item['tsunik'] != '-':
-                subject.pnl = int(int(item['tsunik']) * 0.001)
+                subject.pnl = int(int(item['tsunik'] or 0) * 0.001)
             else:
                 subject.pnl = 0
         else:
@@ -40,7 +40,7 @@ class observer_CEXAQ31200:
     def Update(self,subject):
         if len(subject.data) > 1:
             item = subject.data[1]
-            subject.pnl = int((int(item['OptEvalPnlAmt']) + int(item['FutsEvalPnlAmt'])) * 0.001)
+            subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
         else:
             subject.pnl = 0
         subject.flag = False

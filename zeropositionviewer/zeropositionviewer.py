@@ -32,7 +32,7 @@ class observer_t0441:
 class observer_CEXAQ31200:
     def Update(self, subject):
         item = subject.data[1]
-        subject.pnl = int((int(item['OptEvalPnlAmt']) + int(item['FutsEvalPnlAmt'])) * 0.001)
+        subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
         subject.flag = False
         pass
 
@@ -120,15 +120,16 @@ class ZeroPositionViewer(QtGui.QWidget):
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data('201703', 'G')
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201703')
+                self.option_greeks_query.set_data('201706', 'G')
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201705')
                 self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201704')
+                self.option_greeks_query.set_data('201706', 'G')
+                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201706')
                 self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
