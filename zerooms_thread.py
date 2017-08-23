@@ -149,7 +149,7 @@ class OrderMachineThread(QtCore.QThread):
 
         if self._servername[:3] == 'MIS':
             accountpwd = ['0000','0000']
-        elif self._servername == 'X14': #'SERVER20':
+        elif self.servername in ['X', 'SERVER']:
             accountpwd = ['0302','']
         else:
             self.logger.info('fail: not available servername')
@@ -516,7 +516,7 @@ class OrderWorkerThread(QtCore.QThread):
 
         if self._servername[:3] == 'MIS':
             accountpwd = ['0000', '0000']
-        elif self._servername == 'X14': # 'SERVER20':
+        elif self._servername in ['X','SERVER']:
             accountpwd = ['0302', '']
         else:
             self.logger.info('servername: ' + self._servername)

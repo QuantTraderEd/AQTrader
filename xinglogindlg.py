@@ -61,8 +61,8 @@ class LoginForm(QtGui.QDialog):
         certpw = str(self.ui.lineEditEtradeServerName.text())
         
         if user == '':
-            user = 'eddy7777'
-            password = 'c9792458'
+            user = ''
+            password = ''
         if self._XASession == None:
             self._XASession = px.XASession()
         self._XASession.observer = proxy(self)

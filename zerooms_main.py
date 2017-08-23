@@ -3,6 +3,7 @@
 import sys
 import time
 import os
+import re
 import json
 import pythoncom
 
@@ -226,9 +227,12 @@ class MainForm(QtGui.QMainWindow):
                 self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0 , self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
                     self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
-                elif self.servername[0] == 'X':
+                elif self.servername in ['X', 'SERVER']:
                     # it need the real account pw
                     self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0302')
+                else:
+                    logger.warn('unknown servername: %s' % self.servername)
+                    return False
             else:
                 self.exchange_code = 'EUREX'
                 logger.info(self.exchange_code)
@@ -239,15 +243,23 @@ class MainForm(QtGui.QMainWindow):
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[self.accountindex])
                 if self.servername[:3] == 'MIS':
                     self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
-                elif self.servername[0] == 'X':
+                elif self.servername in ['X', 'SERVER']:
                     # it need the real account pw
                     self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
+                else:
+                    logger.info('unknown servername: %s' % self.servername)
+                    return False
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
 
             self.option_greeks_query = px.XAQuery_t2301()
             obs = observer_cmd()
             self.option_greeks_query.observer = obs
+            return True
+
+        else:
+            logger.warn('disconnect xaseesion or account list cnt zero')
+            return False
         pass
         
     def ctimerUpdate(self):
@@ -262,7 +274,7 @@ class MainForm(QtGui.QMainWindow):
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
 
-            if self.servername[0] == 'X':
+            if self.servername in ['X', 'SERVER']:
                 self.option_greeks_query.flag = True
                 self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
@@ -344,13 +356,18 @@ class MainForm(QtGui.QMainWindow):
 
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.servername = (self.XASession.GetServerName()).strip()
+                servername_re = "".join(re.split("[^a-zA-Z]*", self.servername))
+                logger.info("servername: %s -> %s" % (self.servername, servername_re))
+                self.servername = servername_re
                 self.accountlist = self.XASession.GetAccountList()
                 self.ordermachineThread._accountlist = self.accountlist
                 self.ordermachineThread._servername = self.servername
                 # print  self.servername, self.accountlist
                 logmsg = 'servername: %s   account_no: %s' % (self.servername, self.accountlist[self.accountindex])
                 logger.info(logmsg)
-                self.initQuery()
+                if not self.initQuery():
+                    self.ui.actionExecute.setChecked(False)
+                    return
                 self.queryTimer.start(10000)
                 self.ordermachineThread.init_thread_pool()
                 self.ordermachineThread.start()
