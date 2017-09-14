@@ -283,6 +283,8 @@ class MainForm(QtGui.QMainWindow):
                                               buysell
                                               )
                 self._orderthread.sendNewOrder()
+                #####################
+                ## this part is needed to refactory to onReceiveAck @function
                 pos = self.position_shortcd_lst.index(order_dict['shortcd'])
                 liveqty = str(order_dict['orderqty'])
 
@@ -291,6 +293,7 @@ class MainForm(QtGui.QMainWindow):
                 self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
                 self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'],0)
                 logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
+                #######################
 
             shortcd = msg_dict['ShortCD']
             if not (shortcd in self.position_shortcd_lst): return
