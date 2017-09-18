@@ -329,6 +329,13 @@ class MainForm(QtGui.QMainWindow):
 
     def onReceiveOrderAck(self, msg_in):
         logger.info('onReceiveOrderAck %s' % msg_in)
+        # msg_in indicate only recv_ack_code
+        # ack_code
+        # 00040: buy limit order
+        # 00039: sell limit order
+        # OK: normal @EUREX
+        # But how can here know that shortcd, orderqty, orderprice ??
+        # So, msg_in replace to msg_dict
         pass
 
     def onReceiveExecution(self, data_dict):
