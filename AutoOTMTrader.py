@@ -55,17 +55,21 @@ class MainForm(QtGui.QMainWindow):
         self.total_pnl = 0
         self.orderseq = list()
         self.order_qu = collections.deque()
+        self.order_cnt = 0
 
         self.autotrader_id = 'OTM001'
         self.order_port = 6001  # real 6000
         self.exec_report_port = 7001  # real 7000
+
+        self.qtimer = QtCore.QTimer()
+        self.qtimer.timeout.connect(self.on_timer)
 
         self.initStrikeList()
         self.initThread()
         self._session = position_db_init.initSession('autotrader_position.db')
         self.init_quote_dict()
         self.updatePostionTable()
-        self.init_orderseq()
+        # self.init_orderseq()
 
         call_shortcd = self.find_target_shortcd('call')
         put_shortcd = self.find_target_shortcd('put')
@@ -145,25 +149,54 @@ class MainForm(QtGui.QMainWindow):
                 self.ask1_dict[shortcd] = 0.0
 
     def init_orderseq(self):
-        for i in xrange(len(self.position_shortcd_lst)):
-            shortcd = self.position_shortcd_lst[i]
-            ask1 = self.bid1_dict.get(shortcd, 0.0)
-            bid1 = self.bid1_dict.get(shortcd, 0.0)
+        if len(self.position_shortcd_lst) > 0:
+            for i in xrange(len(self.position_shortcd_lst)):
+                shortcd = self.position_shortcd_lst[i]
+                ask1 = self.bid1_dict.get(shortcd, 0.0)
+                bid1 = self.bid1_dict.get(shortcd, 0.0)
 
-            pos = self.position_shortcd_lst.index(shortcd)
-            buysell = self.buysell_lst[pos]
+                pos = self.position_shortcd_lst.index(shortcd)
+                buysell = self.buysell_lst[pos]
 
-            if buysell == 'sell':
-                order_dict = dict()
-                order_dict['shortcd'] = shortcd
-                order_dict['orderprice'] = 0.01
-                if ask1 - bid1 <= 0.03:
+                if buysell == 'sell':
+                    order_dict = dict()
+                    order_dict['shortcd'] = shortcd
+                    order_dict['orderprice'] = 0.01
+                    if ask1 - bid1 <= 0.03:
+                        order_dict['orderprice'] = ask1
+                    order_dict['orderqty'] = self.position_dict[shortcd]
+                    # order_dict['orderprice'] = float(ask1)
+                    # order_dict['orderqty'] = 1
+                    order_dict['buysell'] = 'buy'
+                    self.orderseq.append(order_dict)
+        else:
+            now_dt = dt.datetime.now()
+            if now_dt.hour >= 9 and now_dt.hour <= 14:
+                call_shortcd = self.find_target_shortcd('call')
+                put_shortcd = self.find_target_shortcd('put')
+
+                logger.info('======= target option shortcd ======')
+                logger.info('target call option-> %s' % call_shortcd)
+                logger.info('target put option-> %s' % put_shortcd)
+                logger.info('====================================')
+
+                for shortcd in [call_shortcd, put_shortcd]:
+                    ask1 = self.bid1_dict.get(shortcd, 0.0)
+                    bid1 = self.bid1_dict.get(shortcd, 0.0)
+                    buysell = 'sell'
+
+                    order_dict = dict()
+                    order_dict['shortcd'] = shortcd
                     order_dict['orderprice'] = ask1
-                order_dict['orderqty'] = self.position_dict[shortcd]
-                # order_dict['orderprice'] = float(ask1)
-                # order_dict['orderqty'] = 1
-                order_dict['buysell'] = 'buy'
-                self.orderseq.append(order_dict)
+                    if ask1 - bid1 <= 0.03:
+                        order_dict['orderprice'] = bid1
+                    order_dict['orderqty'] = 2
+                    # order_dict['orderprice'] = float(ask1)
+                    # order_dict['orderqty'] = 1
+                    order_dict['buysell'] = buysell
+                    self.orderseq.append(order_dict)
+            else:
+                logger.info('')
 
     def initExpireDateUtil(self):
         self.expiredate_util = ExpireDateUtil.ExpireDateUtil()
@@ -242,11 +275,23 @@ class MainForm(QtGui.QMainWindow):
             self._tickreceiverthread.start()
             self._executionreportthread.start()
             self.ui.pushButton_Start.setText('Stop')
+            self.qtimer.start(60000)
         elif isThreadRun:
             self._tickreceiverthread.stop()
             self._executionreportthread.stop()
-            # self._thread.terminate()
+            self._tickreceiverthread.terminate()
+            self._executionreportthread.terminate()
+            self._tickreceiverthread.wait()
+            self._executionreportthread.wait()
             self.ui.pushButton_Start.setText('Start')
+            self.qtimer.stop()
+        pass
+
+    def on_timer(self):
+        now_dt = dt.datetime.now()
+        print 'on_timer->' + str(now_dt)
+        if (len(self.orderseq) >= 1) or (self.order_cnt > 0): return
+        self.init_orderseq()
         pass
 
     def updateTableWidgetItem(self, row, col, text):
@@ -285,6 +330,7 @@ class MainForm(QtGui.QMainWindow):
                                               )
                 self._orderthread.sendNewOrder()
                 self.order_qu.append(order_dict)
+                self.order_cnt += 1
                 #####################
                 ## this part is needed to refactory to onReceiveAck @function
                 # pos = self.position_shortcd_lst.index(order_dict['shortcd'])
