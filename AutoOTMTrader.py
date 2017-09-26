@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 import datetime as dt
+import collections
 import zmq
 import redis
 import sip
@@ -13,7 +14,6 @@ from ui_AutoOTMTrader import Ui_MainWindow
 from AutoOTMTrader_thread import TickDataReceiverThread, ExecutionReportThread, OrderThread
 from FeedCodeList import FeedCodeList
 import CommUtil.ExpireDateUtil as ExpireDateUtil
-
 
 import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
@@ -54,6 +54,7 @@ class MainForm(QtGui.QMainWindow):
         self.bid1_dict = {}
         self.total_pnl = 0
         self.orderseq = list()
+        self.order_qu = collections.deque()
 
         self.autotrader_id = 'OTM001'
         self.order_port = 6001  # real 6000
@@ -98,11 +99,11 @@ class MainForm(QtGui.QMainWindow):
         # self.ui.tableWidget.resizeColumnToContents(0)       # shortcd
         # self.ui.tableWidget.resizeColumnToContents(1)       # qty
         # self.ui.tableWidget.resizeColumnToContents(2)       # P/L Open
-        self.ui.tableWidget.resizeColumnToContents(3)       # avgprice
+        self.ui.tableWidget.resizeColumnToContents(3)  # avgprice
         # self.ui.tableWidget.resizeColumnToContents(4)       # ask1
         # self.ui.tableWidget.resizeColumnToContents(5)       # bid1
-        self.ui.tableWidget.resizeColumnToContents(6)       # liveqty
-        self.ui.tableWidget.resizeColumnToContents(7)       # orderprice
+        self.ui.tableWidget.resizeColumnToContents(6)  # liveqty
+        self.ui.tableWidget.resizeColumnToContents(7)  # orderprice
 
         self.ui.tableWidget.setColumnWidth(0, 70)
         self.ui.tableWidget.setColumnWidth(1, 35)
@@ -111,7 +112,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setColumnWidth(5, 40)
 
         pass
-    
+
     def initThread(self):
         # self._thread = OptionViewerThread(None)
         # self._thread.receiveData[str].connect(self.onReceiveData)
@@ -225,7 +226,7 @@ class MainForm(QtGui.QMainWindow):
             msg_dict['NewAmendCancel'] = 'N'
             msg_dict['OrderType'] = 2  # market = 1 limit = 2
             msg_dict['TimeInForce'] = 'GFD'
-            logger.info('Send Order->'+str(msg_dict))
+            logger.info('Send Order->' + str(msg_dict))
             try:
                 self.socket.send_pyobj(msg_dict)
                 msg_in = self.socket.recv()
@@ -233,8 +234,8 @@ class MainForm(QtGui.QMainWindow):
                 e = sys.exc_info()[0]
                 logger.info("zmq send_pyobj error: %s" % e)
                 raise
-            logger.info('Recv Msg->'+msg_in)
-            
+            logger.info('Recv Msg->' + msg_in)
+
     def onClick(self):
         isThreadRun = self._tickreceiverthread.isRunning()
         if not isThreadRun:
@@ -247,7 +248,7 @@ class MainForm(QtGui.QMainWindow):
             # self._thread.terminate()
             self.ui.pushButton_Start.setText('Start')
         pass
-    
+
     def updateTableWidgetItem(self, row, col, text):
         widget_item = self.ui.tableWidget.item(row, col)
         if not widget_item:
@@ -260,7 +261,7 @@ class MainForm(QtGui.QMainWindow):
         else:
             widget_item.setText(text)
         pass
-    
+
     def onReceiveData(self, msg_dict):
         if msg_dict['TAQ'] == 'Q' and msg_dict['SecuritiesType'] == 'options':
             nowtime = dt.datetime.now()
@@ -283,16 +284,17 @@ class MainForm(QtGui.QMainWindow):
                                               buysell
                                               )
                 self._orderthread.sendNewOrder()
+                self.order_qu.append(order_dict)
                 #####################
                 ## this part is needed to refactory to onReceiveAck @function
-                pos = self.position_shortcd_lst.index(order_dict['shortcd'])
-                liveqty = str(order_dict['orderqty'])
+                # pos = self.position_shortcd_lst.index(order_dict['shortcd'])
+                # liveqty = str(order_dict['orderqty'])
 
-                if buysell == 'sell': liveqty = '-' + liveqty
-                self.updateTableWidgetItem(pos, 6, liveqty)
-                self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
-                self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'],0)
-                logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
+                # if buysell == 'sell': liveqty = '-' + liveqty
+                # self.updateTableWidgetItem(pos, 6, liveqty)
+                # self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
+                # self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'],0)
+                # logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
                 #######################
 
             shortcd = msg_dict['ShortCD']
@@ -319,12 +321,12 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(pos, 2, '%.3f' % pnl)
             self.updateTableWidgetItem(pos, 4, '%.2f' % ask1)
             self.updateTableWidgetItem(pos, 5, '%.2f' % bid1)
-            
+
             self.updateTableWidgetItem(len(self.position_shortcd_lst), 2, str(self.total_pnl))
 
             self.ask1_dict[shortcd] = ask1
             self.bid1_dict[shortcd] = bid1
-            
+
         pass
 
     def onReceiveOrderAck(self, msg_in):
@@ -336,6 +338,19 @@ class MainForm(QtGui.QMainWindow):
         # OK: normal @EUREX
         # But how can here know that shortcd, orderqty, orderprice ??
         # So, msg_in replace to msg_dict
+        # At first, We decide to use only both msg_code and order_qu, although that can't make safe code.
+        order_dict = self.order_qu.popleft()
+        if msg_in in ['00040', '00039', 'OK']:
+            pos = self.position_shortcd_lst.index(order_dict['shortcd'])
+            liveqty = str(order_dict['orderqty'])
+
+            if order_dict['buysell'] == 'sell': liveqty = '-' + liveqty
+            self.updateTableWidgetItem(pos, 6, liveqty)
+            self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
+            self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'], 0)
+            logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
+        else:
+            logger.warn('msg_code: %s -> not normal msg_code' % msg_in)
         pass
 
     def onReceiveExecution(self, data_dict):
@@ -419,9 +434,10 @@ class MainForm(QtGui.QMainWindow):
         self.updateTableWidgetItem(i + 1, 6, '')
         self.updateTableWidgetItem(i + 1, 7, '')
 
-    
+
 if __name__ == '__main__':
     import sys
+
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
