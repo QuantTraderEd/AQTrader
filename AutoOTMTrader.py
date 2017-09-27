@@ -180,6 +180,10 @@ class MainForm(QtGui.QMainWindow):
                 logger.info('target put option-> %s' % put_shortcd)
                 logger.info('====================================')
 
+                if call_shortcd is None or put_shortcd is None:
+                    logger.info('target option is not found')
+                    self.orderseq = list()
+
                 for shortcd in [call_shortcd, put_shortcd]:
                     ask1 = self.bid1_dict.get(shortcd, 0.0)
                     bid1 = self.bid1_dict.get(shortcd, 0.0)
@@ -223,6 +227,11 @@ class MainForm(QtGui.QMainWindow):
         min_bid1 = 9999
         if callput == 'call':
             self.strikelst.sort(reverse=True)
+            shortcd = '201' + self.expireMonthCode + self.strikelst[0]
+            bid1 = self.bid1_dict.get(shortcd, 0.0)
+            ask1 = self.ask1_dict.get(shortcd, 0.0)
+            mid = (ask1 + bid1) * 0.5
+            if 0.15 < mid < 0.60: return shortcd
             for strike in self.strikelst:
                 shortcd = '201' + self.expireMonthCode + strike
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
@@ -235,12 +244,18 @@ class MainForm(QtGui.QMainWindow):
             return target_shortcd
         elif callput == 'put':
             self.strikelst.sort()
+            shortcd = '301' + self.expireMonthCode + self.strikelst[0]
+            bid1 = self.bid1_dict.get(shortcd, 0.0)
+            ask1 = self.ask1_dict.get(shortcd, 0.0)
+            mid = (ask1 + bid1) * 0.5
+            if 0.15 < mid < 0.60: return shortcd
+
             for strike in self.strikelst:
                 shortcd = '301' + self.expireMonthCode + strike
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
                 ask1 = self.ask1_dict.get(shortcd, 0.0)
                 bid_ask_spread = ask1 - bid1
-                if bid_ask_spread <= 0.02 and 0.10 <= bid1 <= 0.15 and min_bid1 > bid1:
+                if 0 < bid_ask_spread <= 0.02 and 0.10 <= bid1 <= 0.15 and min_bid1 > bid1:
                     min_bid1 = bid1
                     target_shortcd = shortcd
 
