@@ -168,7 +168,10 @@ class ZeroPositionViewer(QtGui.QWidget):
                 else:
                     pos = ''
 
-                pnl = "{:,}".format(long(data[i]['dtsunik1']))
+                if data[i]['dtsunik1'] == '-':
+                    pnl = 0
+                else:
+                    pnl = "{:,}".format(long(data[i]['dtsunik1']))
                 avgprc = '%.5f' % float(data[i]['pamt'])
                 lastprc = '%.2f' % float(data[i]['price'])
 
@@ -188,7 +191,8 @@ class ZeroPositionViewer(QtGui.QWidget):
                 total_gamma += gamma
                 total_theta += theta
                 total_vega += vega
-                total_pnl += long(data[i]['dtsunik1'])
+                if data[i]['dtsunik1'] != '-':
+                    total_pnl += long(data[i]['dtsunik1'])
 
                 delta = '%.4f' % delta
                 gamma = '%.4f' % gamma
@@ -302,7 +306,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             # if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
             self.ui.tableWidget.setItem(row, col, newitem)
         else:
-            widget_item.setText(text)
+            widget_item.setText(str(text))
         pass
 
 if __name__ == '__main__':    
