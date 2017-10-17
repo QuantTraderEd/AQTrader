@@ -150,6 +150,7 @@ class MainForm(QtGui.QMainWindow):
 
     def init_orderseq(self):
         if len(self.position_shortcd_lst) > 0:
+            logger.info('======= exit option shortcd ======')
             for i in xrange(len(self.position_shortcd_lst)):
                 shortcd = self.position_shortcd_lst[i]
                 ask1 = self.bid1_dict.get(shortcd, 0.0)
@@ -158,7 +159,8 @@ class MainForm(QtGui.QMainWindow):
                 pos = self.position_shortcd_lst.index(shortcd)
                 buysell = self.buysell_lst[pos]
 
-                if buysell == 'sell':
+                if buysell in ['sell', 'S']:
+                    logger.info('exit option shortcd-> %s' % shortcd)
                     order_dict = dict()
                     order_dict['shortcd'] = shortcd
                     order_dict['orderprice'] = 0.01
@@ -169,9 +171,12 @@ class MainForm(QtGui.QMainWindow):
                     # order_dict['orderqty'] = 1
                     order_dict['buysell'] = 'buy'
                     self.orderseq.append(order_dict)
+
+            logger.info('====================================')
+
         else:
             now_dt = dt.datetime.now()
-            if now_dt.hour >= 9 and now_dt.hour <= 14:
+            if now_dt.hour >= 9 and now_dt.hour <= 15:
                 call_shortcd = self.find_target_shortcd('call')
                 put_shortcd = self.find_target_shortcd('put')
 
@@ -304,7 +309,7 @@ class MainForm(QtGui.QMainWindow):
 
     def on_timer(self):
         now_dt = dt.datetime.now()
-        print 'on_timer->' + str(now_dt)
+        # print 'on_timer->' + str(now_dt)
         if (len(self.orderseq) >= 1) or (self.order_cnt > 0): return
         self.init_orderseq()
         pass
@@ -343,9 +348,9 @@ class MainForm(QtGui.QMainWindow):
                                               order_dict['orderqty'],
                                               buysell
                                               )
-                self._orderthread.sendNewOrder()
                 self.order_qu.append(order_dict)
                 self.order_cnt += 1
+                self._orderthread.sendNewOrder()
                 #####################
                 ## this part is needed to refactory to onReceiveAck @function
                 # pos = self.position_shortcd_lst.index(order_dict['shortcd'])
@@ -402,13 +407,17 @@ class MainForm(QtGui.QMainWindow):
         # At first, We decide to use only both msg_code and order_qu, although that can't make safe code.
         order_dict = self.order_qu.popleft()
         if msg_in in ['00040', '00039', 'OK']:
-            pos = self.position_shortcd_lst.index(order_dict['shortcd'])
-            liveqty = str(order_dict['orderqty'])
-
-            if order_dict['buysell'] == 'sell': liveqty = '-' + liveqty
+            pos = 0
+            if order_dict['shortcd'] in self.position_shortcd_lst:
+                pos = self.position_shortcd_lst.index(order_dict['shortcd'])
+            liveqty = int(order_dict['orderqty'])
+            # assume new order only same buysell code
+            if order_dict['buysell'] == 'sell': liveqty *= -1
+            self.liveqty_dict[order_dict['shortcd']] = liveqty + self.liveqty_dict.get(order_dict['shortcd'], 0)
+            liveqty = str(liveqty)
             self.updateTableWidgetItem(pos, 6, liveqty)
             self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
-            self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'], 0)
+            # self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'], 0)
             logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
         else:
             logger.warn('msg_code: %s -> not normal msg_code' % msg_in)
@@ -424,6 +433,17 @@ class MainForm(QtGui.QMainWindow):
             exec_data_dict['execprice'] = float(data_dict['ExecPrice'])
             exec_data_dict['execqty'] = int(data_dict['ExecQty'])
             exec_data_dict['buysell'] = data_dict['BuySell']
+
+            shortcd = exec_data_dict['shortcd']
+            execqty = exec_data_dict['execqty']
+            buysell = exec_data_dict['buysell']
+            liveqty = self.liveqty_dict.get(shortcd, 0)
+            if liveqty != 0:
+                if buysell in ['buy', 'B']:
+                    self.liveqty_dict[shortcd] = liveqty - execqty
+                elif buysell in ['sell', 'S']:
+                    self.liveqty_dict[shortcd] = liveqty + execqty
+
             updateNewPositionEntity(self._session, exec_data_dict)
             self.updatePostionTable()
         pass
