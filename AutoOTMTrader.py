@@ -388,7 +388,7 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(pos, 4, '%.2f' % ask1)
             self.updateTableWidgetItem(pos, 5, '%.2f' % bid1)
 
-            self.updateTableWidgetItem(len(self.position_shortcd_lst), 2, str(self.total_pnl))
+            self.updateTableWidgetItem(len(self.position_shortcd_lst), 2,  "%.3f" % self.total_pnl)
 
             self.ask1_dict[shortcd] = ask1
             self.bid1_dict[shortcd] = bid1
@@ -407,18 +407,20 @@ class MainForm(QtGui.QMainWindow):
         # At first, We decide to use only both msg_code and order_qu, although that can't make safe code.
         order_dict = self.order_qu.popleft()
         if msg_in in ['00040', '00039', 'OK']:
-            pos = 0
-            if order_dict['shortcd'] in self.position_shortcd_lst:
-                pos = self.position_shortcd_lst.index(order_dict['shortcd'])
             liveqty = int(order_dict['orderqty'])
             # assume new order only same buysell code
             if order_dict['buysell'] == 'sell': liveqty *= -1
             self.liveqty_dict[order_dict['shortcd']] = liveqty + self.liveqty_dict.get(order_dict['shortcd'], 0)
             liveqty = str(liveqty)
-            self.updateTableWidgetItem(pos, 6, liveqty)
-            self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
             # self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'], 0)
             logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
+            pos = 0
+            if order_dict['shortcd'] in self.position_shortcd_lst:
+                pos = self.position_shortcd_lst.index(order_dict['shortcd'])
+                self.updateTableWidgetItem(pos, 6, liveqty)
+                self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
+            else:
+                return
         else:
             logger.warn('msg_code: %s -> not normal msg_code' % msg_in)
         pass
@@ -500,6 +502,8 @@ class MainForm(QtGui.QMainWindow):
             self.updateTableWidgetItem(i, 3, "%.3f" % self.avgexecprice_dict[shortcd])
             self.updateTableWidgetItem(i, 4, "%.2f" % float(ask1))
             self.updateTableWidgetItem(i, 5, "%.2f" % float(bid1))
+            self.updateTableWidgetItem(i, 6, "%d" % self.liveqty_dict.get(self.position_shortcd_lst[i], 0))
+            self.updateTableWidgetItem(i, 7, '')
 
             self.total_pnl += pnl
 
