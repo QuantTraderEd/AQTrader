@@ -169,7 +169,7 @@ class MainForm(QtGui.QMainWindow):
                     order_dict['orderqty'] = self.position_dict[shortcd]
                     # order_dict['orderprice'] = float(ask1)
                     # order_dict['orderqty'] = 1
-                    order_dict['buysell'] = 'buy'
+                    order_dict['buysell'] = 'B'
                     self.orderseq.append(order_dict)
 
             logger.info('====================================')
@@ -192,7 +192,7 @@ class MainForm(QtGui.QMainWindow):
                 for shortcd in [call_shortcd, put_shortcd]:
                     ask1 = self.bid1_dict.get(shortcd, 0.0)
                     bid1 = self.bid1_dict.get(shortcd, 0.0)
-                    buysell = 'sell'
+                    buysell = 'S'
 
                     order_dict = dict()
                     order_dict['shortcd'] = shortcd
@@ -335,10 +335,6 @@ class MainForm(QtGui.QMainWindow):
             if len(self.orderseq) > 0 and ((800 <= int_nowtime < 1535) or (int_nowtime >= 1750 or int_nowtime < 400)):
                 if self._orderthread.isRunning(): return
                 order_dict = self.orderseq.pop(0)
-                if order_dict['buysell'] == 'buy':
-                    buysell = 'B'
-                elif order_dict['buysell'] == 'sell':
-                    buysell = 'S'
 
                 # self.sendOrder(order_dict['shortcd'], order_dict['orderprice'],
                 #                order_dict['orderqty'], buysell)
@@ -346,7 +342,7 @@ class MainForm(QtGui.QMainWindow):
                                               order_dict['shortcd'],
                                               order_dict['orderprice'],
                                               order_dict['orderqty'],
-                                              buysell
+                                              order_dict['buysell']
                                               )
                 self.order_qu.append(order_dict)
                 self.order_cnt += 1
@@ -379,7 +375,7 @@ class MainForm(QtGui.QMainWindow):
             buysell = self.buysell_lst[pos]
             pnl = (midprice - self.avgexecprice_dict[shortcd]) * self.position_dict[shortcd]
             pnl_diff = (midprice - midprice_old) * holdqty
-            if buysell == 'sell':
+            if buysell == 'S':
                 pnl *= -1.0
                 pnl_diff *= -1.0
             self.total_pnl += pnl_diff
@@ -426,8 +422,9 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def onReceiveExecution(self, data_dict):
+        logger.info('%s' % str(data_dict))
         if data_dict['AutoTraderID'] == 'OTM001':
-            logger.info('%s' % str(data_dict))
+            # logger.info('%s' % str(data_dict))
             exec_data_dict = dict()
             exec_data_dict['autotrader_id'] = 'OTM001'
             exec_data_dict['datetime'] = data_dict['TimeStamp']
@@ -441,10 +438,8 @@ class MainForm(QtGui.QMainWindow):
             buysell = exec_data_dict['buysell']
             liveqty = self.liveqty_dict.get(shortcd, 0)
             if liveqty != 0:
-                if buysell in ['buy', 'B']:
-                    self.liveqty_dict[shortcd] = liveqty - execqty
-                elif buysell in ['sell', 'S']:
-                    self.liveqty_dict[shortcd] = liveqty + execqty
+                self.liveqty_dict[shortcd] = liveqty - execqty
+
 
             updateNewPositionEntity(self._session, exec_data_dict)
             self.updatePostionTable()
@@ -522,7 +517,6 @@ class MainForm(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     import sys
-
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
