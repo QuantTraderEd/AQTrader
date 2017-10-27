@@ -295,7 +295,7 @@ class MainForm(QtGui.QMainWindow):
             self._tickreceiverthread.start()
             self._executionreportthread.start()
             self.ui.pushButton_Start.setText('Stop')
-            self.qtimer.start(60000)
+            self.qtimer.start(10000)
         elif isThreadRun:
             self._tickreceiverthread.stop()
             self._executionreportthread.stop()
