@@ -130,7 +130,7 @@ class MainForm(QtGui.QMainWindow):
         self._orderthread.initZMQ()
         self._tickreceiverthread.receiveData[dict].connect(self.onReceiveData)
         # self._thread.receiveData[str].connect(self.onReceiveData_Old)
-        self._orderthread.receiveData[str].connect(self.onReceiveOrderAck)
+        self._orderthread.receiveData[dict].connect(self.onReceiveOrderAck)
         self._executionreportthread.receiveData[dict].connect(self.onReceiveExecution)
 
     def init_quote_dict(self):
@@ -176,7 +176,8 @@ class MainForm(QtGui.QMainWindow):
 
         else:
             now_dt = dt.datetime.now()
-            if now_dt.hour >= 9 and now_dt.hour <= 15:
+            # if now_dt.hour >= 9 and now_dt.hour <= 15:
+            if now_dt.hour >= 9:
                 call_shortcd = self.find_target_shortcd('call')
                 put_shortcd = self.find_target_shortcd('put')
 
@@ -190,6 +191,7 @@ class MainForm(QtGui.QMainWindow):
                     self.orderseq = list()
 
                 for shortcd in [call_shortcd, put_shortcd]:
+                    if shortcd is None: continue
                     ask1 = self.bid1_dict.get(shortcd, 0.0)
                     bid1 = self.bid1_dict.get(shortcd, 0.0)
                     buysell = 'S'
@@ -391,8 +393,7 @@ class MainForm(QtGui.QMainWindow):
 
         pass
 
-    def onReceiveOrderAck(self, msg_in):
-        logger.info('onReceiveOrderAck %s' % msg_in)
+    def onReceiveOrderAck(self, msg_dict):
         # msg_in indicate only recv_ack_code
         # ack_code
         # 00040: buy limit order
@@ -402,27 +403,26 @@ class MainForm(QtGui.QMainWindow):
         # So, msg_in replace to msg_dict
         # At first, We decide to use only both msg_code and order_qu, although that can't make safe code.
         order_dict = self.order_qu.popleft()
-        if msg_in in ['00040', '00039', 'OK']:
-            liveqty = int(order_dict['orderqty'])
+        if msg_dict['MsgCode'] in ['00040', '00039', 'OK', '00000']:
+            liveqty = int(msg_dict['OrderQty'])
             # assume new order only same buysell code
-            if order_dict['buysell'] == 'sell': liveqty *= -1
-            self.liveqty_dict[order_dict['shortcd']] = liveqty + self.liveqty_dict.get(order_dict['shortcd'], 0)
+            if msg_dict['BuySell'] == 'S': liveqty *= -1
+            self.liveqty_dict[msg_dict['ShortCD']] = liveqty + self.liveqty_dict.get(msg_dict['ShortCD'], 0)
             liveqty = str(liveqty)
-            # self.liveqty_dict[order_dict['shortcd']] = int(liveqty) + self.liveqty_dict.get(order_dict['shortcd'], 0)
-            logger.info('%s liveqty-> %d' % (order_dict['shortcd'], self.liveqty_dict[order_dict['shortcd']]))
+            logger.info('%s liveqty-> %d' % (msg_dict['ShortCD'], self.liveqty_dict[msg_dict['ShortCD']]))
             pos = 0
-            if order_dict['shortcd'] in self.position_shortcd_lst:
-                pos = self.position_shortcd_lst.index(order_dict['shortcd'])
+            if msg_dict['ShortCD'] in self.position_shortcd_lst:
+                pos = self.position_shortcd_lst.index(msg_dict['ShortCD'])
                 self.updateTableWidgetItem(pos, 6, liveqty)
-                self.updateTableWidgetItem(pos, 7, str(order_dict['orderprice']))
+                self.updateTableWidgetItem(pos, 7, str(msg_dict['OrderPrice']))
             else:
                 return
         else:
-            logger.warn('msg_code: %s -> not normal msg_code' % msg_in)
+            logger.warn('msg_code: %s -> not normal msg_code' % msg_dict['MsgCode'])
         pass
 
     def onReceiveExecution(self, data_dict):
-        logger.info('%s' % str(data_dict))
+        # logger.info('%s' % str(data_dict)) # move to thread
         if data_dict['AutoTraderID'] == 'OTM001':
             # logger.info('%s' % str(data_dict))
             exec_data_dict = dict()
@@ -438,11 +438,20 @@ class MainForm(QtGui.QMainWindow):
             buysell = exec_data_dict['buysell']
             liveqty = self.liveqty_dict.get(shortcd, 0)
             if liveqty != 0:
-                self.liveqty_dict[shortcd] = liveqty - execqty
-
+                if buysell == 'S':
+                    self.liveqty_dict[shortcd] = liveqty + execqty
+                else:
+                    self.liveqty_dict[shortcd] = liveqty - execqty
+            print self.liveqty_dict
 
             updateNewPositionEntity(self._session, exec_data_dict)
             self.updatePostionTable()
+        else:
+            ordno_dict = self.redis_client.hgetall('ordno_dict')
+            if data_dict['OrderNo'] in ordno_dict:
+                logger.info('already ordno <-> autotrader_id')
+            else:
+                logger.info('not match ordno <-> autotrader_id')
         pass
 
     def updatePostionTable(self):

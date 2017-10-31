@@ -79,6 +79,7 @@ class ExecutionReportThread(QtCore.QThread):
         pass
 
     def onReceiveData(self, data_dict):
+        self.logger.info('Recv ExecReport -> %s', str(data_dict))
         pass
     
     def stop(self):
@@ -87,7 +88,7 @@ class ExecutionReportThread(QtCore.QThread):
 
 
 class OrderThread(QtCore.QThread):
-    receiveData = QtCore.pyqtSignal(str)
+    receiveData = QtCore.pyqtSignal(dict)
 
     def __init__(self):
         QtCore.QThread.__init__(self)
@@ -110,14 +111,16 @@ class OrderThread(QtCore.QThread):
         self.logger.info('Send Order->' + str(self.order_dict))
         try:
             self.socket.send_pyobj(self.order_dict)
-            msg_in = self.socket.recv()
-            self.receiveData.emit(msg_in)
+            msg_dict = self.socket.recv_pyobj()
+            self.receiveData.emit(msg_dict)
         except:
             e = sys.exc_info()[0]
             self.logger.info("zmq send_pyobj error: %s" % e)
-            self.receiveData.emit('ERROR')
+            msg_dict = dict()
+            msg_dict['MsgCode'] = 'ERROR'
+            self.receiveData.emit(msg_dict)
             raise
-        self.logger.info('Recv Msg->' + msg_in)
+        self.logger.info('Recv Ack Msg->' + str(msg_dict))
         pass
 
     def initZMQ(self):

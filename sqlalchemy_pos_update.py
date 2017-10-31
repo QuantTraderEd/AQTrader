@@ -23,9 +23,13 @@ def updateNewPositionEntity(session, exec_data_dict):
         session.add(new_positionentity)
     elif len(rows) == 1:
         old_PositionEntity = rows[0]
-        # print old_PositionEntity.holdqty
-        # print old_PositionEntity.buysell
-        # print old_PositionEntity.avgexecprice
+        print (exec_data_dict['shortcd'],
+               old_PositionEntity.holdqty,
+               old_PositionEntity.buysell,
+               old_PositionEntity.avgexecprice,
+               )
+        print exec_data_dict['execprice'] * exec_data_dict['execqty'], exec_data_dict['execqty']
+
         old_PositionEntity.datetime = exec_data_dict['datetime']
         if old_PositionEntity.buysell == exec_data_dict['buysell']:
             old_PositionEntity.holdqty += exec_data_dict['execqty']
