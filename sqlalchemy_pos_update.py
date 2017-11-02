@@ -32,10 +32,10 @@ def updateNewPositionEntity(session, exec_data_dict):
 
         old_PositionEntity.datetime = exec_data_dict['datetime']
         if old_PositionEntity.buysell == exec_data_dict['buysell']:
-            old_PositionEntity.holdqty += exec_data_dict['execqty']
             old_PositionEntity.avgexecprice = (exec_data_dict['execprice'] * exec_data_dict['execqty'] +
                                               old_PositionEntity.avgexecprice * old_PositionEntity.holdqty) / \
                                               (old_PositionEntity.holdqty + exec_data_dict['execqty'])
+            old_PositionEntity += exec_data_dict['execqty']
         elif old_PositionEntity.holdqty == 0:
             old_PositionEntity.holdqty = exec_data_dict['execqty']
             old_PositionEntity.buysell = exec_data_dict['buysell']
