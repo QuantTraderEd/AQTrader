@@ -22,33 +22,33 @@ def updateNewPositionEntity(session, exec_data_dict):
         # print new_positionentity.avgexecprice
         session.add(new_positionentity)
     elif len(rows) == 1:
-        old_PositionEntity = rows[0]
-        print (exec_data_dict['shortcd'],
-               old_PositionEntity.holdqty,
-               old_PositionEntity.buysell,
-               old_PositionEntity.avgexecprice,
+        old_position_entity = rows[0]
+        print ('old_position',
+               exec_data_dict['shortcd'],
+               old_position_entity.holdqty,
+               old_position_entity.buysell,
+               old_position_entity.avgexecprice,
                )
-        print exec_data_dict['execprice'] * exec_data_dict['execqty'], exec_data_dict['execqty']
 
-        old_PositionEntity.datetime = exec_data_dict['datetime']
-        if old_PositionEntity.buysell == exec_data_dict['buysell']:
-            old_PositionEntity.avgexecprice = (exec_data_dict['execprice'] * exec_data_dict['execqty'] +
-                                              old_PositionEntity.avgexecprice * old_PositionEntity.holdqty) / \
-                                              (old_PositionEntity.holdqty + exec_data_dict['execqty'])
-            old_PositionEntity += exec_data_dict['execqty']
-        elif old_PositionEntity.holdqty == 0:
-            old_PositionEntity.holdqty = exec_data_dict['execqty']
-            old_PositionEntity.buysell = exec_data_dict['buysell']
-            old_PositionEntity.avgexecprice = exec_data_dict['execprice']
+        old_position_entity.datetime = exec_data_dict['datetime']
+        if old_position_entity.buysell == exec_data_dict['buysell']:
+            old_position_entity.avgexecprice = (exec_data_dict['execprice'] * exec_data_dict['execqty'] +
+                                              old_position_entity.avgexecprice * old_position_entity.holdqty) / \
+                                              (old_position_entity.holdqty + exec_data_dict['execqty'])
+            old_position_entity.holdqty += exec_data_dict['execqty']
+        elif old_position_entity.holdqty == 0:
+            old_position_entity.holdqty = exec_data_dict['execqty']
+            old_position_entity.buysell = exec_data_dict['buysell']
+            old_position_entity.avgexecprice = exec_data_dict['execprice']
         else:
-            if old_PositionEntity.holdqty == exec_data_dict['execqty']:
-                session.delete(old_PositionEntity)
-            elif old_PositionEntity.holdqty < exec_data_dict['execqty']:
-                old_PositionEntity.avgexecprice = exec_data_dict['execprice']
-                old_PositionEntity.buysell = exec_data_dict['buysell']
-                old_PositionEntity.holdqty = abs(int(exec_data_dict['execqty']) - old_PositionEntity.holdqty)
-            elif old_PositionEntity.holdqty > int(exec_data_dict['execqty']):
-                old_PositionEntity.holdqty -= int(exec_data_dict['execqty'])
+            if old_position_entity.holdqty == exec_data_dict['execqty']:
+                session.delete(old_position_entity)
+            elif old_position_entity.holdqty < exec_data_dict['execqty']:
+                old_position_entity.avgexecprice = exec_data_dict['execprice']
+                old_position_entity.buysell = exec_data_dict['buysell']
+                old_position_entity.holdqty = abs(int(exec_data_dict['execqty']) - old_position_entity.holdqty)
+            elif old_position_entity.holdqty > int(exec_data_dict['execqty']):
+                old_position_entity.holdqty -= int(exec_data_dict['execqty'])
 
     session.commit()
     pass
