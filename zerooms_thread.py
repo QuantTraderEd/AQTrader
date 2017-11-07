@@ -610,7 +610,7 @@ class OrderWorkerThread(QtCore.QThread):
                     #     self.socket_order.send(str(szMsgCode))
                     # else:
                     #     self.socket_order.send(str(szMsgCode))
-                    self.socket_order.send_pyobj(str(szMsgCode))
+                    self.socket_order.send(str(szMsgCode))
 
             elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order
@@ -625,10 +625,10 @@ class OrderWorkerThread(QtCore.QThread):
                 if ret is None:
                     # self.ordno_dict[self.xaquery_CSPAT00800.data['OrdNo']] = autotrader_id
                     # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00800.data['OrdNo'], autotrader_id)
-                    self.socket.send('OK')
+                    self.socket_order.send('OK')
                     self.logger.info('OK')
                 else:
-                    self.socket.send('Reject')
+                    self.socket_order.send('Reject')
                     self.logger.info('Reject')
 
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
@@ -738,10 +738,10 @@ class OrderWorkerThread(QtCore.QThread):
                         if ret is None:
                             # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
                             # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11300.data['OrdNo'], autotrader_id)
-                            self.socket.send('OK')
+                            self.socket_order.send('OK')
                             self.logger.info('OK')
                         else:
-                            self.socket.send('Reject')
+                            self.socket_order.send('Reject')
                             self.logger.info('Reject')
             else:
                 self.logger.info('not yet implement other case order')
