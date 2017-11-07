@@ -44,7 +44,9 @@ class OptionViewerOrderWidget(QtGui.QWidget):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.RCVTIMEO, 2000)
-        self.socket.connect("tcp://127.0.0.1:6000")
+        # self.order_port = 6000  # real port
+        self.order_port = 6001  # demo port
+        self.socket.connect("tcp://127.0.0.1:%d" % self.order_port)
         pass
 
     def initOrder(self, shortcd='', price=0, qty=0, buysell=''):
@@ -98,8 +100,8 @@ class OptionViewerOrderWidget(QtGui.QWidget):
             if type(self.socket).__name__ == 'Socket':
                 self.logger.info('Send Order->'+str(msg_dict))
                 self.socket.send_pyobj(msg_dict)
-                msg_in = self.socket.recv()
-                self.logger.info('Recv Msg->'+msg_in)
+                msg_dict_in = self.socket.recv_pyobj()
+                self.logger.info('Recv Msg->'+msg_dict_in['MsgCode'])
         # elif shcode[:4] == 'SNTH':
         #     for key in self.synthfutures_dict.iterkeys():
         #         price = self.synthfutures_dict[key]
