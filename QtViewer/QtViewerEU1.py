@@ -64,7 +64,7 @@ class QtViewerEU1(QtCore.QObject):
             msg_dict['ShortCD'] = shortcd
             msg_dict['OrdPrice'] = ordprice
             msg_dict['OrdQty'] = ordqty
-            msg_dict['buysell'] = buysell
+            msg_dict['BuySell'] = buysell
             msg_dict['ExecPrice'] = execprice
             msg_dict['ExecQty'] = execqty
 
