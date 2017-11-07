@@ -10,8 +10,9 @@ from datetime import datetime
 class QtViewerCEXAT11100(QtCore.QObject):
     receive = QtCore.pyqtSignal()
 
-    def __init__(self):
-        super(QtViewerCEXAT11100,self).__init__()
+    def __init__(self, zmq_socket=None, parent=None):
+        super(QtViewerCEXAT11100,self).__init__(parent)
+        self.zmq_socket = zmq_socket
         self.dbname = None
         self.flag = True
         self.redis_client = redis.Redis()
@@ -25,63 +26,84 @@ class QtViewerCEXAT11100(QtCore.QObject):
         pass
 
     def Update(self, subject):
-        print '-' * 20
-        if type(subject.data).__name__ == 'dict':
-            nowtime = datetime.now()
-            strnowtime = datetime.strftime(nowtime,'%H:%M:%S.%f')[:-3]
-            # print 'szMessage',  subject.data['szMessage']
-            # print 'szMessageCode', subject.data['szMessageCode'],
+        # print '-' * 20
+        if type(subject.data) != dict:
+            self.flag = False
+            return
 
-            autotrader_id = subject.autotrader_id
-            ordno = subject.data['OrdNo']
-            self.logger.info('Update: OrdNo-> %s, autotrader_id-> %s' % (ordno, autotrader_id))
-            # if subject.data['szMessageCode'] in ['00030', '00040']:
-            if str(ordno).isdigit():
-                self.redis_client.hset('ordno_dict', int(ordno), autotrader_id)
+        nowtime = datetime.now()
+        strnowtime = datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
+        # print 'szMessage',  subject.data['szMessage']
+        # print 'szMessageCode', subject.data['szMessageCode'],
 
-            if subject.data['BnsTpCode'] == '2': buysell = 'buy'
-            elif subject.data['BnsTpCode'] == '1': buysell = 'sell'
-            else: buysell = None
+        autotrader_id = subject.autotrader_id
+        ordno = subject.data['OrdNo']
+        self.logger.info('Update: OrdNo-> %s, autotrader_id-> %s' % (ordno, autotrader_id))
+        # if subject.data['szMessageCode'] in ['00030', '00040']:
+        if str(ordno).isdigit():
+            self.redis_client.hset('ordno_dict', int(ordno), autotrader_id)
 
-            # shcode = subject.data['FnoIsuNo']
-            shcode = subject.shortcd
-            price = subject.data['OrdPrc']
-            qty = subject.data['OrdQty']
-            unexecqty = qty
-            type1 = None
-            type2 = None
-            if subject.data['ErxPrcCndiTpCode'] != '':
-                if subject.data['ErxPrcCndiTpCode'] == '0': type1 = 'market'
-                elif subject.data['ErxPrcCndiTpCode'] == '2':
-                    type1 = 'limit'
-                    type2 = 'GFD'
+        if subject.data['BnsTpCode'] == '2': buysell = 'buy'
+        elif subject.data['BnsTpCode'] == '1': buysell = 'sell'
+        else: buysell = None
 
-            chkreq = subject.data['szMessageCode']
+        # shcode = subject.data['FnoIsuNo']
+        shortcd = subject.shortcd
+        ordprice = subject.data['OrdPrc']
+        ordqty = subject.data['OrdQty']
+        unexecqty = ordqty
+        type1 = None
+        type2 = None
+        if subject.data['ErxPrcCndiTpCode'] != '':
+            if subject.data['ErxPrcCndiTpCode'] == '0': type1 = 'market'
+            elif subject.data['ErxPrcCndiTpCode'] == '2':
+                type1 = 'limit'
+                type2 = 'GFD'
 
-            orderitem = (autotrader_id, ordno,strnowtime,buysell,shcode,price,qty,type1,type2,unexecqty,chkreq)
-            # print orderitem
-            self.logger.info('%s' % str(orderitem))
-            if type(self.conn) == lite.Connection:
-                # conn_db = lite.connect(self.dbname)
-                # cursor_db = conn_db.cursor()
-                wildcard = '?,' * len(orderitem)
-                wildcard = wildcard[:-1]
-                self.conn.execute("""INSERT INTO OrderList(AutoTraderID,
-                                                           OrdNo,
-                                                           Time,
-                                                           BuySell,
-                                                           ShortCD,
-                                                           Price,
-                                                           Qty,
-                                                           Type1,
-                                                           Type2,
-                                                           UnExecQty,
-                                                           ChkReq)
-                                                VALUES(%s)""" % wildcard, orderitem)
-                self.logger.info('insert db')
-                self.conn.commit()
-                self.logger.info('commit db')
-                # conn_db.close()
-                self.receive.emit()
+        msgcode = subject.data['szMessageCode']
+
+        orderitem = (autotrader_id, ordno, strnowtime, buysell, shortcd, ordprice, ordqty,
+                     type1, type2, unexecqty, msgcode)
+
+        if buysell == 'buy': buysell = 'B'
+        elif buysell == 'sell': buysell = 'S'
+        else: buysell = ''
+
+        msg_dict = dict()
+        msg_dict['AutoTraderID'] = autotrader_id
+        msg_dict['OrderNo'] = ordno
+        msg_dict['TimeStamp'] = nowtime
+        msg_dict['ShortCD'] = shortcd
+        msg_dict['OrderPrice'] = ordprice
+        msg_dict['OrderQty'] = ordqty
+        msg_dict['BuySell'] = buysell
+        msg_dict['MsgCode'] = msgcode
+
+        self.zmq_socket.send_pyobj(msg_dict)
+
+        # print orderitem
+        self.logger.info('%s' % str(orderitem))
+        if type(self.conn) == lite.Connection:
+            # conn_db = lite.connect(self.dbname)
+            # cursor_db = conn_db.cursor()
+            wildcard = '?,' * len(orderitem)
+            wildcard = wildcard[:-1]
+            self.conn.execute("""INSERT INTO OrderList(AutoTraderID,
+                                                       OrdNo,
+                                                       Time,
+                                                       BuySell,
+                                                       ShortCD,
+                                                       Price,
+                                                       Qty,
+                                                       Type1,
+                                                       Type2,
+                                                       UnExecQty,
+                                                       ChkReq)
+                                            VALUES(%s)""" % wildcard, orderitem)
+            self.logger.info('insert db')
+            self.conn.commit()
+            self.logger.info('commit db')
+            # conn_db.close()
+            self.receive.emit()
 
         self.flag = False

@@ -15,7 +15,7 @@ import sqlite3 as lite
 from PyQt4 import QtCore, QtGui
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
-from zerooms_thread import OrderMachineThread, OrderMachineNewThread
+from zerooms_thread import OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200, observer_cmd
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer

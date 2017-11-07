@@ -24,7 +24,7 @@ from QtViewer.QtViewerEU1 import QtViewerEU1
 
 class OrderMachineThread(QtCore.QThread):
     threadUpdateDB = QtCore.pyqtSignal()
-    
+
     def __init__(self, order_port=6001, exec_report_port=7001, parent=None):
         super(OrderMachineThread, self).__init__(parent)
         self.initVar()
@@ -54,7 +54,7 @@ class OrderMachineThread(QtCore.QThread):
 
     def init_zmq(self):
         self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REP)
+        self.socket_order = self.context.socket(zmq.REP)
         self.socket.bind("tcp://127.0.0.1:%d" % self.order_port)
         # self.socket = context.socket(zmq.DEALER)
         # self.socket.connect("tcp://127.0.0.1:6001")
@@ -67,19 +67,19 @@ class OrderMachineThread(QtCore.QThread):
 
     def initViewer(self):
         self.cviewer = ConsoleViewer()
-        self.cviewer0 = ConsolViewerSC0()        
+        self.cviewer0 = ConsolViewerSC0()
         self.qtviewer00600 = QtViewerCSPAT00600()
         self.qtviewer00800 = QtViewerCSPAT00800()
         self.qtviewer00100 = QtViewerCFOAT00100()
         self.qtviewer00300 = QtViewerCFOAT00300()
         self.qtviewer11100 = QtViewerCEXAT11100()
         self.qtviewer11300 = QtViewerCEXAT11300()
-        self.qtviewerSC1 = QtViewerSC1()       
+        self.qtviewerSC1 = QtViewerSC1()
         self.qtviewerC01 = QtViewerC01(self.socket_execution_report)
         self.qtviewerEU1 = QtViewerEU1(self.socket_execution_report)
-        
+
         nowtime = datetime.now()
-        strtime = datetime.strftime(nowtime,'%Y%m%d')                        
+        strtime = datetime.strftime(nowtime,'%Y%m%d')
         if nowtime.hour >= 6 and nowtime.hour < 16:
             self.strdbname = "orderlist_%s.db" %(strtime)
         elif nowtime.hour >= 16:
@@ -89,7 +89,7 @@ class OrderMachineThread(QtCore.QThread):
             self.strdbname = "orderlist_night_%s.db" %(strtime)
 
         self.strdbname = self.db_path + self.strdbname
-        
+
         self.qtviewer00600.dbname = self.strdbname
         self.qtviewer00800.dbname = self.strdbname
         self.qtviewer00100.dbname = self.strdbname
@@ -104,7 +104,7 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewer00300.initDB()
         self.qtviewer11100.initDB()
         self.qtviewer11300.initDB()
-        
+
         self.qtviewer00600.receive.connect(self.UpdateDB)
         self.qtviewer00800.receive.connect(self.UpdateDB)
         self.qtviewer00100.receive.connect(self.UpdateDB)
@@ -114,12 +114,12 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewerSC1.receive.connect(self.UpdateDB)
         self.qtviewerC01.receive.connect(self.UpdateDB)
         self.qtviewerEU1.receive.connect(self.UpdateDB)
-        
+
     def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
         self.xaquery_CFOAT00200 = px.XAQuery_CFOAT00200()
         self.xaquery_CFOAT00300 = px.XAQuery_CFOAT00300()
-        self.xaquery_CSPAT00600 = px.XAQuery_CSPAT00600()          
+        self.xaquery_CSPAT00600 = px.XAQuery_CSPAT00600()
         self.xaquery_CSPAT00800 = px.XAQuery_CSPAT00800()
         self.xaquery_CEXAT11100 = px.XAQuery_CEXAT11100()
         self.xaquery_CEXAT11300 = px.XAQuery_CEXAT11300()
@@ -138,7 +138,7 @@ class OrderMachineThread(QtCore.QThread):
         self.xareal_C01.observer = self.qtviewerC01
         self.xareal_EU1.observer = self.qtviewerEU1
 
-    
+
     def run(self):
         self.mt_stop = False
         self.mt_pause = False
@@ -168,7 +168,7 @@ class OrderMachineThread(QtCore.QThread):
         #self.cursor_db = self.conn_db.cursor()
 
         self.logger.info('Ready')
-            
+
         while True:
             # self.mutex.lock()
             if self.mt_stop: break
@@ -177,17 +177,17 @@ class OrderMachineThread(QtCore.QThread):
             msg_dict = self.socket.recv_pyobj()
             if not self._XASession.IsConnected():
                 self.logger.info('fail: disconnect xsession')
-                self.socket.send('fail: disconnect xsession')
+                self.socket_order.send('fail: disconnect xsession')
                 continue
-            
+
             if type(msg_dict) != dict:
                 self.logger.info(str(msg_dict) + 'is not dict')
-                self.socket.send('fail: msg_dict is not dict')
+                self.socket_order.send('fail: msg_dict is not dict')
                 continue
-            
+
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
-            strnowtime = strnowtime[:-3]                                    
+            strnowtime = strnowtime[:-3]
             self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
@@ -202,9 +202,9 @@ class OrderMachineThread(QtCore.QThread):
 
             if not isinstance(orderprice, float) and newamendcancel in ['N', 'A']:
                 self.logger.info('fail: ' + str(msg_dict) + ' orderprice not float')
-                self.socket.send('fail: orderprice not float')
+                self.socket_order.send('fail: orderprice not float')
                 continue
-            
+
             logmsg = '%s, %s, %s, %f, %d, %s, %s' % (
                      autotrader_id,
                      newamendcancel,
@@ -213,9 +213,9 @@ class OrderMachineThread(QtCore.QThread):
                      int(orderqty),
                      buysell,
                      orgordno, )
-                                           
+
             self.logger.info(logmsg)
-            
+
             if newamendcancel == 'N' and buysell == 'B':
                 buysell = '2'
             elif newamendcancel == 'N' and buysell == 'S':
@@ -225,18 +225,18 @@ class OrderMachineThread(QtCore.QThread):
                 continue
 
             if newamendcancel == 'N' and shortcd[0] == 'A':
-                # equity new order                       
+                # equity new order
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shortcd)) #demo
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(orderqty))
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(orderprice))
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','BnsTpCode',0,buysell)
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdprcPtnCode',0,'00')        
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdprcPtnCode',0,'00')
                 self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','MgntrnCode',0,'000')
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','LoanDt',0,' ')        
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdCndiTpCode',0,'0')        
-                ret = self.xaquery_CSPAT00600.Request(False)      
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','LoanDt',0,' ')
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdCndiTpCode',0,'0')
+                ret = self.xaquery_CSPAT00600.Request(False)
                 if ret is None:
                     while self.xaquery_CSPAT00600.observer.flag:
                         PumpWaitingMessages()
@@ -245,27 +245,27 @@ class OrderMachineThread(QtCore.QThread):
                     if szMsgCode != '00039' and szMsgCode != '00040':
                         # self.ordno_dict[self.xaquery_CSPAT00600.data['OrdNo']] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00600.data['OrdNo'], autotrader_id)
-                        self.socket.send(str(szMsgCode))
+                        self.socket_order.send(str(szMsgCode))
                     else:
-                        self.socket.send(str(szMsgCode))
-                    
+                        self.socket_order.send(str(szMsgCode))
+
             elif newamendcancel == 'C' and shortcd[0] == 'A':
-                # equity cancel order                                   
+                # equity cancel order
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(orgordno))
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shortcd)) #demo
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))                                                
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
                     # self.ordno_dict[self.xaquery_CSPAT00800.data['OrdNo']] = autotrader_id
                     # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00800.data['OrdNo'], autotrader_id)
-                    self.socket.send('OK')
+                    self.socket_order.send('OK')
                     self.logger.info('OK')
                 else:
-                    self.socket.send('Reject')
+                    self.socket_order.send('Reject')
                     self.logger.info('Reject')
-                
+
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
@@ -289,11 +289,11 @@ class OrderMachineThread(QtCore.QThread):
                         # if szMsgCode in ['00030', '00040']:
                             # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
                             # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
-                        self.socket.send(str(szMsgCode))
+                        self.socket_order.send(str(szMsgCode))
                 else:
                     if shortcd[:3] in ['101', '105']:
                         self.logger.info('not yet implement... 101, 105')
-                        self.socket.send('not yet implement...')
+                        self.socket_order.send('not yet implement...')
                         continue
                     else:
                         # Eurex Options new order
@@ -312,17 +312,19 @@ class OrderMachineThread(QtCore.QThread):
                             while self.xaquery_CEXAT11100.observer.flag:
                                 PumpWaitingMessages()
                             self.xaquery_CEXAT11100.observer.flag = True
-                            self.shortcd = ''
+
                             szMsg = self.xaquery_CEXAT11100.data['szMessage']
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
                             # if szMsgCode in['00030', '00040']:
-                                # self.ordno_dict[int(self.xaquery_CEXAT11100.data['OrdNo'])] = autotrader_id
-                                # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
-                            self.socket.send(str(szMsgCode))
+                            #     self.ordno_dict[int(self.xaquery_CEXAT11100.data['OrdNo'])] = autotrader_id
+                            #     self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
+
+                            # self.socket_order.send(str(szMsgCode))
+
                             # self.socket.send('async_ret_ok')
                         else:
-                            self.socket.send('async_rect_error %d' % ret)
+                            self.socket_order.send('async_rect_error %d' % ret)
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
@@ -337,15 +339,15 @@ class OrderMachineThread(QtCore.QThread):
                     if ret is None:
                         # self.ordno_dict[self.xaquery_CFOAT00300.data['OrdNo']] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00300.data['OrdNo'], autotrader_id)
-                        self.socket.send('OK')
+                        self.socket_order.send('OK')
                         self.logger.info('OK')
                     else:
-                        self.socket.send('Reject')
+                        self.socket_order.send('Reject')
                         self.logger.info('Reject')
                 else:
                     if shortcd[:3] in ['101', '105']:
                         self.logger.info('not yet implement... 101, 105')
-                        self.socket.send('not yet implement...')
+                        self.socket_order.send('not yet implement...')
                         continue
                     else:
                         # Eurex Options Cancel Order
@@ -358,20 +360,20 @@ class OrderMachineThread(QtCore.QThread):
                         if ret is None:
                             # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
                             # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11300.data['OrdNo'], autotrader_id)
-                            self.socket.send('OK')
+                            self.socket_order.send('OK')
                             self.logger.info('OK')
                         else:
-                            self.socket.send('Reject')
+                            self.socket_order.send('Reject')
                             self.logger.info('Reject')
             else:
                 self.logger.info('not yet implement other case order')
-                self.socket.send('not yet implement other case order')
+                self.socket_order.send('not yet implement other case order')
 
     def stop(self):
         self.mt_stop = True
         self.context.term()
         pass
-        
+
     def UpdateDB(self):
         #print "receive update "
         self.logger.info('receive_update')
@@ -436,8 +438,8 @@ class OrderWorkerThread(QtCore.QThread):
         super(OrderWorkerThread, self).__init__()
         self.thread_id = thread_id
         self.context = context or zmq.Context.instance()
-        self.socket = context.socket(zmq.REP)
-        self.socket.connect(worker_url)
+        self.socket_order = context.socket(zmq.REP)
+        self.socket_order.connect(worker_url)
 
         self.db_path = ''
 
@@ -455,9 +457,9 @@ class OrderWorkerThread(QtCore.QThread):
         self.cviewer0 = ConsolViewerSC0()
         self.qtviewer00600 = QtViewerCSPAT00600()
         self.qtviewer00800 = QtViewerCSPAT00800()
-        self.qtviewer00100 = QtViewerCFOAT00100()
+        self.qtviewer00100 = QtViewerCFOAT00100(self.socket_order)
         self.qtviewer00300 = QtViewerCFOAT00300()
-        self.qtviewer11100 = QtViewerCEXAT11100()
+        self.qtviewer11100 = QtViewerCEXAT11100(self.socket_order)
         self.qtviewer11300 = QtViewerCEXAT11300()
         self.qtviewerSC1 = QtViewerSC1()
 
@@ -533,15 +535,15 @@ class OrderWorkerThread(QtCore.QThread):
             #
             # self.socket.send(b"World")
 
-            msg_dict = self.socket.recv_pyobj()
+            msg_dict = self.socket_order.recv_pyobj()
             if not self._XASession.IsConnected():
                 self.logger.info('fail: disconnect xsession')
-                self.socket.send('fail: disconnect xsession')
+                self.socket_order.send_pyobj('fail: disconnect xsession')
                 continue
 
             if type(msg_dict) != dict:
                 self.logger.info(str(msg_dict) + 'is not dict')
-                self.socket.send('fail: msg_dict is not dict')
+                self.socket_order.send_pyobj('fail: msg_dict is not dict')
                 continue
 
             nowtime = datetime.now()
@@ -562,7 +564,7 @@ class OrderWorkerThread(QtCore.QThread):
 
             if not isinstance(orderprice, float) and newamendcancel in ['N', 'A']:
                 self.logger.info('fail: ' + str(msg_dict) + ' orderprice not float')
-                self.socket.send('fail: orderprice not float')
+                self.socket_order.send_pyobj('fail: orderprice not float')
                 continue
 
             logmsg = '%s, %s, %s, %f, %d, %s, %s' % (
@@ -603,13 +605,12 @@ class OrderWorkerThread(QtCore.QThread):
                     while self.xaquery_CSPAT00600.observer.flag:
                         PumpWaitingMessages()
                     self.xaquery_CSPAT00600.observer.flag = True
-                    szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
-                    if szMsgCode != '00039' and szMsgCode != '00040':
-                        # self.ordno_dict[self.xaquery_CSPAT00600.data['OrdNo']] = autotrader_id
-                        # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00600.data['OrdNo'], autotrader_id)
-                        self.socket.send(str(szMsgCode))
-                    else:
-                        self.socket.send(str(szMsgCode))
+                    # szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
+                    # if szMsgCode != '00039' and szMsgCode != '00040':
+                    #     self.socket_order.send(str(szMsgCode))
+                    # else:
+                    #     self.socket_order.send(str(szMsgCode))
+                    self.socket_order.send_pyobj(str(szMsgCode))
 
             elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order
@@ -655,14 +656,15 @@ class OrderWorkerThread(QtCore.QThread):
                         # if szMsgCode in ['00030', '00040']:
                         # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
-                        self.socket.send(str(szMsgCode))
+
+                        # self.socket_order.send(str(szMsgCode))
                     else:
                         self.logger.info('async_ret_error %s' % str(ret))
-                        self.socket.send('async_ret_error %s' % str(ret))
+                        self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
                 else:
                     if shortcd[:3] in ['101', '105']:
                         self.logger.info('not yet implement... 101, 105')
-                        self.socket.send('not yet implement...')
+                        self.socket_order.send_pyobj('not yet implement...')
                         continue
                     else:
                         # Eurex Options new order
@@ -683,18 +685,20 @@ class OrderWorkerThread(QtCore.QThread):
                             while self.xaquery_CEXAT11100.observer.flag:
                                 PumpWaitingMessages()
                             self.xaquery_CEXAT11100.observer.flag = True
-                            self.shortcd = ''
+
                             szMsg = self.xaquery_CEXAT11100.data['szMessage']
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
                             # if szMsgCode in['00030', '00040']:
                             # self.ordno_dict[int(self.xaquery_CEXAT11100.data['OrdNo'])] = autotrader_id
                             # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
-                            self.socket.send(str(szMsgCode))
+
+                            # self.socket_order.send(str(szMsgCode))
+
                             # self.socket.send('async_ret_ok')
                         else:
                             self.logger.info('async_ret_error %s' % str(ret))
-                            self.socket.send('async_ret_error %s' % str(ret))
+                            self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
@@ -762,8 +766,8 @@ class OrderMachineNewThread(OrderMachineThread):
         self.context = context or zmq.Context.instance()
         self.url_worker = "inproc://workers"
 
-        self.socket_clients = self.context.socket(zmq.ROUTER)
-        self.socket_clients.bind("tcp://127.0.0.1:%d" % (self.order_port, ))
+        self.socket_order = self.context.socket(zmq.ROUTER)
+        self.socket_order.bind("tcp://127.0.0.1:%d" % (self.order_port,))
 
         self.socket_workers = self.context.socket(zmq.DEALER)
         self.socket_workers.bind(self.url_worker)
@@ -799,7 +803,7 @@ class OrderMachineNewThread(OrderMachineThread):
             elif nowtime.hour >= 16 or nowtime.hour < 6:
                 self.xareal_EU1.AdviseRealData()
 
-            zmq.proxy(self.socket_clients, self.socket_workers)
+            zmq.proxy(self.socket_order, self.socket_workers)
         except zmq.ContextTerminated:
             self.clients.close()
             self.workers.close()
