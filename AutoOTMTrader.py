@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import logging
 import datetime as dt
 import collections
-import zmq
 import redis
 import sip
 from PyQt4 import QtCore
@@ -71,10 +69,13 @@ class MainForm(QtGui.QMainWindow):
         self.updatePostionTable()
         # self.init_orderseq()
 
+        self.atm_strike = self.find_atm_strike()
+
         call_shortcd = self.find_target_shortcd('call')
         put_shortcd = self.find_target_shortcd('put')
 
         logger.info('======= target option shortcd ======')
+        logger.info('atm_strike-> %s' % self.atm_strike)
         logger.info('target call option-> %s' % call_shortcd)
         logger.info('target put option-> %s' % put_shortcd)
         logger.info('====================================')
@@ -196,16 +197,18 @@ class MainForm(QtGui.QMainWindow):
                     bid1 = self.bid1_dict.get(shortcd, 0.0)
                     buysell = 'S'
 
-                    order_dict = dict()
-                    order_dict['shortcd'] = shortcd
-                    order_dict['orderprice'] = ask1
-                    if ask1 - bid1 <= 0.03:
-                        order_dict['orderprice'] = bid1
-                    order_dict['orderqty'] = 2
-                    # order_dict['orderprice'] = float(ask1)
-                    # order_dict['orderqty'] = 1
-                    order_dict['buysell'] = buysell
-                    self.orderseq.append(order_dict)
+                    for i in xrange(4):
+
+                        order_dict = dict()
+                        order_dict['shortcd'] = shortcd
+                        order_dict['orderprice'] = ask1
+                        if ask1 - bid1 <= 0.03:
+                            order_dict['orderprice'] = bid1 + 0.01 * i
+                        order_dict['orderqty'] = 1
+                        # order_dict['orderprice'] = float(ask1)
+                        # order_dict['orderqty'] = 1
+                        order_dict['buysell'] = buysell
+                        self.orderseq.append(order_dict)
             else:
                 logger.info('')
 
@@ -222,12 +225,37 @@ class MainForm(QtGui.QMainWindow):
         self._FeedCodeList = FeedCodeList()
         self._FeedCodeList.ReadCodeListFile()
         option_shortcd_lst = self._FeedCodeList.optionshcodelst
-        expire_code_lst = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
-        expire_code_lst.sort()
-        self.expireMonthCode = expire_code_lst[1]
+        self.expire_code_lst = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
+        self.expire_code_lst.sort()
+        self.expireMonthCode = self.expire_code_lst[1]
         self.strikelst = list(set([shortcd[-3:] for shortcd in option_shortcd_lst
                                    if shortcd[3:5] == self.expireMonthCode]))
         self.strikelst.sort(reverse=True)
+
+    def find_atm_strike(self):
+        put_call_parity_min = 99999
+        atm_strike = ''
+        for strike in self.strikelst:
+            call_shortcd = '201' + self.expire_code_lst[0] + strike
+            put_shortcd = '301' + self.expire_code_lst[0] + strike
+
+            bid1 = self.bid1_dict.get(call_shortcd, 0.0)
+            ask1 = self.ask1_dict.get(call_shortcd, 0.0)
+            if int(bid1 * 100) == 0 or int(ask1 * 100) == 0: continue
+            call_mid = (ask1 + bid1) * 0.5
+
+            bid1 = self.bid1_dict.get(put_shortcd, 0.0)
+            ask1 = self.ask1_dict.get(put_shortcd, 0.0)
+            if int(bid1 * 100) == 0 or int(ask1 * 100) == 0: continue
+            put_mid = (ask1 + bid1) * 0.5
+
+            put_call_parity = abs(call_mid - put_mid)
+            if put_call_parity_min > put_call_parity:
+                put_call_parity_min = put_call_parity
+                atm_strike = strike
+
+        return atm_strike
+        pass
 
     def find_target_shortcd(self, callput):
         target_shortcd = None
@@ -240,6 +268,7 @@ class MainForm(QtGui.QMainWindow):
             mid = (ask1 + bid1) * 0.5
             if 0.15 < mid < 0.60: return shortcd
             for strike in self.strikelst:
+                if int(strike) < int(self.atm_strike) * 1.10: continue
                 shortcd = '201' + self.expireMonthCode + strike
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
                 ask1 = self.ask1_dict.get(shortcd, 0.0)
@@ -258,6 +287,7 @@ class MainForm(QtGui.QMainWindow):
             if 0.15 < mid < 0.60: return shortcd
 
             for strike in self.strikelst:
+                if int(strike) > int(self.atm_strike) * 0.90: continue
                 shortcd = '301' + self.expireMonthCode + strike
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
                 ask1 = self.ask1_dict.get(shortcd, 0.0)
@@ -422,9 +452,7 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def onReceiveExecution(self, data_dict):
-        # logger.info('%s' % str(data_dict)) # move to thread
         if data_dict['AutoTraderID'] == 'OTM001':
-            # logger.info('%s' % str(data_dict))
             exec_data_dict = dict()
             exec_data_dict['autotrader_id'] = 'OTM001'
             exec_data_dict['datetime'] = data_dict['TimeStamp']
