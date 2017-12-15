@@ -33,6 +33,7 @@ class ExpireDateUtil:
         self.back_expire_date = ''
 
     def read_expire_date(self, filepath):
+        self.expire_date_lst = []
         with open(filepath + '/expire_date.txt', 'r') as f:
             while 1:
                 line = f.readline()
@@ -78,8 +79,8 @@ class ExpireDateUtil:
         year2 = year_code_dict.get(self.back_expire_date[:4], '')
         month2 = month_code_dict.get(self.back_expire_date[4:6], '')
 
-        print(year1 + month1)
-        print(year2 + month2)
+        # print(year1 + month1)
+        # print(year2 + month2)
         return year1 + month1, year2 + month2
 
 
