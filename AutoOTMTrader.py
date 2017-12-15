@@ -273,7 +273,7 @@ class MainForm(QtGui.QMainWindow):
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
                 ask1 = self.ask1_dict.get(shortcd, 0.0)
                 bid_ask_spread = ask1 - bid1
-                if 0 < bid_ask_spread <= 0.02 and 0.10 <= bid1 <= 0.15 and min_bid1 > bid1:
+                if 0 < bid_ask_spread <= 0.03 and 0.03 <= bid1 <= 0.15 and min_bid1 > bid1:
                     min_bid1 = bid1
                     target_shortcd = shortcd
 
@@ -292,7 +292,7 @@ class MainForm(QtGui.QMainWindow):
                 bid1 = self.bid1_dict.get(shortcd, 0.0)
                 ask1 = self.ask1_dict.get(shortcd, 0.0)
                 bid_ask_spread = ask1 - bid1
-                if 0 < bid_ask_spread <= 0.02 and 0.10 <= bid1 <= 0.15 and min_bid1 > bid1:
+                if 0 < bid_ask_spread <= 0.03 and 0.10 <= bid1 <= 0.15 and min_bid1 > bid1:
                     min_bid1 = bid1
                     target_shortcd = shortcd
 
