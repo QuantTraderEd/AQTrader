@@ -103,7 +103,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.resizeRowsToContents()
         # self.ui.tableWidget.resizeColumnToContents(0)       # shortcd
         # self.ui.tableWidget.resizeColumnToContents(1)       # qty
-        # self.ui.tableWidget.resizeColumnToContents(2)       # P/L Open
+        self.ui.tableWidget.resizeColumnToContents(2)       # P/L Open
         self.ui.tableWidget.resizeColumnToContents(3)  # avgprice
         # self.ui.tableWidget.resizeColumnToContents(4)       # ask1
         # self.ui.tableWidget.resizeColumnToContents(5)       # bid1
