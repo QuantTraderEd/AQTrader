@@ -94,7 +94,8 @@ class MainForm(QtGui.QMainWindow):
         self.ui.pushButton_Start.clicked.connect(self.onClick)
 
         setting = QtCore.QSettings("AutoOTMTrader.ini", QtCore.QSettings.IniFormat)
-        self.restoreGeometry(setting.value("AutoOTMTrader_Geometry").toByteArray())
+        if setting.value("AutoOTMTrader_Geometry") is not None:
+            self.restoreGeometry(setting.value("AutoOTMTrader_Geometry").toByteArray())
 
         self.alignRightColumnList = [1, 2, 3, 4, 6, 7]
         self.alignCenterColumnList = [0]
@@ -165,8 +166,8 @@ class MainForm(QtGui.QMainWindow):
                     order_dict = dict()
                     order_dict['shortcd'] = shortcd
                     order_dict['orderprice'] = 0.01
-                    if ask1 - bid1 <= 0.03:
-                        order_dict['orderprice'] = ask1
+                    # if ask1 - bid1 <= 0.03:
+                    #     order_dict['orderprice'] = ask1
                     order_dict['orderqty'] = self.position_dict[shortcd]
                     # order_dict['orderprice'] = float(ask1)
                     # order_dict['orderqty'] = 1
@@ -191,7 +192,8 @@ class MainForm(QtGui.QMainWindow):
                     logger.info('target option is not found')
                     self.orderseq = list()
 
-                for shortcd in [call_shortcd, put_shortcd]:
+                # for shortcd in [call_shortcd, put_shortcd]:
+                for shortcd in [put_shortcd]:
                     if shortcd is None: continue
                     ask1 = self.bid1_dict.get(shortcd, 0.0)
                     bid1 = self.bid1_dict.get(shortcd, 0.0)
