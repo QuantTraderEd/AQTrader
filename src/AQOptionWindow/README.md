@@ -1,2 +1,0 @@
-# AQOptionWindow
-Option Window
