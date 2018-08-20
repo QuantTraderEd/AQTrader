@@ -8,6 +8,7 @@ import datetime as dt
 year_code_dict = {}
 year_code_dict['2017'] = 'M'
 year_code_dict['2018'] = 'N'
+year_code_dict['2019'] = 'O'
 
 
 month_code_dict = {}
@@ -32,15 +33,20 @@ class ExpireDateUtil:
         self.front_expire_date = ''
         self.back_expire_date = ''
 
-    def read_expire_date(self, filepath):
+    def read_expire_date(self, filepath, today=None):
         self.expire_date_lst = []
+        if today is None:
+            now_dt = dt.datetime.now()
+            today = now_dt.strftime('%Y%m%d')
+            
         with open(filepath + '/expire_date.txt', 'r') as f:
             while 1:
                 line = f.readline()
                 if not line: break
                 # print(line[:-2])
-                self.expire_date_lst.append(line[:-2])
-                self.expire_month_lst.append(line[:6])
+                date = line[:-2]                
+                self.expire_date_lst.append(date)
+                self.expire_month_lst.append(date[:6])
 
             print(self.expire_date_lst)
             f.close()
@@ -95,15 +101,9 @@ if __name__ == "__main__":
     expiredate_util.read_expire_date('.')
     is_expiredate = expiredate_util.is_expire_date(today)
 
-    result1 = expiredate_util.make_expire_code(today)
+    result1 = expiredate_util.make_expire_date(today)
     result2 = expiredate_util.make_expire_shortcd(today)
     print('is_expiredate: %s' % is_expiredate)
     print(result1)
     print(result2)
-
-
-
-
-
-
 
