@@ -25,5 +25,4 @@ class CpCybos(Source):
     def GetLimitRemainCount(self, limitType):
         return self.com.GetLimitRemainCount(limitType)
     def OnDisConnect(self):
-        assert False
-        pass
+        return True
