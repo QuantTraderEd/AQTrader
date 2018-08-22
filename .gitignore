@@ -1,0 +1,7 @@
+#python
+build
+dist
+*.egg-info
+*.pyc
+/.idea
+PyCybos/.idea
