@@ -4,4 +4,4 @@ dist
 *.egg-info
 *.pyc
 /.idea
-../.idea
+PyCybos/.idea
