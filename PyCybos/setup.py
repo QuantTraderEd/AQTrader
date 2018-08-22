@@ -17,10 +17,11 @@ setup(
     name="pycybos",
     version="0.1",
     author="QuantTraderEd",
-    description="Python package for Cybos",
+    description="Python package for Cybos API",
     url="https://github.com/QuantTraderEd/AQTrader/tree/master/PyCybos",
     packages=['pycybos'],
     long_description=open('README.md').read(),
-    # setup_requires=['pythoncom', 'win32com'],
+    setup_requires=['pywin32>=220'],
+    # packages=find_packages(exclude=['tests']),
     # test_suite=''
 )
