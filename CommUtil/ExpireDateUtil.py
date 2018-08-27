@@ -38,13 +38,13 @@ class ExpireDateUtil:
         if today is None:
             now_dt = dt.datetime.now()
             today = now_dt.strftime('%Y%m%d')
-            
+
         with open(filepath + '/expire_date.txt', 'r') as f:
             while 1:
                 line = f.readline()
                 if not line: break
                 # print(line[:-2])
-                date = line[:-2]                
+                date = line[:-2]
                 self.expire_date_lst.append(date)
                 self.expire_month_lst.append(date[:6])
 
