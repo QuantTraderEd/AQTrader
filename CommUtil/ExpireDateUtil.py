@@ -8,7 +8,10 @@ import datetime as dt
 year_code_dict = {}
 year_code_dict['2017'] = 'M'
 year_code_dict['2018'] = 'N'
-year_code_dict['2019'] = 'O'
+year_code_dict['2019'] = 'P'
+year_code_dict['2020'] = 'Q'
+year_code_dict['2021'] = 'R'
+
 
 
 month_code_dict = {}
@@ -70,14 +73,7 @@ class ExpireDateUtil:
         return self.front_expire_date, self.back_expire_date
 
     def make_expire_shortcd(self, today):
-        month_index = self.expire_month_lst.index(today[:6])
-        expire_date = self.expire_date_lst[month_index]
-        if today > expire_date:
-            self.front_expire_date = self.expire_date_lst[month_index + 1]
-            self.back_expire_date = self.expire_date_lst[month_index + 2]
-        elif today <= expire_date:
-            self.front_expire_date = self.expire_date_lst[month_index]
-            self.back_expire_date = self.expire_date_lst[month_index + 1]
+		self.make_expire_date(today)
 
         year1 = year_code_dict.get(self.front_expire_date[:4], '')
         month1 = month_code_dict.get(self.front_expire_date[4:6], '')
