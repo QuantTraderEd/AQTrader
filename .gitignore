@@ -3,5 +3,6 @@ build
 dist
 *.egg-info
 *.pyc
+*.txt
 /.idea
 PyCybos/.idea
