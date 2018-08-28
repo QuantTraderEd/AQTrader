@@ -14,7 +14,6 @@ class SubscribeThread(QtCore.QThread):
         self.mutex = QtCore.QMutex()
         self.mt_pauseCondition = QtCore.QWaitCondition()
         self.subType = subtype
-        pass
 
     def run(self):
         self.mt_stop = False
@@ -27,7 +26,7 @@ class SubscribeThread(QtCore.QThread):
         elif self.subType == 'BackTest':
             port = '5502'
         else:
-            assert False
+            raise AssertionError()
             return
         context = zmq.Context()
         self.socket = context.socket(zmq.SUB)
