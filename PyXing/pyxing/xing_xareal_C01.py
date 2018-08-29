@@ -7,6 +7,7 @@ Created on Mon Jun 23 21:09:43 2014
 
 from xing_source import SourceReal
 
+
 class XAReal_C01(SourceReal):
     """
     kospi200 futures&options order exec real time receive
@@ -17,6 +18,7 @@ class XAReal_C01(SourceReal):
         self.shcode = shcode
         self.DataType = DataType 
         pass
+
     def OnSignal(self):
         if self.DataType == 'dictionary':
             self.data = {}
@@ -69,15 +71,15 @@ class XAReal_C01(SourceReal):
             self.data.append(self.GetFieldData('OutBlock','chedate'))
             self.data.append(self.GetFieldData('OutBlock','chetime'))
             self.data.append(self.GetFieldData('OutBlock','spdprc1'))
-            self.data.append(self.GetFieldData('OutBlock','spdprc2'))  
-            self.data.append(self.GetFieldData('OutBlock','dosugb'))  
-            self.data.append(self.GetFieldData('OutBlock','accno1'))  
+            self.data.append(self.GetFieldData('OutBlock','spdprc2'))
+            self.data.append(self.GetFieldData('OutBlock','dosugb'))
+            self.data.append(self.GetFieldData('OutBlock','accno1'))
             self.data.append(self.GetFieldData('OutBlock','sihogagb'))  
-            self.data.append(self.GetFieldData('OutBlock','jakino'))  
-            self.data.append(self.GetFieldData('OutBlock','daeyong'))  
+            self.data.append(self.GetFieldData('OutBlock','jakino'))
+            self.data.append(self.GetFieldData('OutBlock','daeyong'))
             self.data.append(self.GetFieldData('OutBlock','mem_filler'))  
-            self.data.append(self.GetFieldData('OutBlock','mem_accno'))  
-            self.data.append(self.GetFieldData('OutBlock','mem_filler1'))  
-            self.data.append(self.GetFieldData('OutBlock','filler'))              
+            self.data.append(self.GetFieldData('OutBlock','mem_accno'))
+            self.data.append(self.GetFieldData('OutBlock','mem_filler1'))
+            self.data.append(self.GetFieldData('OutBlock','filler'))
             self.Notify()
         pass

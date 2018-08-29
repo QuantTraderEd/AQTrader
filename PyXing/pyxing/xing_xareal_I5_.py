@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Aug 06 20:15:18 2013
-
-@author: Administrator
-"""
 
 from xing_source import SourceReal
+
 
 class XAReal_I5_(SourceReal):
     """
     kospi200 ETF NAV
-    """       
+    """
     def __init__(self,shcode=None,DataType='dictionary'):
         super(XAReal_I5_,self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\I5_.res")
         self.shcode = shcode
         self.DataType = DataType 
         pass
+
     def OnSignal(self):
         if self.DataType == 'dictionary':
             self.data = {}

@@ -6,22 +6,24 @@ Created on Mon Jun 17 20:07:07 2013
 """
 from xing_source import SourceReal
 
+
 class XAReal_FC0(SourceReal):
     """
     kospi200 futures trade tick real time receive
     """
-    def __init__(self,shcode=None,DataType='dictionary'):
-        super(XAReal_FC0,self).__init__("XA_DataSet.XAReal")
+    def __init__(self, shcode=None, DataType='dictionary'):
+        super(XAReal_FC0, self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\FC0.res")
         self.shcode = shcode
         self.DataType = DataType
-        if shcode: self.SetFieldData('InBlock','futcode',shcode)        
+        if shcode: self.SetFieldData('InBlock', 'futcode', shcode)
         pass
+
     def OnSignal(self):
         if self.DataType == 'dictionary':
             self.data = {}
-            self.data['chetime'] = self.GetFieldData('OutBlock','chetime')      
-            self.data['sign'] = self.GetFieldData('OutBlock','sign')            
+            self.data['chetime'] = self.GetFieldData('OutBlock','chetime')
+            self.data['sign'] = self.GetFieldData('OutBlock','sign')
             self.data['change'] = self.GetFieldData('OutBlock','change')
             self.data['drate'] = self.GetFieldData('OutBlock','drate')
             self.data['price'] = self.GetFieldData('OutBlock','price')

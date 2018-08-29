@@ -7,6 +7,7 @@ Created on Wed Dec 06 21:04:46 2017
 
 from xing_source import SourceQuery
 
+
 class XAQuery_CCEAT00100(SourceQuery):
     """
     kospi200 CME futures  normal order
@@ -16,7 +17,7 @@ class XAQuery_CCEAT00100(SourceQuery):
         self.LoadFromResFile("Res\\CCEAT00100.res")
         self.autotrader_id = "0"
         pass
-    
+
     def OnSignal(self):                
         self.data = {}
         self.data['blsSystemError'] = self.RecvMsg[0]
@@ -59,4 +60,3 @@ class XAQuery_CCEAT00100(SourceQuery):
         self.data['OrdAbleQty'] = self.GetFieldData('CCEAT00100OutBlock2','OrdAbleQty',0)
         self.Notify()
         pass
-    

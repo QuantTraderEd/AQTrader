@@ -7,6 +7,7 @@ Created on Sat Jun 21 01:19:43 2014
 
 from xing_source import SourceQuery
 
+
 class XAQuery_CFOAT00200(SourceQuery):
     """
     kospi200 futures & options amand order
@@ -16,12 +17,13 @@ class XAQuery_CFOAT00200(SourceQuery):
         self.LoadFromResFile("Res\\CFOAT00100.res")
         self.autotrader_id = "0"
         pass
+
     def OnSignal(self):
         self.data = {}
         self.data['blsSystemError'] = self.RecvMsg[0]
         self.data['szMessageCode'] = self.RecvMsg[1]
         self.data['szMessage'] = self.RecvMsg[2]
-        
+
         self.data['RecCnt1'] = self.GetFieldData('CFOAT00200OutBlock1','RecCnt',0)
         self.data['OrdMktCode'] = self.GetFieldData('CFOAT00200OutBlock1','OrdMktCode',0)
         self.data['AcntNo'] = self.GetFieldData('CFOAT00200OutBlock1','AcntNo',0)
@@ -47,7 +49,7 @@ class XAQuery_CFOAT00200(SourceQuery):
         self.data['FundId'] = self.GetFieldData('CFOAT00200OutBlock1','FundId',0)
         self.data['FundOrgOrdNo'] = self.GetFieldData('CFOAT00200OutBlock1','FundOrgOrdNo',0)
         self.data['FundOrdNo'] = self.GetFieldData('CFOAT00200OutBlock1','FundOrdNo',0)
-        
+
         self.data['RecCnt2'] = self.GetFieldData('CFOAT00200OutBlock2','RecCnt',0)
         self.data['OrdNo'] = self.GetFieldData('CFOAT00200OutBlock2','OrdNo',0)
         self.data['BrnNm'] = self.GetFieldData('CFOAT00200OutBlock2','BrnNm',0)

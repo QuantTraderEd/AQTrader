@@ -16,7 +16,7 @@ class XAQuery_t0424(SourceQuery):
         self.LoadFromResFile("Res\\t0424.res")
         self.cts_expcode_key = ''
         pass
-    
+
     def OnSignal(self):
         self.data = []
         data = {}

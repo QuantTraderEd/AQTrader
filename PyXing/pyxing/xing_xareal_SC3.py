@@ -11,12 +11,13 @@ class XAReal_SC3(SourceReal):
     """
     kospi200 stock amend order ack real time receive
     """       
-    def __init__(self,shcode=None,DataType='dictionary'):
-        super(XAReal_SC3,self).__init__("XA_DataSet.XAReal")
+    def __init__(self, shcode=None, DataType='dictionary'):
+        super(XAReal_SC3, self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\SC3.res")
         self.shcode = shcode
         self.DataType = DataType   
         pass
+
     def OnSignal(self):
         if self.DataType == 'dictionary':
             self.data = {}
@@ -57,10 +58,10 @@ class XAReal_SC3(SourceReal):
             self.data['eventid'] = self.GetFieldData('OutBlock','eventid')
             self.data['ifinfo'] = self.GetFieldData('OutBlock','ifinfo')
             self.data['filler1'] = self.GetFieldData('OutBlock','filler1')
-            self.data['ordxctptncode'] = self.GetFieldData('OutBlock','ordxctptncode')                
-            self.data['ordmktcode'] = self.GetFieldData('OutBlock','ordmktcode')                
-            self.data['ordptncode'] = self.GetFieldData('OutBlock','ordptncode')                
-            self.data['mgmtbrnno'] = self.GetFieldData('OutBlock','mgmtbrnno')                        
+            self.data['ordxctptncode'] = self.GetFieldData('OutBlock','ordxctptncode')
+            self.data['ordmktcode'] = self.GetFieldData('OutBlock','ordmktcode')
+            self.data['ordptncode'] = self.GetFieldData('OutBlock','ordptncode')
+            self.data['mgmtbrnno'] = self.GetFieldData('OutBlock','mgmtbrnno')
             self.data['accno1'] = self.GetFieldData('OutBlock','accno1')
             self.data['accno2'] = self.GetFieldData('OutBlock','accno2')
             self.data['acntnm'] = self.GetFieldData('OutBlock','acntnm')

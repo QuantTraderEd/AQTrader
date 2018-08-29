@@ -7,6 +7,7 @@ Created on Wed Oct 23 20:23:05 2013
 
 from xing_source import SourceQuery
 
+
 class XAQuery_t0425(SourceQuery):
     """
     kospi stock now quote & state query
@@ -16,7 +17,7 @@ class XAQuery_t0425(SourceQuery):
         self.LoadFromResFile("Res\\t0425.res")
         self.cts_ordno_key = ''
         pass
-    
+
     def OnSignal(self):
         self.data = []
         data = {}
@@ -28,11 +29,10 @@ class XAQuery_t0425(SourceQuery):
         data['tmdamt'] = self.GetFieldData('T0425OutBlock','tmdamt',0)
         data['tax'] = self.GetFieldData('T0425OutBlock','tax',0)
         data['cts_ordno'] = self.GetFieldData('T0425OutBlock','cts_ordno',0)    # consecutive view key
-        
-        
+
         self.cts_ordno_key = data['cts_ordno']
         self.data.append(data)
-        
+
         nCount = self.GetBlockCount('T0425OutBlock1')                
         for i in xrange(nCount):        
             data = {}
@@ -55,13 +55,8 @@ class XAQuery_t0425(SourceQuery):
             data['orggb'] = self.GetFieldData('T0425OutBlock1','orggb',i)
             data['singb'] = self.GetFieldData('T0425OutBlock1','singb',i)
             data['loandt'] = self.GetFieldData('T0425OutBlock1','loandt',i)            
-            
+
             self.data.append(data)
-            
-            
+
         self.Notify()
         pass
-        
-        
-        
-        
