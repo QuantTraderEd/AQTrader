@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 #python
 build
 dist
 *.egg-info
 *.pyc
 *.txt
+*.ini
+*.log
 /.idea
 PyCybos/.idea
