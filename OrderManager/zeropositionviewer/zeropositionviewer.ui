@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>777</width>
+    <height>146</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>PositionViewer</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTableWidget" name="tableWidget">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <row>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>3</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>ShortCD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Qty</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Mark</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>TradePrice</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Delta</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Gamma</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Theta</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Vega</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>P/L Open</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

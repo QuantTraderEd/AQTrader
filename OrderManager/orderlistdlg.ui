@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>963</width>
+    <height>141</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTableWidget" name="tableWidget">
+     <row>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>OrdNo</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>OrgOrdNo</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ExecNo</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Time</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>BuySell</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ShortCD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>OrderPrice</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Qty</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Type1</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Type2</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ExecPrice</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ExecQty</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>UnExecQty</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ChkReq</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
