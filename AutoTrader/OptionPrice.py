@@ -34,15 +34,15 @@ class OptionPrice(object):
                 self.ask1_dict[shortcd] = 0.0
         pass
 
-    def initStrikeList(self):
-        self._FeedCodeList.ReadCodeListFile()
+    def init_strike_list(self):
+        self._FeedCodeList.read_code_list()
         option_shortcd_lst = self._FeedCodeList.optionshcodelst
-        self.expire_code_lst = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
-        self.expire_code_lst.sort()
-        self.expireMonthCode = self.expire_code_lst[1]
-        self.strikelst = list(set([shortcd[-3:] for shortcd in option_shortcd_lst
-                                   if shortcd[3:5] == self.expireMonthCode]))
-        self.strikelst.sort(reverse=True)
+        self.expire_code_list = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
+        self.expire_code_list.sort()
+        self.expire_month_code = self.expire_code_list[1]
+        self.strike_list = list(set([shortcd[-3:] for shortcd in option_shortcd_lst
+                                   if shortcd[3:5] == self.expire_month_code]))
+        self.strike_list.sort(reverse=True)
         pass
 
     def find_atm_strike(self):

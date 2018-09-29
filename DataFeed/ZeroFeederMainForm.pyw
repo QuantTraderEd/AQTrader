@@ -120,7 +120,7 @@ class MainForm(QtGui.QMainWindow):
 
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()
+        self._FeedCodeList.read_code_list()
 
     def initZMQ(self):
         context = zmq.Context()

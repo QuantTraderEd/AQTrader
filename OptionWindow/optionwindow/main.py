@@ -70,7 +70,7 @@ class MainForm(QtGui.QMainWindow):
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()        
+        self._FeedCodeList.read_code_list()
         #for item in self._FeedCodeList.optionshcodelst:
         #    print item
 
