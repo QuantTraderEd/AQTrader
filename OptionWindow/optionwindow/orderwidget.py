@@ -3,7 +3,7 @@
 import logging
 import zmq
 from PyQt4 import QtCore, QtGui
-from ui_orderwidget import Ui_Form
+from ui.orderwidget_ui import Ui_Form
 
 
 class OptionViewerOrderWidget(QtGui.QWidget):

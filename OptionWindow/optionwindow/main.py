@@ -6,11 +6,11 @@ import logging
 import datetime as dt
 import sip
 from PyQt4 import QtGui, QtCore
-from zerooptionviewer_thread import OptionViewerThread
-from zerooptionviewer_orderwidget import OptionViewerOrderWidget
-from ui_zerooptionviewer import Ui_MainWindow
-from FeedCodeList import FeedCodeList
-import CommUtil.ExpireDateUtil as ExpireDateUtil
+from thread import OptionViewerThread
+from orderwidget import OptionViewerOrderWidget
+from ui.mainwindow_ui import Ui_MainWindow
+from ...CommUtil.FeedCodeList import FeedCodeList
+from ...CommUtil import ExpireDateUtil
 
 logger = logging.getLogger('ZeroOptionViewer')
 logger.setLevel(logging.DEBUG)
@@ -70,7 +70,7 @@ class MainForm(QtGui.QMainWindow):
         
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()        
+        self._FeedCodeList.read_code_list()
         #for item in self._FeedCodeList.optionshcodelst:
         #    print item
 

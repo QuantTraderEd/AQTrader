@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Sep 04 19:40:36 2013
-
-@author: Administrator
-"""
-
+import os
 
 class FeedCodeList:
     """
@@ -16,15 +11,11 @@ class FeedCodeList:
         self.equityshcodelst = []
         self.indexshcodelst = []
 
-    def ReadCodeListFile(self):
-        try:
-            feedcodelistfilep = open('feedcodelist.txt','r')
-        except IOError, e:            
-            print e
-            print "There is no feedcodelist.txt file."
-            return 
+    def read_code_list(self):
         state = 0
-        
+        path = os.path.dirname(os.path.realpath(__file__))
+        feedcodelistfilep = open(path + '\\' + 'feedcodelist.txt', 'r')
+
         # FeedCodeFile Parseing        
         
         while 1:
@@ -62,7 +53,7 @@ if __name__ == "__main__":
     
     viewer = ConsoleViewer()
     _feedcodelist = FeedCodeList()
-    _feedcodelist.ReadCodeListFile()
+    _feedcodelist.read_code_list()
     
     print _feedcodelist.futureshcodelst
     print _feedcodelist.optionshcodelst

@@ -11,7 +11,7 @@ import pythoncom
 
 import pyxing as px
 import pycybos as pc
-from FeedCodeList import FeedCodeList
+from ..CommUtil.FeedCodeList import FeedCodeList
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -120,7 +120,7 @@ class MainForm(QtGui.QMainWindow):
 
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()
+        self._FeedCodeList.read_code_list()
 
     def initZMQ(self):
         context = zmq.Context()
