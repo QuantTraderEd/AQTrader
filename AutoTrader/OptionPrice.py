@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+
 import redis
-from FeedCodeList import FeedCodeList
+from ..CommUtil.FeedCodeList import FeedCodeList
 
 
 class OptionPrice(object):
