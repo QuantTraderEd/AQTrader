@@ -302,9 +302,9 @@ def main():
     if not ("redis-server.exe" in prcslst):
         os.chdir('C:/Redis-x64-2.8.2103')
         # os.startfile('redis-server.exe redis.conf')
-		redis_exe = "C:/Redis-x64-2.8.2103/redis-server.exe"
-		redis_opt = "redis.conf"
-		ctypes.windll.shell32.ShellExecuteA(0,'open', redis_exe, redis_opt, None, 1)
+        redis_exe = "C:/Redis-x64-2.8.2103/redis-server.exe"
+        redis_opt = "redis.conf"
+        ctypes.windll.shell32.ShellExecuteA(0,'open', redis_exe, redis_opt, None, 1)
         logger.info('start redis-server...')
     else:
         logger.info('redis-server ok')
