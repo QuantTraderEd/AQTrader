@@ -2,6 +2,7 @@
 
 import os
 import sys
+import ctypes
 import time
 import logging
 import datetime as dt
@@ -248,11 +249,11 @@ def day_session_starter():
 
 def test_trader_starter():
     time.sleep(5)
-    # os.chdir(commonfolder + '\\ZeroTrader_Test\\AutoFutArbTrader\\')
-    os.chdir(commonfolder + '\\ZeroTrader_Test\\AutoOTMTrader\\')
-    # os.startfile('AutoFutArbTrader.py')
-    # logger.info('start AutoFutArbTrader')
-    os.startfile('AutoOTMTrader.py')
+    os.chdir(commonfolder + '\\ZeroTrader_Test\\AutoFutArbTrader\\')
+    # os.chdir(commonfolder + '\\ZeroTrader_Test\\AutoOTMTrader\\')
+    os.startfile('AutoFutArbTrader.py')
+    logger.info('start AutoFutArbTrader')
+    # os.startfile('AutoOTMTrader.py')
     time.sleep(5)
     
     os.chdir(commonfolder + '\\ZeroTrader_Test\\ZeroOMS_MiniArb\\')
@@ -300,7 +301,10 @@ def main():
     
     if not ("redis-server.exe" in prcslst):
         os.chdir('C:/Redis-x64-2.8.2103')
-        os.startfile('redis-server.exe')
+        # os.startfile('redis-server.exe redis.conf')
+		redis_exe = "C:/Redis-x64-2.8.2103/redis-server.exe"
+		redis_opt = "redis.conf"
+		ctypes.windll.shell32.ShellExecuteA(0,'open', redis_exe, redis_opt, None, 1)
         logger.info('start redis-server...')
     else:
         logger.info('redis-server ok')
@@ -413,7 +417,7 @@ def main():
             test_open_trigger = False
             test_close_trigger = True
             
-            # test_trader_starter()
+            test_trader_starter()
     
         elif nowtime.tm_hour == 17 and nowtime.tm_min >= 0 and nowtime.tm_min <= 35 and \
             not night_session_trigger and day_session_trigger:
