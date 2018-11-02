@@ -85,18 +85,17 @@ class LoginForm(QtGui.QDialog):
 
 
 # ==================== Observers ====================
-class ConsoleViewer:
-    def Update(self, subject):
+class ConsoleViewer():
+    @classmethod
+    def Update(cls, subject):
         subject.flag = False
         print '--------' * 5
-        if type(subject.data) == dict:
+        if isinstance(subject.data, dict):
             for item in subject.data:
                 print item, subject.data[item]
-        elif type(subject.data) == list:
+        elif isinstance(subject.data, list):
             for item in subject.data:
                 print item
-        else:
-            print item
         pass
 
 
