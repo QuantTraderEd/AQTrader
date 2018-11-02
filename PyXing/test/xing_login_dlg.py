@@ -85,7 +85,7 @@ class LoginForm(QtGui.QDialog):
 
 
 # ==================== Observers ====================
-class ConsoleViewer():
+class ConsoleViewer(object):
     @classmethod
     def Update(cls, subject):
         subject.flag = False
