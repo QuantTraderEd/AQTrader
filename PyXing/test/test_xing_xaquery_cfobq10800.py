@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import getpass
 import pythoncom
 
 from xing_login_dlg import ConsoleViewer
@@ -9,9 +10,7 @@ from ..pyxing.xing_xaquery_cfobq10500 import XAQuery_CFOBQ10500
 
 
 class TestClass(object):
-    user = ''
-    passwd = ''
-    certpw = ''
+
     servertype = 1
     showcerterror = 1
     server_text = 'demo server'
@@ -27,9 +26,16 @@ class TestClass(object):
     xa_session = XASession()
     # xa_session.observer = proxy(self)
 
-    def test_login(self):
+    def test_xquery(self, monkeypatch):
+        # monkeypatch.setattr('builtins.input', lambda x: 'eddy778')
+        monkeypatch.setattr('getpass.getpass', lambda x: 'c9792458')
+
+        user = 'eddy778'
+        passwd = getpass.getpass('passwd:')
+        certpw = ''
         self.xa_session.ConnectServer(self.server, self.port)
-        ret = self.xa_session.Login(self.user, self.passwd, self.certpw, self.servertype, self.showcerterror)
+        # ret = self.xa_session.Login(self.user, self.passwd, self.certpw, self.servertype, self.showcerterror)
+        ret = self.xa_session.Login(user, passwd, certpw, self.servertype, self.showcerterror)
         XASessionEvents.session = self.xa_session
         self.xa_session.flag = True
         while self.xa_session.flag:
@@ -39,8 +45,6 @@ class TestClass(object):
         assert len(accountlist[0]) == 11
         assert len(accountlist[1]) == 11
 
-    def test_xquery(self):
-        accountlist = self.xa_session.GetAccountList()
         console_viewer = ConsoleViewer()
         xquery = XAQuery_CFOBQ10500()
         xquery.observer = console_viewer
