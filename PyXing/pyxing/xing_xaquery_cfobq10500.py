@@ -21,7 +21,7 @@ class XAQuery_CFOBQ10500(SourceQuery):
 
         self.data.append(data1)
 
-        data2 = list()
+        data2 = dict()
         data2['RecCnt'] = self.GetFieldData('CFOBQ10500OutBlock2', 'RecCnt', 0)
         data2['AcntNm'] = self.GetFieldData('CFOBQ10500OutBlock2', 'AcntNm', 0)
         data2['DpsamTotamt'] = self.GetFieldData('CFOBQ10500OutBlock2', 'DpsamTotamt', 0)
