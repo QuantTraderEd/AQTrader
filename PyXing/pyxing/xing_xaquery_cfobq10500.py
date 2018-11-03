@@ -13,15 +13,15 @@ class XAQuery_CFOBQ10500(SourceQuery):
         pass
 
     def OnSignal(self):
-        self.data = []
-        data1 = {}
+        self.data = list()
+        data1 = dict()
         data1['RecCnt'] = self.GetFieldData('CFOBQ10500OutBlock1', 'RecCnt', 0)
         data1['AcntNo'] = self.GetFieldData('CFOBQ10500OutBlock1', 'AcntNo', 0)
         data1['Pwd'] = self.GetFieldData('CFOBQ10500OutBlock1', 'Pwd', 0)
 
         self.data.append(data1)
 
-        data2 = {}
+        data2 = list()
         data2['RecCnt'] = self.GetFieldData('CFOBQ10500OutBlock2', 'RecCnt', 0)
         data2['AcntNm'] = self.GetFieldData('CFOBQ10500OutBlock2', 'AcntNm', 0)
         data2['DpsamTotamt'] = self.GetFieldData('CFOBQ10500OutBlock2', 'DpsamTotamt', 0)
@@ -49,7 +49,7 @@ class XAQuery_CFOBQ10500(SourceQuery):
 
         self.data.append(data2)
 
-        data3 = {}
+        data3 = dict()
         data3['PdGrpCodeNm'] = self.GetFieldData('CFOBQ10500OutBlock3', 'PdGrpCodeNm', 0)
         data3['NetRiskMgn'] = self.GetFieldData('CFOBQ10500OutBlock3', 'NetRiskMgn', 0)
         data3['PrcMgn'] = self.GetFieldData('CFOBQ10500OutBlock3', 'PrcMgn', 0)

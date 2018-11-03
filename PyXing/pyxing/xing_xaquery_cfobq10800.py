@@ -2,6 +2,7 @@
 
 from xing_source import SourceQuery
 
+
 class XAQuery_CFOBQ10800(SourceQuery):
     """
     option short margin table
@@ -12,8 +13,8 @@ class XAQuery_CFOBQ10800(SourceQuery):
         pass
 
     def OnSignal(self):
-        self.data = []
-        data1 = {}        
+        self.data = list()
+        data1 = dict()
         data1['RecCnt'] = self.GetFieldData('CFOBQ10800OutBlock1','RecCnt',0)
         data1['PrdgrpClssCode'] = self.GetFieldData('CFOBQ10800OutBlock1','PrdgrpClssCode',0)
         data1['ClssGrpCode'] = self.GetFieldData('CFOBQ10800OutBlock1','ClssGrpCode',0)
@@ -23,7 +24,7 @@ class XAQuery_CFOBQ10800(SourceQuery):
 
         nCount = self.GetBlockCount('CFOBQ10800OutBlock2')        
         for i in xrange(nCount):
-            data2 = {}
+            data2 = dict()
             data2['ElwXrcPrc'] = self.GetFieldData('CFOBQ10800OutBlock2','ElwXrcPrc',i)
             data2['FnoIsuNo'] = self.GetFieldData('CFOBQ10800OutBlock2','FnoIsuNo',i)
             data2['HanglIsuNm1'] = self.GetFieldData('CFOBQ10800OutBlock2','HanglIsuNm1',i)

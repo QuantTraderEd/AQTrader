@@ -6,7 +6,7 @@ import pyxing as px
 from weakref import proxy
 from PyQt4 import QtGui
 
-from xinglogindlg_ui import *
+from xinglogindlg_ui import Ui_dialog
 
 
 class LoginForm(QtGui.QDialog):
