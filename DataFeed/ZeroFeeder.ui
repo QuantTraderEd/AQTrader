@@ -26,8 +26,8 @@
    <string>ZeroFeeder</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../../vista 5728 icons/netcenter.dll_I0007_0409.ico</normaloff>../../vista 5728 icons/netcenter.dll_I0007_0409.ico</iconset>
+   <iconset resource="ZeroFeeder.qrc">
+    <normaloff>:/earth/resource/earth_ico.png</normaloff>:/earth/resource/earth_ico.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -86,9 +86,9 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
-     <normaloff>../../vista 5728 icons/netcenter.dll_I01f8_0409.ico</normaloff>
-     <normalon>../../vista 5728 icons/netcenter.dll_I0007_0409.ico</normalon>../../vista 5728 icons/netcenter.dll_I01f8_0409.ico</iconset>
+    <iconset resource="ZeroFeeder.qrc">
+     <normaloff>:/earth/resource/earth_bw_ico.png</normaloff>
+     <normalon>:/earth/resource/earth_ico.png</normalon>:/earth/resource/earth_bw_ico.png</iconset>
    </property>
    <property name="text">
     <string>feed</string>
@@ -101,7 +101,9 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="ZeroFeeder.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionFeed</sender>
