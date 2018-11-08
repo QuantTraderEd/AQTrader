@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import time
 from ..pycybos import CpCybos
 
-cpcybos = CpCybos()
 
-def test_PlusDisconnect():
-    if cpcybos.IsConnect():
-        print 'cybos connected...'
+class TestClass(object):
+    cpcybos = CpCybos()
 
-        print 'signal cybos terminate'
-        cpcybos.PlusDisconnect()
-        assert cpcybos.OnDisConnect()
-    assert cpcybos.OnDisConnect()
+    def test_PlusDisconnect(self):
+        if self.cpcybos.IsConnect():
+            print 'cybos connected...'
+
+            print 'signal cybos terminate'
+            self.cpcybos.PlusDisconnect()
+            assert self.cpcybos.OnDisConnect()
+        else:
+            assert False
