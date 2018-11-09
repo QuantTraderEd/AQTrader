@@ -5,14 +5,38 @@ from __future__ import unicode_literals
 
 import datetime as dt
 
-year_code_dict = {}
-year_code_dict['2017'] = 'M'
-year_code_dict['2018'] = 'N'
-year_code_dict['2019'] = 'P'
-year_code_dict['2020'] = 'Q'
-year_code_dict['2021'] = 'R'
-
-
+year_code_list = [
+                  u'E',  # 10
+                  u'F',  # 11
+                  u'G',  # 12
+                  u'H',  # 13
+                  u'J',  # 14
+                  u'K',  # 15
+                  u'L',  # 16
+                  u'M',  # 17
+                  u'N',  # 18
+                  u'P',  # 19
+                  u'Q',  # 20
+                  u'R',  # 21
+                  u'S',  # 22
+                  u'T',  # 23
+                  u'V',  # 24
+                  u'W',  # 25
+                  u'6',  # 26
+                  u'7',  # 27
+                  u'8',  # 28
+                  u'9',  # 29
+                  u'0',  # 30
+                  u'1',  # 31
+                  u'2',  # 32
+                  u'3',  # 33
+                  u'4',  # 34
+                  u'5',  # 35
+                  u'A',  # 36
+                  u'B',  # 37
+                  u'C',  # 38
+                  u'D',  # 39
+                  ]
 
 month_code_dict = {}
 month_code_dict['01'] = u'1'
@@ -75,10 +99,10 @@ class ExpireDateUtil:
     def make_expire_shortcd(self, today):
         self.make_expire_date(today)
 
-        year1 = year_code_dict.get(self.front_expire_date[:4], '')
+        year1 = year_code_list[int(self.front_expire_date[:4]) % 30]
         month1 = month_code_dict.get(self.front_expire_date[4:6], '')
 
-        year2 = year_code_dict.get(self.back_expire_date[:4], '')
+        year2 = year_code_list[int(self.back_expire_date[:4]) % 30]
         month2 = month_code_dict.get(self.back_expire_date[4:6], '')
 
         # print(year1 + month1)
