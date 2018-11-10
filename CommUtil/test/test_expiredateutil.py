@@ -24,8 +24,8 @@ class TestClass(object):
 
         expire_code_check_dict = dict()
         expire_code_check_dict['20171103'] = ('MB', 'MC')
-        expire_code_check_dict['20180103'] = ('N1', 'N2') 
-        expire_code_check_dict['20190103'] = ('P1', 'P2') 
+        expire_code_check_dict['20180103'] = ('N1', 'N2')
+        expire_code_check_dict['20190103'] = ('P1', 'P2')
         expire_code_check_dict['20200103'] = ('Q1', 'Q2')
 
         for target_date in target_date_list:
