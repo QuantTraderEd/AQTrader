@@ -38,7 +38,7 @@ year_code_list = [
                   u'D',  # 39
                   ]
 
-month_code_dict = {}
+month_code_dict = dict()
 month_code_dict['01'] = u'1'
 month_code_dict['02'] = u'2'
 month_code_dict['03'] = u'3'
@@ -60,12 +60,8 @@ class ExpireDateUtil:
         self.front_expire_date = ''
         self.back_expire_date = ''
 
-    def read_expire_date(self, filepath='.', today=None):
+    def read_expire_date(self, filepath='.'):
         self.expire_date_lst = []
-        if today is None:
-            now_dt = dt.datetime.now()
-            today = now_dt.strftime('%Y%m%d')
-
         with open(filepath + '/expire_date.txt', 'r') as f:
             while 1:
                 line = f.readline()
@@ -75,29 +71,29 @@ class ExpireDateUtil:
                 self.expire_date_lst.append(date)
                 self.expire_month_lst.append(date[:6])
 
-            print(self.expire_date_lst)
+            # print(self.expire_date_lst)
             f.close()
 
-    def is_expire_date(self, today):
-        if today in self.expire_date_lst:
+    def is_expire_date(self, str_date):
+        if str_date in self.expire_date_lst:
             print('today is expire date')
             return True
         else:
             return False
 
-    def make_expire_date(self, today):
-        month_index = self.expire_month_lst.index(today[:6])
+    def make_expire_date(self, str_date):
+        month_index = self.expire_month_lst.index(str_date[:6])
         expire_date = self.expire_date_lst[month_index]
-        if today > expire_date:
+        if str_date > expire_date:
             self.front_expire_date = self.expire_date_lst[month_index + 1]
             self.back_expire_date = self.expire_date_lst[month_index + 2]
-        elif today <= expire_date:
+        elif str_date <= expire_date:
             self.front_expire_date = self.expire_date_lst[month_index]
             self.back_expire_date = self.expire_date_lst[month_index + 1]
         return self.front_expire_date, self.back_expire_date
 
-    def make_expire_shortcd(self, today):
-        self.make_expire_date(today)
+    def make_expire_shortcd(self, str_date):
+        self.make_expire_date(str_date)
 
         year1 = year_code_list[int(self.front_expire_date[:4]) % 30]
         month1 = month_code_dict.get(self.front_expire_date[4:6], '')
