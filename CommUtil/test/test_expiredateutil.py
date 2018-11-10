@@ -30,5 +30,5 @@ class TestClass(object):
 
         for target_date in target_date_list:
             expire_month_code_list = self.expire_date_util.make_expire_shortcd(target_date)
-            assert expire_month_code_list == expire_code_check_dict[target_date]  
+            assert expire_month_code_list == expire_code_check_dict[target_date]
 
