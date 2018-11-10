@@ -60,7 +60,7 @@ class ExpireDateUtil:
         self.front_expire_date = ''
         self.back_expire_date = ''
 
-    def read_expire_date(self, filepath, today=None):
+    def read_expire_date(self, filepath='.', today=None):
         self.expire_date_lst = []
         if today is None:
             now_dt = dt.datetime.now()
