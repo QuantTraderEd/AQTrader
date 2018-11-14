@@ -3,6 +3,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from os import path
 import datetime as dt
 
 year_code_list = [
@@ -60,9 +61,10 @@ class ExpireDateUtil:
         self.front_expire_date = ''
         self.back_expire_date = ''
 
-    def read_expire_date(self, filepath='.'):
+    def read_expire_date(self, filename=''):
         self.expire_date_lst = []
-        with open(filepath + '/expire_date.txt', 'r') as f:
+        if filename == '': filename = path.join(path.dirname(__file__), 'expire_date.txt')
+        with open(filename, 'r') as f:
             while 1:
                 line = f.readline()
                 if not line: break

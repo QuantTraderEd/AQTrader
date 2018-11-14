@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
 
+
 class FeedCodeList:
     """
     feed code list from read file
     """
     def __init__(self):
-        self.futureshcodelst = []
-        self.optionshcodelst = []
-        self.equityshcodelst = []
-        self.indexshcodelst = []
+        self.future_shortcd_list = []
+        self.option_shortcd_list = []
+        self.equity_shortcd_list = []
+        self.index_shortcd_list = []
 
     def read_code_list(self):
         state = 0
@@ -27,64 +28,24 @@ class FeedCodeList:
             elif line[:-1] == "<Index/>": state = 4
             
             if state == 1 and line[0] != "<":
-                self.futureshcodelst.append(line[:-1])
+                self.future_shortcd_list.append(line[:-1])
             elif state == 2 and line[0] != "<":
-                self.optionshcodelst.append(line[:-1])
+                self.option_shortcd_list.append(line[:-1])
             elif state == 3 and line[0] != "<":
-                self.equityshcodelst.append(line[:-1])
+                self.equity_shortcd_list.append(line[:-1])
             elif state == 4 and line[0] != "<":
-                self.indexshcodelst.append(line[:-1])
+                self.index_shortcd_list.append(line[:-1])
 
         feedcodelistfilep.close()
         pass
 
+
 if __name__ == "__main__":
-    
-    class ConsoleViewer:    
-        def Update(self, subject):
-            for i in xrange(len(subject.data)): 
-                print subject.data[i]            
-            pass        
-            print '---------------------------'
-        pass
-        
-    from pythoncom import PumpWaitingMessages
-    import pycybos as pc
-    
-    viewer = ConsoleViewer()
+
     _feedcodelist = FeedCodeList()
     _feedcodelist.read_code_list()
     
-    print _feedcodelist.futureshcodelst
-    print _feedcodelist.optionshcodelst
-    print _feedcodelist.equityshcodelst
-    print _feedcodelist.indexshcodelst
-    
-#    futuresoptionTAQfeederlst = []
-#    equityTAQfeederlst = []
-#    
-#    for shcode in _feedcodelist.futureshcodelst:
-#        if shcode[-3:] == '000': 
-#            newitem = pc.FutureCurOnly(shcode[:-3])
-#            newitem.Attach(viewer)
-#            newitem.Subscribe()
-#            #futuresoptionTAQfeederlst.append(newitem)
-#        else:
-#            newitem = pc.OptionCurOnly(shcode)
-#            newitem.Attach(viewer)
-#            newitem.Subscribe()
-#            #futuresoptionTAQfeederlst.append(newitem)
-#            
-#    for shcode in _feedcodelist.equityshcodelst:
-#        newitem = pc.StockCur('A' + shcode)
-#        newitem.Attach(viewer)
-#        newitem.Subscribe()
-#        equityTAQfeederlst.append(newitem)
-#        
-#    print futuresoptionTAQfeederlst
-#    print equityTAQfeederlst
-#        
-#    while 1:
-#        PumpWaitingMessages()
-        
-    
+    print _feedcodelist.future_shortcd_list
+    print _feedcodelist.option_shortcd_list
+    print _feedcodelist.equity_shortcd_list
+    print _feedcodelist.index_shortcd_list

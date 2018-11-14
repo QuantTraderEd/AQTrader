@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import logging
 import datetime as dt
 import sip
 import redis
 
 from PyQt4 import QtGui, QtCore
-from thread import OptionViewerThread
+from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
 from ...CommUtil.FeedCodeList import FeedCodeList
 from ...CommUtil import ExpireDateUtil
 
-logger = logging.getLogger('ZeroOptionViewer')
+
+logger = logging.getLogger('OptionWindow')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('ZeroOptionViewer.log')
+fh = logging.FileHandler('OptionWindow.log')
 # fh = logging.Handlers.RotatingFileHandler('ZeroOptionViewer.log',maxBytes=104857,backupCount=3)
 fh.setLevel(logging.DEBUG)
 
@@ -56,7 +55,7 @@ class MainForm(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self.mythread.stop()
-        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
         
     def initUI(self):
@@ -67,7 +66,7 @@ class MainForm(QtGui.QMainWindow):
         self.myOrderWidget = OptionViewerOrderWidget(self)
         self.myOrderWidget.initZMQ()
 
-        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
         if setting.value("geometry"):
             self.restoreGeometry(setting.value("geometry").toByteArray())
             # self.restoreGeometry(setting.value("geometry"))
@@ -80,12 +79,10 @@ class MainForm(QtGui.QMainWindow):
 
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.ReadCodeListFile()
-        #for item in self._FeedCodeList.optionshortcdlst:
-        #    print item
+        self._FeedCodeList.read_code_list()
 
     def initStrikeList(self):
-        shortcdlist = self._FeedCodeList.optionshcodelst
+        shortcdlist = self._FeedCodeList.option_shortcd_list
         self.shortcd_list = list([shortcd for shortcd in shortcdlist
                                    if shortcd[3:5] == self.expireMonthCode])
         self.strikelst = list(set([shortcd[-3:] for shortcd in shortcdlist
@@ -117,7 +114,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setRowCount(max(len(self.strikelst), 3))
         self.ui.tableWidget.resizeRowsToContents()        
 
-        self.alignRightColumnList = [1, 3, 8]
+        self.alignRightColumnList = [1, 3, 4, 8, 9]
         self.bidaskcolindex = [4, 5, 9, 10]
         self.synthbidaskcolindex = [15, 16]
         
@@ -129,8 +126,7 @@ class MainForm(QtGui.QMainWindow):
             else:
                 strikeprice = self.strikelst[i] + '.0'             
             self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))                
-    
-        
+
     def initThread(self):
         self.mythread = OptionViewerThread(None)
         self.mythread.receiveData[dict].connect(self.onReceiveData)
@@ -140,7 +136,8 @@ class MainForm(QtGui.QMainWindow):
         now_dt = dt.datetime.now()
         today = now_dt.strftime('%Y%m%d')
 
-        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        # self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        self.expiredate_util.read_expire_date()
         expire_shortcd_lst = self.expiredate_util.make_expire_shortcd(today)
         logger.info('%s' % ','.join(expire_shortcd_lst))
         self.expireMonthCode = expire_shortcd_lst[0]
@@ -167,21 +164,21 @@ class MainForm(QtGui.QMainWindow):
             pos = self.strikelst.index(shortcd[5:8])
 
             if shortcd[:3] == '201':
-                self.updateTableWidgetItem(pos,0,shortcd)
-                self.updateTableWidgetItem(pos,1,lastqty)
-                self.updateTableWidgetItem(pos,2,last)
-                self.updateTableWidgetItem(pos,3,askqty1)
-                self.updateTableWidgetItem(pos,4,ask1)
-                self.updateTableWidgetItem(pos,5,bid1)
-                self.updateTableWidgetItem(pos,6,bidqty1)
+                self.updateTableWidgetItem(pos, 0, shortcd)
+                self.updateTableWidgetItem(pos, 1, lastqty)
+                self.updateTableWidgetItem(pos, 2, last)
+                self.updateTableWidgetItem(pos, 3, askqty1)
+                self.updateTableWidgetItem(pos, 4, ask1)
+                self.updateTableWidgetItem(pos, 5, bid1)
+                self.updateTableWidgetItem(pos, 6, bidqty1)
             elif shortcd[:3] == '301':
-                self.updateTableWidgetItem(pos,14,shortcd)
-                self.updateTableWidgetItem(pos,8,askqty1)
-                self.updateTableWidgetItem(pos,9,ask1)
-                self.updateTableWidgetItem(pos,10,bid1)
-                self.updateTableWidgetItem(pos,11,bidqty1)
-                self.updateTableWidgetItem(pos,12,last)
-                self.updateTableWidgetItem(pos,13,lastqty)
+                self.updateTableWidgetItem(pos, 14, shortcd)
+                self.updateTableWidgetItem(pos, 8, askqty1)
+                self.updateTableWidgetItem(pos, 9, ask1)
+                self.updateTableWidgetItem(pos, 10, bid1)
+                self.updateTableWidgetItem(pos, 11, bidqty1)
+                self.updateTableWidgetItem(pos, 12, last)
+                self.updateTableWidgetItem(pos, 13, lastqty)
 
         pass
         
@@ -274,7 +271,7 @@ class MainForm(QtGui.QMainWindow):
     def onReceiveData(self, msg_dict):
         nowtime = dt.datetime.now()
         shortcd = msg_dict['ShortCD']
-        frontfutures_shortcd = self._FeedCodeList.futureshcodelst[0]
+        frontfutures_shortcd = self._FeedCodeList.future_shortcd_list[0]
         if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q' and shortcd == frontfutures_shortcd:
             askqty1 = msg_dict['AskQty1']
             ask1 = msg_dict['Ask1']
@@ -396,6 +393,7 @@ class MainForm(QtGui.QMainWindow):
 
 
 if __name__ == '__main__':
+    import sys
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
