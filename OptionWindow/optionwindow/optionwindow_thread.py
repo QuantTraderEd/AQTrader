@@ -8,12 +8,14 @@ Created on Thu Jun 12 10:27:17 2014
 import zmq
 from PyQt4 import QtCore
 
+
 def cybos_convertor(strprice, floating):
     value = round(float(strprice), floating)
     strformat = '%.' + str(floating) + 'f'
     strValue = strformat%value
     return (strValue)
-    
+
+
 class OptionViewerThread(QtCore.QThread):
     receiveData = QtCore.pyqtSignal(dict)
     def __init__(self,parent=None):

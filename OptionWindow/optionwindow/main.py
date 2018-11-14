@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import logging
 import datetime as dt
 import sip
+import redis
+
 from PyQt4 import QtGui, QtCore
-from thread import OptionViewerThread
+from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
 from ...CommUtil.FeedCodeList import FeedCodeList
 from ...CommUtil import ExpireDateUtil
 
-logger = logging.getLogger('ZeroOptionViewer')
+
+logger = logging.getLogger('OptionWindow')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('ZeroOptionViewer.log')
+fh = logging.FileHandler('OptionWindow.log')
 # fh = logging.Handlers.RotatingFileHandler('ZeroOptionViewer.log',maxBytes=104857,backupCount=3)
 fh.setLevel(logging.DEBUG)
 
@@ -43,15 +44,18 @@ class MainForm(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.initExpireDateUtil()
         self.initUI()
+        sip.setdestroyonexit(False)
         self.initFeedCode()
         self.initStrikeList()
         self.initTableWidget()
         self.initThread()
-        sip.setdestroyonexit(False)
+        self.initTIMER()
+        self.initData()
+        self.onStart()
 
     def closeEvent(self, event):
         self.mythread.stop()
-        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
         
     def initUI(self):
@@ -62,22 +66,27 @@ class MainForm(QtGui.QMainWindow):
         self.myOrderWidget = OptionViewerOrderWidget(self)
         self.myOrderWidget.initZMQ()
 
-        setting = QtCore.QSettings("ZeroOptionViewer.ini",QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
         if setting.value("geometry"):
             self.restoreGeometry(setting.value("geometry").toByteArray())
             # self.restoreGeometry(setting.value("geometry"))
         pass
-        
+
+    def initTIMER(self):
+        self.ctimer =  QtCore.QTimer()
+        self.ctimer.start(300000)
+        self.ctimer.timeout.connect(self.ctimer_update)
+
     def initFeedCode(self):
         self._FeedCodeList = FeedCodeList()
         self._FeedCodeList.read_code_list()
-        #for item in self._FeedCodeList.optionshcodelst:
-        #    print item
 
     def initStrikeList(self):
-        shcodelist = self._FeedCodeList.optionshcodelst
-        self.strikelst = list(set([shcode[-3:] for shcode in shcodelist
-                                   if shcode[3:5] == self.expireMonthCode]))
+        shortcdlist = self._FeedCodeList.option_shortcd_list
+        self.shortcd_list = list([shortcd for shortcd in shortcdlist
+                                   if shortcd[3:5] == self.expireMonthCode])
+        self.strikelst = list(set([shortcd[-3:] for shortcd in shortcdlist
+                                   if shortcd[3:5] == self.expireMonthCode]))
         self.strikelst.sort()
         self.strikelst.reverse()
         
@@ -95,18 +104,19 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.resizeColumnToContents(15)
         self.ui.tableWidget.resizeColumnToContents(16)
         
-        self.ui.tableWidget.setColumnWidth(4,31)
-        self.ui.tableWidget.setColumnWidth(5,31)
-        self.ui.tableWidget.setColumnWidth(9,31)
-        self.ui.tableWidget.setColumnWidth(10,31)
-        
-                
-        self.ui.tableWidget.setRowCount(max(len(self.strikelst),3))
+        self.ui.tableWidget.setColumnWidth(2, 41)    # call last
+        self.ui.tableWidget.setColumnWidth(4, 41)    # call ask
+        self.ui.tableWidget.setColumnWidth(5, 41)    # call bid
+        self.ui.tableWidget.setColumnWidth(9, 41)    # put ask
+        self.ui.tableWidget.setColumnWidth(10, 41)   # put bid
+        self.ui.tableWidget.setColumnWidth(12, 41)   # put last
+
+        self.ui.tableWidget.setRowCount(max(len(self.strikelst), 3))
         self.ui.tableWidget.resizeRowsToContents()        
 
-        self.alignRightColumnList = [1,3,8]        
-        self.bidaskcolindex = [4,5,9,10]
-        self.synthbidaskcolindex = [15,16]
+        self.alignRightColumnList = [1, 3, 4, 8, 9]
+        self.bidaskcolindex = [4, 5, 9, 10]
+        self.synthbidaskcolindex = [15, 16]
         
         self.ui.tableWidget.cellDoubleClicked[int,int].connect(self.onDoubleClicked)
                                 
@@ -116,8 +126,7 @@ class MainForm(QtGui.QMainWindow):
             else:
                 strikeprice = self.strikelst[i] + '.0'             
             self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))                
-    
-        
+
     def initThread(self):
         self.mythread = OptionViewerThread(None)
         self.mythread.receiveData[dict].connect(self.onReceiveData)
@@ -127,33 +136,50 @@ class MainForm(QtGui.QMainWindow):
         now_dt = dt.datetime.now()
         today = now_dt.strftime('%Y%m%d')
 
-        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        # self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        self.expiredate_util.read_expire_date()
         expire_shortcd_lst = self.expiredate_util.make_expire_shortcd(today)
         logger.info('%s' % ','.join(expire_shortcd_lst))
         self.expireMonthCode = expire_shortcd_lst[0]
         logger.info('ExpireMonthCode: %s' % self.expireMonthCode)
-        
+
     def initData(self):
-        shcode = '201J7267'                    
-        ask1 = '0.64'
-        bid1 = '0.63'
-        askqty1 = '82'
-        bidqty1 = '89'
+        redis_client = redis.Redis()
+        bidqty1_dict = redis_client.hgetall('bidqty1_dict')
+        bid1_dict = redis_client.hgetall('bid1_dict')
+        ask1_dict = redis_client.hgetall('ask1_dict')
+        askqty1_dict = redis_client.hgetall('askqty1_dict')
+        last_dict = redis_client.hgetall('last_dict')
+        lastqty_dict = redis_client.hgetall('lastqty_dict')
         
-        pos = self.strikelst.index(shcode[5:8])
-        
-        if shcode[:3] == '201':                
-            self.updateTableWidgetItem(pos,0,shcode)
-            self.updateTableWidgetItem(pos,3,askqty1)
-            self.updateTableWidgetItem(pos,4,ask1)
-            self.updateTableWidgetItem(pos,5,bid1)
-            self.updateTableWidgetItem(pos,6,bidqty1)                
-        elif shcode[:3] == '301':                
-            self.updateTableWidgetItem(pos,14,shcode)
-            self.updateTableWidgetItem(pos,8,askqty1)
-            self.updateTableWidgetItem(pos,9,ask1)
-            self.updateTableWidgetItem(pos,10,bid1)
-            self.updateTableWidgetItem(pos,11,bidqty1)   
+        for shortcd in self.shortcd_list:
+            ask1 = ask1_dict.get(shortcd, 'n/a')
+            bid1 = bid1_dict.get(shortcd, 'n/a')
+            askqty1 = askqty1_dict.get(shortcd, 'n/a')
+            bidqty1 = bidqty1_dict.get(shortcd, 'n/a')
+
+            last = last_dict.get(shortcd, 'n/a')
+            lastqty = lastqty_dict.get(shortcd, 'n/a')
+
+            pos = self.strikelst.index(shortcd[5:8])
+
+            if shortcd[:3] == '201':
+                self.updateTableWidgetItem(pos, 0, shortcd)
+                self.updateTableWidgetItem(pos, 1, lastqty)
+                self.updateTableWidgetItem(pos, 2, last)
+                self.updateTableWidgetItem(pos, 3, askqty1)
+                self.updateTableWidgetItem(pos, 4, ask1)
+                self.updateTableWidgetItem(pos, 5, bid1)
+                self.updateTableWidgetItem(pos, 6, bidqty1)
+            elif shortcd[:3] == '301':
+                self.updateTableWidgetItem(pos, 14, shortcd)
+                self.updateTableWidgetItem(pos, 8, askqty1)
+                self.updateTableWidgetItem(pos, 9, ask1)
+                self.updateTableWidgetItem(pos, 10, bid1)
+                self.updateTableWidgetItem(pos, 11, bidqty1)
+                self.updateTableWidgetItem(pos, 12, last)
+                self.updateTableWidgetItem(pos, 13, lastqty)
+
         pass
         
         
@@ -163,6 +189,17 @@ class MainForm(QtGui.QMainWindow):
             #print "start"
         pass
     
+    def ctimer_update(self):
+        now_dt = dt.datetime.now()
+        close_trigger = False
+        if now_dt.hour == 6 and  now_dt.min >= 15 and now_dt.min <= 30:
+            close_trigger = True
+
+        if close_trigger:
+            if self.mythread.isRunning():
+                self.mythread.stop()
+            self.close()
+
     def updateTableWidgetItem(self,row,col,text):
         widgetItem = self.ui.tableWidget.item(row,col)
         if not widgetItem:
@@ -234,7 +271,7 @@ class MainForm(QtGui.QMainWindow):
     def onReceiveData(self, msg_dict):
         nowtime = dt.datetime.now()
         shortcd = msg_dict['ShortCD']
-        frontfutures_shortcd = self._FeedCodeList.futureshcodelst[0]
+        frontfutures_shortcd = self._FeedCodeList.future_shortcd_list[0]
         if msg_dict['SecuritiesType'] == 'futures' and msg_dict['TAQ'] == 'Q' and shortcd == frontfutures_shortcd:
             askqty1 = msg_dict['AskQty1']
             ask1 = msg_dict['Ask1']
@@ -354,7 +391,9 @@ class MainForm(QtGui.QMainWindow):
             return
         pass
 
+
 if __name__ == '__main__':
+    import sys
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()

@@ -36,7 +36,7 @@ class OptionPrice(object):
 
     def init_strike_list(self):
         self._FeedCodeList.read_code_list()
-        option_shortcd_lst = self._FeedCodeList.optionshcodelst
+        option_shortcd_lst = self._FeedCodeList.option_shortcd_list
         self.expire_code_list = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
         self.expire_code_list.sort()
         self.expire_month_code = self.expire_code_list[1]
