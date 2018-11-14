@@ -6,7 +6,7 @@ from ..ExpireDateUtil import ExpireDateUtil
 
 class TestClass(object):
     expire_date_util = ExpireDateUtil()
-    expire_date_util.read_expire_date(filename='..')
+    expire_date_util.read_expire_date()
 
     def test_make_expire_shortcd(self):
         target_date_list = [
