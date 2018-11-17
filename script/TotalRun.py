@@ -219,7 +219,7 @@ def day_session_starter():
     
     time.sleep(5)
     os.chdir(commonfolder + '\\ZeroTrader\\ZeroDBLoader\\')
-    os.startfile('DBWidget.py')
+    os.startfile('main.py')
     logger.info('start ZeroDBLoader')
     
     time.sleep(5)
@@ -471,7 +471,7 @@ def main():
             
             time.sleep(5)
             os.chdir(commonfolder + '\\ZeroTrader\\ZeroDBLoader\\')
-            os.startfile('DBWidget.py')
+            os.startfile('main.py')
             logger.info('start ZeroDBLoader')
             
             time.sleep(3)

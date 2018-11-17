@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os
-import time
+import logging
 import redis
 import datetime as dt
+
+from os import path
 from PyQt4 import QtCore
 from sqlalchemy import MetaData
 from sqlalchemy.ext.serializer import loads, dumps
@@ -20,6 +21,7 @@ class DBLoaderThread(SubscribeThread):
 
     def __init__(self, parent=None, subtype='BackTest'):
         SubscribeThread.__init__(self, parent, subtype=subtype)
+        self.logger = logging.getLogger('DataLoader.DataLoaderThread')
         self.count = 0
         self.count_remain = 10
         self.count_fo = 0
@@ -27,13 +29,13 @@ class DBLoaderThread(SubscribeThread):
         self.night_chk = 1
         self.redis_client = redis.Redis()
         self.dbname = ''
+        self.filepath = path.dirname(__file__)
         # self.initDB()
         pass
 
     def initDB(self):
-        strtime = time.strftime('%Y%m%d', time.localtime())
-        nowtime = time.localtime()
-        filepath = 'E:/Python/ZeroTrader/TAQ'
+        now_dt = dt.datetime.now()
+        strtime = nowtime.strftime('%Y%m%d')
         if 7 <= nowtime.tm_hour < 16:
             self.dbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
@@ -42,32 +44,20 @@ class DBLoaderThread(SubscribeThread):
             self.night_chk = 1
         elif nowtime.tm_hour < 7:
             # need to imporve part of strtime
-            strtime = "%d%.2d%.2d" %(nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
+            strtime = "%d%.2d%.2d" %(now_dt.year, now_dt.month, now_dt.day-1)
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
 
-        # self.initMemoryDB(self.night_chk)
-        #
-        # if not os.path.isfile(self.strdbname):
-        #     self.initFileDB(self.night_chk)
-        # else:
-        #     self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
-        #     df = pd.read_sql("""SELECT * From FutOptTickData""", self.conn_file)
-        #     if len(df) > 0:
-        #         self.MsgNotify.emit('loading from file DB to memory DB...')
-        #         # pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory, 'sqlite', 'replace')
-        #         df.to_sql("FutOptTickData", self.conn_memory, 'sqlite', if_exists='replace')
-        #         self.count = int(df['Id'].irow(-1))
-        #         self.FutOpt_Id_tag = df['Id'].irow(-1)
-        #         self.count_remain = self.count % 1000 + 10
-        #         self.MsgNotify.emit('Start Count: ' + str(self.count))
+        self.dbname = path.join(self.filepath, self.dbname)
+        self.logger.info("set db name: %s" % self.dbname)
 
         # ORM
         self.MsgNotify.emit('reading from file DB...')
         self._file_session, self._file_engine = tickdata_db_init.initSession(self.dbname)
         self.count = self._file_session.query(TickData).count()
         self.count_fo = self._file_session.query(TickData).filter(
-            TickData.securitiestype.in_(['futures', 'options'])).count()
+                                                            TickData.securitiestype.in_(['futures', 'options'])
+                                                            ).count()
         self.count_eq = self._file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
         self._memo_session, self._memo_engine = tickdata_db_init.initSession('memory')
 
@@ -97,7 +87,7 @@ class DBLoaderThread(SubscribeThread):
         feedsource = msg_dict['FeedSource']
         taq = msg_dict['TAQ']
         securities_type = msg_dict['SecuritiesType']
-        print msg_dict['TimeStamp'], nowtime
+        # print msg_dict['TimeStamp'], nowtime
 
         if taq == 'Q' and securities_type in ['futures', 'options']:
             askqty1 = msg_dict['AskQty1']

@@ -11,9 +11,9 @@ import pythoncom
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
-from ..PyXing import pyxing as px
-from ..PyCybos import pycybos as pc
-from ..CommUtil.FeedCodeList import FeedCodeList
+from AQTrader.PyXing import pyxing as px
+from AQTrader.PyCybos import pycybos as pc
+from AQTrader.CommUtil.FeedCodeList import FeedCodeList
 from ui_zerofeeder import Ui_MainWindow
 from xinglogindlg import LoginForm
 from ZMQTickSender import ZMQTickSender, ZMQTickSender_New

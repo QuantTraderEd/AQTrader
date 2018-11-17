@@ -9,8 +9,8 @@ from PyQt4 import QtGui, QtCore
 from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
-from ...CommUtil.FeedCodeList import FeedCodeList
-from ...CommUtil import ExpireDateUtil
+from AQTrader.CommUtil.FeedCodeList import FeedCodeList
+from AQTrader.CommUtil import ExpireDateUtil
 
 
 logger = logging.getLogger('OptionWindow')
