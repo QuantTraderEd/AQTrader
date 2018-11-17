@@ -13,7 +13,7 @@ from SubscribeReceiverThread import SubscribeThread
 
 import sqlalchemy_tickdata_init as tickdata_db_init
 from sqlalchemy_tickdata_declarative import TickData
-from sqlalchemy_tickdata_insert import insertNewTickData
+from sqlalchemy_tickdata_insert import insert_new_tick_data
 
 
 class DBLoaderThread(SubscribeThread):
@@ -53,17 +53,17 @@ class DBLoaderThread(SubscribeThread):
 
         # ORM
         self.MsgNotify.emit('reading from file DB...')
-        self._file_session, self._file_engine = tickdata_db_init.initSession(self.dbname)
+        self._file_session, self._file_engine = tickdata_db_init.init_session(self.dbname)
         self.count = self._file_session.query(TickData).count()
         self.count_fo = self._file_session.query(TickData).filter(
                                                             TickData.securitiestype.in_(['futures', 'options'])
                                                             ).count()
         self.count_eq = self._file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
-        self._memo_session, self._memo_engine = tickdata_db_init.initSession('memory')
+        self._memo_session, self._memo_engine = tickdata_db_init.init_session('memory')
 
         if self.count > 0:
             metadata = MetaData(bind=self._file_engine)
-            self._file_session = tickdata_db_init.initSession(self.dbname)[0]
+            self._file_session = tickdata_db_init.init_session(self.dbname)[0]
             q = self._file_session.query(TickData)
             serialized_data = dumps(q.all())
             loads(serialized_data, metadata, self._memo_session)
@@ -102,7 +102,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
-            insertNewTickData(self._memo_session, msg_dict)
+            insert_new_tick_data(self._memo_session, msg_dict)
 
         elif taq == 'E' and securities_type in ['futures', 'options']:
             msg_dict['TimeStamp'] = nowtime
@@ -115,7 +115,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('lastqty_dict', shortcd, lastqty)
 
             msg_dict['TimeStamp'] = nowtime
-            insertNewTickData(self._memo_session, msg_dict)
+            insert_new_tick_data(self._memo_session, msg_dict)
 
         else:
             return
