@@ -11,4 +11,4 @@ class TestClass(object):
     myform.show()
 
     def test_thread_running(self):
-        assert self.myform.mythread.isRunning()
+        assert not self.myform.dataloader_thread.isRunning()

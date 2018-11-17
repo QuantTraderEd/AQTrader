@@ -2,6 +2,8 @@
 
 import time
 import logging
+
+from logging.handlers import RotatingFileHandler
 from PyQt4 import QtGui, QtCore
 from dataloader_thread import DBLoaderThread
 
@@ -9,8 +11,8 @@ logger = logging.getLogger('DataLoader')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-# fh = logging.FileHandler('DataLoader.log')
-fh = logging.Handlers.RotatingFileHandler('DataLoader.log', maxBytes=10485, backupCount=3)
+fh = logging.FileHandler('DataLoader.log')
+fh = RotatingFileHandler('DataLoader.log', maxBytes=5242, backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -62,6 +64,12 @@ class MainForm(QtGui.QWidget):
         self.dataloader_thread = DBLoaderThread(subtype='RealTest')
         self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
         self.dataloader_thread.MsgNotify.connect(self.onNotify)
+
+    def onNotify(self, msg):
+        strtime = time.strftime('[%H:%M:%S] ')
+        logger.info(msg)
+        self.plainTextEditor.appendPlainText(strtime + msg)
+        pass
 
     def NotifyThreadEnd(self):
         self.startPushButton.setText('Start')
