@@ -69,7 +69,7 @@ class MainForm(QtGui.QMainWindow):
             print auto_config
             self.setAuto = True
             self.slot_CheckCybosStarter(0, 2)
-            self.slot_AutoStartXing(auto_config)        
+            self.slot_AutoStartXing(auto_config)
         f.close()
 
     def __del__(self):
