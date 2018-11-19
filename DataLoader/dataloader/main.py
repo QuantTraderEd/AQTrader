@@ -95,6 +95,7 @@ class MainForm(QtGui.QWidget):
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
-    wdg = MainForm()
-    wdg.show()
+    local_form = MainForm()
+    local_form.show()
+    local_form.onClick()
     sys.exit(app.exec_())

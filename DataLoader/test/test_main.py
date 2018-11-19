@@ -7,8 +7,9 @@ from AQTrader.DataLoader.dataloader.main import MainForm
 
 class TestClass(object):
     app = QtGui.QApplication(sys.argv)
-    myform = MainForm()
-    myform.show()
+    local_form = MainForm()
+    local_form.show()
+    local_form.onClick()
 
     def test_thread_running(self):
-        assert not self.myform.dataloader_thread.isRunning()
+        assert self.local_form.dataloader_thread.isRunning()

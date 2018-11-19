@@ -13,7 +13,7 @@ from SubscribeReceiverThread import SubscribeThread
 
 import sqlalchemy_tickdata_init as tickdata_db_init
 from sqlalchemy_tickdata_declarative import TickData
-from sqlalchemy_tickdata_insert import insert_new_tick_data
+from sqlalchemy_tickdata_insert import insert_new_tickdata
 
 
 class DBLoaderThread(SubscribeThread):
@@ -35,14 +35,14 @@ class DBLoaderThread(SubscribeThread):
 
     def initDB(self):
         now_dt = dt.datetime.now()
-        strtime = nowtime.strftime('%Y%m%d')
-        if 7 <= nowtime.tm_hour < 16:
+        strtime = now_dt.strftime('%Y%m%d')
+        if 7 <= now_dt.hour < 16:
             self.dbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
-        elif nowtime.tm_hour >= 16:
+        elif now_dt.hour >= 16:
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
-        elif nowtime.tm_hour < 7:
+        elif now_dt.hour < 7:
             # need to imporve part of strtime
             strtime = "%d%.2d%.2d" %(now_dt.year, now_dt.month, now_dt.day-1)
             self.dbname = "TAQ_Night_%s.db" % strtime
@@ -102,7 +102,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
-            insert_new_tick_data(self._memo_session, msg_dict)
+            insert_new_tickdata(self._memo_session, msg_dict)
 
         elif taq == 'E' and securities_type in ['futures', 'options']:
             msg_dict['TimeStamp'] = nowtime
@@ -115,7 +115,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('lastqty_dict', shortcd, lastqty)
 
             msg_dict['TimeStamp'] = nowtime
-            insert_new_tick_data(self._memo_session, msg_dict)
+            insert_new_tickdata(self._memo_session, msg_dict)
 
         else:
             return
