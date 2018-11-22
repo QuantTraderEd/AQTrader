@@ -52,6 +52,7 @@ from xing_xaquery_cfoat00200 import XAQuery_CFOAT00200
 from xing_xaquery_cfoat00300 import XAQuery_CFOAT00300
 
 from xing_xaquery_cfobq10800 import XAQuery_CFOBQ10800
+from xing_xaquery_cfoeq11100 import XAQuery_CFOEQ11100
 
 from xing_xaquery_cceat00100 import XAQuery_CCEAT00100
 from xing_xaquery_cceat00300 import XAQuery_CCEAT00300
