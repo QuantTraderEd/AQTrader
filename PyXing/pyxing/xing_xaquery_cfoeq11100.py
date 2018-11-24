@@ -5,14 +5,14 @@ from xing_source import SourceQuery
 
 class XAQuery_CFOEQ11100(SourceQuery):
     """
-    futures & options account's deposit amnt 
+    futures & options account's deposit amnt
     """
     def __init__(self):
         super(XAQuery_CFOEQ11100, self).__init__("XA_DataSet.XAQuery")
         self.LoadFromResFile("Res\\CFOEQ11100.res")
         self.data = list()
         pass
-    
+
     def OnSignal(self):
         self.data = list()
         data1 = dict()
