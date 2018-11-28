@@ -4,11 +4,12 @@ import time
 import sys
 import pythoncom
 import pyxing as px
+from os import path
 from PyQt4 import QtGui, QtCore
 from ui_zerodigitviewer import Ui_Form
 from weakref import proxy
 
-xinglogindlg_dir = os.path.dirname(os.path.realpath(__file__)) + '\\..'
+xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
 
 from xinglogindlg import LoginForm
