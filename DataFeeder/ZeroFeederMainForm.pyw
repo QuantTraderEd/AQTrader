@@ -11,9 +11,13 @@ import pythoncom
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
-from AQTrader.PyXing import pyxing as px
-from AQTrader.PyCybos import pycybos as pc
-from AQTrader.CommUtil.FeedCodeList import FeedCodeList
+
+# import AQTrader.PyXing.pyxing as px
+# import AQTrader.PyCybos.pycybos as pc
+# from AQTrader.CommUtil.FeedCodeList import FeedCodeList
+from CommUtil.FeedCodeList import FeedCodeList
+from PyXing import pyxing as px
+from PyCybos import pycybos as pc
 from ui_zerofeeder import Ui_MainWindow
 from xinglogindlg import LoginForm
 from ZMQTickSender import ZMQTickSender, ZMQTickSender_New
@@ -62,15 +66,19 @@ class MainForm(QtGui.QMainWindow):
 
         self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
-        
-        f = open('auto_config', 'r')
-        auto_config = json.load(f)
-        if auto_config['setauto']:
-            print auto_config
-            self.setAuto = True
-            self.slot_CheckCybosStarter(0, 2)
-            self.slot_AutoStartXing(auto_config)
-        f.close()
+
+        try:
+            f = open('auto_config', 'r')
+            auto_config = json.load(f)
+            if auto_config['setauto']:
+                print auto_config
+                self.setAuto = True
+                self.slot_CheckCybosStarter(0, 2)
+                self.slot_AutoStartXing(auto_config)
+            f.close()
+        except IOError:
+            logger.info('not found auto_config file')
+        pass
 
     def __del__(self):
         self.XASession.DisconnectServer()
