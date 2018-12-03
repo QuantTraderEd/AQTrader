@@ -88,6 +88,7 @@ class DBLoaderThread(SubscribeThread):
         taq = msg_dict['TAQ']
         securities_type = msg_dict['SecuritiesType']
         # print msg_dict['TimeStamp'], nowtime
+        # print nowtime, msg_dict
 
         if taq == 'Q' and securities_type in ['futures', 'options']:
             askqty1 = msg_dict['AskQty1']
@@ -128,16 +129,17 @@ class DBLoaderThread(SubscribeThread):
         if self.count % 100 == self.count_remain:
             msg = 'FutOpt Count: %d, Eq Count: %d' % (self.count_fo, self.count_eq)
             self.MsgNotify.emit(msg)
+            print msg_dict
         self.count += 1
-        print self.count, self.count_fo, self.count_eq
+        # print self.count, self.count_fo, self.count_eq
         pass
 
     def onBackup(self):
-        metadata = MetaData(bind=self._memo_engine)
-        q = self._memo_session.query(TickData)
-        serialized_data = dumps(q.all())
-        loads(serialized_data, metadata, self._file_session)
-        self._file_session.commit()
+        # metadata = MetaData(bind=self._memo_engine)
+        # q = self._memo_session.query(TickData)
+        # serialized_data = dumps(q.all())
+        # loads(serialized_data, metadata, self._file_session)
+        # self._file_session.commit()
         pass
 
     def stop(self):

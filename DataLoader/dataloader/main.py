@@ -61,7 +61,7 @@ class MainForm(QtGui.QWidget):
         pass
 
     def initThread(self):
-        self.dataloader_thread = DBLoaderThread(subtype='RealTest')
+        self.dataloader_thread = DBLoaderThread(subtype='Real')
         self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
         self.dataloader_thread.MsgNotify.connect(self.onNotify)
 

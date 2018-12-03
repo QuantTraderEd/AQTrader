@@ -7,7 +7,7 @@ from PyQt4 import QtCore
 
 class SubscribeThread(QtCore.QThread):
     def __init__(self, parent=None, subtype='BackTest'):
-        QtCore.QThread.__init__(self,parent)
+        QtCore.QThread.__init__(self, parent)
         self.msg = ''
         self.mt_stop = False
         self.mt_pause = False
@@ -21,7 +21,7 @@ class SubscribeThread(QtCore.QThread):
         port = '5503'
         if self.subType == 'Real':
             port = '5501'
-        if self.subType == 'RealTest':
+        elif self.subType == 'RealTest':
             port = '5503'
         elif self.subType == 'BackTest':
             port = '5502'

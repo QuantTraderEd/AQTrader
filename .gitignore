@@ -8,3 +8,5 @@ dist
 *.log
 .idea/
 .cache/
+
+*.db
