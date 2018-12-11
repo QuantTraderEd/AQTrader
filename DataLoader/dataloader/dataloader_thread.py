@@ -53,27 +53,28 @@ class DBLoaderThread(SubscribeThread):
 
         # ORM
         self.MsgNotify.emit('reading from file DB...')
-        self._file_session, self._file_engine = tickdata_db_init.init_session(self.dbname)
-        self.count = self._file_session.query(TickData).count()
-        self.count_fo = self._file_session.query(TickData).filter(
+        self.file_session, self.file_engine = tickdata_db_init.init_session(self.dbname)
+        self.count = self.file_session.query(TickData).count()
+        self.count_fo = self.file_session.query(TickData).filter(
                                                             TickData.securitiestype.in_(['futures', 'options'])
                                                             ).count()
-        self.count_eq = self._file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
-        self._memo_session, self._memo_engine = tickdata_db_init.init_session('memory')
+        self.count_eq = self.file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
+        # self.memo_session, self.memo_engine = tickdata_db_init.init_session('memory')
 
-        if self.count > 0:
-            metadata = MetaData(bind=self._file_engine)
-            self._file_session = tickdata_db_init.init_session(self.dbname)[0]
-            q = self._file_session.query(TickData)
-            serialized_data = dumps(q.all())
-            loads(serialized_data, metadata, self._memo_session)
-            self._memo_session.commit()
-            count = self._memo_session.query(TickData).count()
-            self._memo_session.close()
+        # if self.count > 0:
+        #     metadata = MetaData(bind=self.file_engine)
+        #     self.file_session = tickdata_db_init.init_session(self.dbname)[0]
+        #     q = self.file_session.query(TickData)
+        #     serialized_data = dumps(q.all())
+        #     loads(serialized_data, metadata, self.memo_session)
+        #     self.memo_session.commit()
+        # count = self.memo_session.query(TickData).count()
+        # self.memo_session.close()
 
-        self._file_session.close()
+        # self.file_session.close()
+        # self.memo_session = tickdata_db_init.make_session(self.memo_engine)
 
-        self._memo_session = tickdata_db_init.make_session(self._memo_engine)
+        self.file_session = tickdata_db_init.make_session(self.file_engine)
 
         self.count_remain = 10
         self.MsgNotify.emit('Start Count: %d' % self.count)
@@ -103,7 +104,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
-            insert_new_tickdata(self._memo_session, msg_dict)
+            insert_new_tickdata(self.file_session, msg_dict)
 
         elif taq == 'E' and securities_type in ['futures', 'options']:
             msg_dict['TimeStamp'] = nowtime
@@ -116,7 +117,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('lastqty_dict', shortcd, lastqty)
 
             msg_dict['TimeStamp'] = nowtime
-            insert_new_tickdata(self._memo_session, msg_dict)
+            insert_new_tickdata(self.file_session, msg_dict)
 
         else:
             return
@@ -129,7 +130,7 @@ class DBLoaderThread(SubscribeThread):
         if self.count % 100 == self.count_remain:
             msg = 'FutOpt Count: %d, Eq Count: %d' % (self.count_fo, self.count_eq)
             self.MsgNotify.emit(msg)
-            print msg_dict
+            # print msg_dict
         self.count += 1
         # print self.count, self.count_fo, self.count_eq
         pass

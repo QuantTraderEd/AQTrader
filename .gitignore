@@ -6,6 +6,7 @@ dist
 *.txt
 *.ini
 *.log
+*.log.*
 .idea/
 .cache/
 
