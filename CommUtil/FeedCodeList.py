@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
+from os import path
 
 
 class FeedCodeList:
@@ -14,8 +14,8 @@ class FeedCodeList:
 
     def read_code_list(self):
         state = 0
-        path = os.path.dirname(os.path.realpath(__file__))
-        feedcodelistfilep = open(path + '\\' + 'feedcodelist.txt', 'r')
+        filename = path.join(path.dirname(__file__), 'feedcodelist.txt')
+        feedcodelistfilep = open(filename, 'r')
 
         # FeedCodeFile Parseing        
         

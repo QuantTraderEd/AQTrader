@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from sqlalchemy_tickdata_declarative import TickData
 
 
-def insertNewTickData(session, msg_dict):
+def insert_new_tickdata(session, msg_dict):
     shortcd = msg_dict['ShortCD']
     feedsource = msg_dict['FeedSource']
     taq = msg_dict['TAQ']
@@ -141,11 +143,12 @@ def insertNewTickData(session, msg_dict):
     session.commit()
     pass
 
+
 if __name__ == '__main__':
     import datetime as dt
     import sqlalchemy_tickdata_init as tickdata_init
 
-    session = tickdata_init.initSession('tickdata_test.db')[0]
+    session = tickdata_init.init_session('tickdata_test.db')[0]
 
     msg_dict = dict()
     msg_dict['ShortCD'] = '301LA207'

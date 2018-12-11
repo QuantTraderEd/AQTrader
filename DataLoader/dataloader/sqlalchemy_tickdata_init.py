@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from sqlalchemy_tickdata_declarative import Base, TickData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 
-def initSession(lite_db_name):
+def init_session(lite_db_name):
     if lite_db_name == 'memory':
         engine = create_engine('sqlite://',
                                connect_args={'check_same_thread': False},
@@ -18,7 +20,7 @@ def initSession(lite_db_name):
 
 
 def make_session(engine):
-    DBSession = sessionmaker()
-    DBSession.bind = engine
-    session = DBSession()
+    db_session = sessionmaker()
+    db_session.bind = engine
+    session = db_session()
     return session

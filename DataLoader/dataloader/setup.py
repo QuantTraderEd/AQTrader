@@ -12,7 +12,7 @@ base = None
 if sys.platform == 'win32':
     base = 'Win32GUI'
     
-executables = [Executable('DBWidget.py', base=base)]
+executables = [Executable('main.py', base=base)]
 includes = ["zmq", "zmq.utils.garbage", "zmq.backend.cython"]
 setup(name='test',
       version='0.1',

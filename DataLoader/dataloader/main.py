@@ -2,15 +2,17 @@
 
 import time
 import logging
-from PyQt4 import QtGui, QtCore
-from DBLoaderThread import DBLoaderThread
 
-logger = logging.getLogger('DBWidget')
+from logging.handlers import RotatingFileHandler
+from PyQt4 import QtGui, QtCore
+from dataloader_thread import DBLoaderThread
+
+logger = logging.getLogger('DataLoader')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-# fh = logging.FileHandler('DBWidget.log')
-fh = logging.Handlers.RotatingFileHandler('DBWidget.log', maxBytes=10485, backupCount=3)
+fh = logging.FileHandler('DataLoader.log')
+fh = RotatingFileHandler('DataLoader.log', maxBytes=5242, backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -27,7 +29,7 @@ logger.addHandler(fh)
 # logger.addHandler(ch)
 
 
-class DBWidget(QtGui.QWidget):
+class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.initUI()
@@ -35,7 +37,7 @@ class DBWidget(QtGui.QWidget):
         pass
 
     def closeEvent(self, event):
-        setting = QtCore.QSettings("ZeroDBLoader.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
 
     def initUI(self):
@@ -51,37 +53,17 @@ class DBWidget(QtGui.QWidget):
         self.startPushButton.clicked.connect(self.onClick)
 
         self.resize(340, 140)
-        self.setWindowTitle('DBLoader')
+        self.setWindowTitle('DataLoader')
 
-        setting = QtCore.QSettings("ZeroDBLoader.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
 
         pass
 
     def initThread(self):
-        self._DBLoaderThread = DBLoaderThread(subtype='RealTest')
-        self._DBLoaderThread.finished.connect(self.NotifyThreadEnd)
-        self._DBLoaderThread.MsgNotify.connect(self.onNotify)
-
-    def NotifyThreadEnd(self):
-        self.startPushButton.setText('Start')
-        self.onNotify('End Count: ' + str(self._DBLoaderThread.count))
-        # self._DBLoaderThread.conn_memory.close()
-        # self._DBLoaderThread.conn_file.close()
-        pass
-
-    def onClick(self):
-        strtime = time.strftime('[%H:%M:%S] ')
-        if not self._DBLoaderThread.isRunning():
-            self._DBLoaderThread.initDB()
-            self.plainTextEditor.appendPlainText(strtime + 'Start Thread')
-            self.startPushButton.setText('Stop')
-            self._DBLoaderThread.start()
-        else:
-            self._DBLoaderThread.stop()
-            self.plainTextEditor.appendPlainText(strtime + 'Stop Thread')
-            self.startPushButton.setText('Start')
-        pass
+        self.dataloader_thread = DBLoaderThread(subtype='Real')
+        self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
+        self.dataloader_thread.MsgNotify.connect(self.onNotify)
 
     def onNotify(self, msg):
         strtime = time.strftime('[%H:%M:%S] ')
@@ -89,9 +71,31 @@ class DBWidget(QtGui.QWidget):
         self.plainTextEditor.appendPlainText(strtime + msg)
         pass
 
+    def NotifyThreadEnd(self):
+        self.startPushButton.setText('Start')
+        self.onNotify('End Count: ' + str(self.dataloader_thread.count))
+        # self._DBLoaderThread.conn_memory.close()
+        # self._DBLoaderThread.conn_file.close()
+        pass
+
+    def onClick(self):
+        strtime = time.strftime('[%H:%M:%S] ')
+        if not self.dataloader_thread.isRunning():
+            self.dataloader_thread.initDB()
+            self.plainTextEditor.appendPlainText(strtime + 'Start Thread')
+            self.startPushButton.setText('Stop')
+            self.dataloader_thread.start()
+        else:
+            self.dataloader_thread.stop()
+            self.plainTextEditor.appendPlainText(strtime + 'Stop Thread')
+            self.startPushButton.setText('Start')
+        pass
+
+
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
-    wdg = DBWidget()
-    wdg.show()
+    local_form = MainForm()
+    local_form.show()
+    local_form.onClick()
     sys.exit(app.exec_())

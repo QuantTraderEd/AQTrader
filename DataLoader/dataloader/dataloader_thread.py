@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os
-import time
+import logging
 import redis
 import datetime as dt
+
+from os import path
 from PyQt4 import QtCore
 from sqlalchemy import MetaData
 from sqlalchemy.ext.serializer import loads, dumps
@@ -12,7 +13,7 @@ from SubscribeReceiverThread import SubscribeThread
 
 import sqlalchemy_tickdata_init as tickdata_db_init
 from sqlalchemy_tickdata_declarative import TickData
-from sqlalchemy_tickdata_insert import insertNewTickData
+from sqlalchemy_tickdata_insert import insert_new_tickdata
 
 
 class DBLoaderThread(SubscribeThread):
@@ -20,6 +21,7 @@ class DBLoaderThread(SubscribeThread):
 
     def __init__(self, parent=None, subtype='BackTest'):
         SubscribeThread.__init__(self, parent, subtype=subtype)
+        self.logger = logging.getLogger('DataLoader.DataLoaderThread')
         self.count = 0
         self.count_remain = 10
         self.count_fo = 0
@@ -27,63 +29,52 @@ class DBLoaderThread(SubscribeThread):
         self.night_chk = 1
         self.redis_client = redis.Redis()
         self.dbname = ''
+        self.filepath = path.dirname(__file__)
         # self.initDB()
         pass
 
     def initDB(self):
-        strtime = time.strftime('%Y%m%d', time.localtime())
-        nowtime = time.localtime()
-        filepath = 'E:/Python/ZeroTrader/TAQ'
-        if 7 <= nowtime.tm_hour < 16:
+        now_dt = dt.datetime.now()
+        strtime = now_dt.strftime('%Y%m%d')
+        if 7 <= now_dt.hour < 16:
             self.dbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
-        elif nowtime.tm_hour >= 16:
+        elif now_dt.hour >= 16:
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
-        elif nowtime.tm_hour < 7:
+        elif now_dt.hour < 7:
             # need to imporve part of strtime
-            strtime = "%d%.2d%.2d" %(nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
+            strtime = "%d%.2d%.2d" %(now_dt.year, now_dt.month, now_dt.day-1)
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
 
-        # self.initMemoryDB(self.night_chk)
-        #
-        # if not os.path.isfile(self.strdbname):
-        #     self.initFileDB(self.night_chk)
-        # else:
-        #     self.conn_file = lite.connect(self.strdbname, check_same_thread=False)
-        #     df = pd.read_sql("""SELECT * From FutOptTickData""", self.conn_file)
-        #     if len(df) > 0:
-        #         self.MsgNotify.emit('loading from file DB to memory DB...')
-        #         # pd.io.sql.write_frame(df, "FutOptTickData", self.conn_memory, 'sqlite', 'replace')
-        #         df.to_sql("FutOptTickData", self.conn_memory, 'sqlite', if_exists='replace')
-        #         self.count = int(df['Id'].irow(-1))
-        #         self.FutOpt_Id_tag = df['Id'].irow(-1)
-        #         self.count_remain = self.count % 1000 + 10
-        #         self.MsgNotify.emit('Start Count: ' + str(self.count))
+        self.dbname = path.join(self.filepath, self.dbname)
+        self.logger.info("set db name: %s" % self.dbname)
 
         # ORM
         self.MsgNotify.emit('reading from file DB...')
-        self._file_session, self._file_engine = tickdata_db_init.initSession(self.dbname)
-        self.count = self._file_session.query(TickData).count()
-        self.count_fo = self._file_session.query(TickData).filter(
-            TickData.securitiestype.in_(['futures', 'options'])).count()
-        self.count_eq = self._file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
-        self._memo_session, self._memo_engine = tickdata_db_init.initSession('memory')
+        self.file_session, self.file_engine = tickdata_db_init.init_session(self.dbname)
+        self.count = self.file_session.query(TickData).count()
+        self.count_fo = self.file_session.query(TickData).filter(
+                                                            TickData.securitiestype.in_(['futures', 'options'])
+                                                            ).count()
+        self.count_eq = self.file_session.query(TickData).filter(TickData.securitiestype == 'equity').count()
+        # self.memo_session, self.memo_engine = tickdata_db_init.init_session('memory')
 
-        if self.count > 0:
-            metadata = MetaData(bind=self._file_engine)
-            self._file_session = tickdata_db_init.initSession(self.dbname)[0]
-            q = self._file_session.query(TickData)
-            serialized_data = dumps(q.all())
-            loads(serialized_data, metadata, self._memo_session)
-            self._memo_session.commit()
-            count = self._memo_session.query(TickData).count()
-            self._memo_session.close()
+        # if self.count > 0:
+        #     metadata = MetaData(bind=self.file_engine)
+        #     self.file_session = tickdata_db_init.init_session(self.dbname)[0]
+        #     q = self.file_session.query(TickData)
+        #     serialized_data = dumps(q.all())
+        #     loads(serialized_data, metadata, self.memo_session)
+        #     self.memo_session.commit()
+        # count = self.memo_session.query(TickData).count()
+        # self.memo_session.close()
 
-        self._file_session.close()
+        # self.file_session.close()
+        # self.memo_session = tickdata_db_init.make_session(self.memo_engine)
 
-        self._memo_session = tickdata_db_init.make_session(self._memo_engine)
+        self.file_session = tickdata_db_init.make_session(self.file_engine)
 
         self.count_remain = 10
         self.MsgNotify.emit('Start Count: %d' % self.count)
@@ -97,7 +88,8 @@ class DBLoaderThread(SubscribeThread):
         feedsource = msg_dict['FeedSource']
         taq = msg_dict['TAQ']
         securities_type = msg_dict['SecuritiesType']
-        print msg_dict['TimeStamp'], nowtime
+        # print msg_dict['TimeStamp'], nowtime
+        # print nowtime, msg_dict
 
         if taq == 'Q' and securities_type in ['futures', 'options']:
             askqty1 = msg_dict['AskQty1']
@@ -112,7 +104,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
-            insertNewTickData(self._memo_session, msg_dict)
+            insert_new_tickdata(self.file_session, msg_dict)
 
         elif taq == 'E' and securities_type in ['futures', 'options']:
             msg_dict['TimeStamp'] = nowtime
@@ -125,7 +117,7 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('lastqty_dict', shortcd, lastqty)
 
             msg_dict['TimeStamp'] = nowtime
-            insertNewTickData(self._memo_session, msg_dict)
+            insert_new_tickdata(self.file_session, msg_dict)
 
         else:
             return
@@ -138,16 +130,17 @@ class DBLoaderThread(SubscribeThread):
         if self.count % 100 == self.count_remain:
             msg = 'FutOpt Count: %d, Eq Count: %d' % (self.count_fo, self.count_eq)
             self.MsgNotify.emit(msg)
+            # print msg_dict
         self.count += 1
-        print self.count, self.count_fo, self.count_eq
+        # print self.count, self.count_fo, self.count_eq
         pass
 
     def onBackup(self):
-        metadata = MetaData(bind=self._memo_engine)
-        q = self._memo_session.query(TickData)
-        serialized_data = dumps(q.all())
-        loads(serialized_data, metadata, self._file_session)
-        self._file_session.commit()
+        # metadata = MetaData(bind=self._memo_engine)
+        # q = self._memo_session.query(TickData)
+        # serialized_data = dumps(q.all())
+        # loads(serialized_data, metadata, self._file_session)
+        # self._file_session.commit()
         pass
 
     def stop(self):

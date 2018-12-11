@@ -2,7 +2,7 @@
 
 import sys
 from PyQt4 import QtGui
-from ..optionwindow.main import MainForm
+from AQTrader.OptionWindow.optionwindow.main import MainForm
 
 
 class TestClass(object):

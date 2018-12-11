@@ -5,12 +5,13 @@ import datetime as dt
 import sip
 import redis
 
+from logging.handlers import RotatingFileHandler
 from PyQt4 import QtGui, QtCore
 from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
-from ...CommUtil.FeedCodeList import FeedCodeList
-from ...CommUtil import ExpireDateUtil
+from AQTrader.CommUtil.FeedCodeList import FeedCodeList
+from AQTrader.CommUtil import ExpireDateUtil
 
 
 logger = logging.getLogger('OptionWindow')
@@ -18,7 +19,7 @@ logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('OptionWindow.log')
-# fh = logging.Handlers.RotatingFileHandler('ZeroOptionViewer.log',maxBytes=104857,backupCount=3)
+fh = RotatingFileHandler('OptionWindow.log', maxBytes=5242, backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level

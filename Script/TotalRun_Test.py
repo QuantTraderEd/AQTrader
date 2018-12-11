@@ -8,7 +8,7 @@ import logging
 import datetime as dt
 import psutil
 import redis
-import pywinauto
+import pywinauto    # 0.6.2
 import win32api, win32con
 import win32gui, win32process
 
@@ -43,8 +43,8 @@ close_notice_pos_y = 150
 
 
 feeder_toggle_pos_x = 900
-feeder_toggle_pos_y = 830
-feeder_close_pos_x = 1200
+feeder_toggle_pos_y = 820
+feeder_close_pos_x = 1220
 feeder_close_pos_y = 800
 oms_toggle_pos_x = 900
 oms_toggle_pos_y = 620
@@ -52,14 +52,14 @@ oms_close_pos_x = 1200
 oms_close_pos_y = 590
 
 optionviewer_front_start_pos_x = 40
-optionviewer_front_start_pos_y = 770
-optionviewer_front_close_pos_x = 840
-optionviewer_front_close_pos_y = 725
+optionviewer_front_start_pos_y = 750
+optionviewer_front_close_pos_x = 860
+optionviewer_front_close_pos_y = 710
 
 optionviewer_back_start_pos_x = 40
-optionviewer_back_start_pos_y = 470
-optionviewer_back_close_pos_x = 840
-optionviewer_back_close_pos_y = 425
+optionviewer_back_start_pos_y = 460
+optionviewer_back_close_pos_x = 860
+optionviewer_back_close_pos_y = 415
 
 dbloader_start_stop_pos_x = 1342
 dbloader_start_stop_pos_y = 815
@@ -71,17 +71,8 @@ autootmtrader_start_stop_pos_y = 630
 autootmtrader_close_pos_x = 1675
 autootmtrader_close_pos_y = 425
 
-holiday_lst = ['20170509', 
-               '20170606', 
-               '20170815',
-               '20171002',
-               '20171003',
-               '20171004',
-               '20171005',
-               '20171006',
-               '20171009',
-               '20171229',
-               '20180101',
+holiday_lst = ['20181225',
+               '20190101',
                ]
 
 
@@ -96,11 +87,12 @@ def close_window_title(title):
     pass
 
 def close_notice_window():
-    title = u'\uacf5\uc9c0\uc0ac\ud56d'
-    w_handle = pywinauto.findwindows.find_windows(title=title, class_name='Afx:00400000:0')[0]
+    # title = u'\uacf5\uc9c0\uc0ac\ud56d'
+    title_name = u'공지사항'
     pwa_app = pywinauto.application.Application()
-    window = pwa_app.window_(handle=w_handle)
-    window.Close()
+    app = pwa_app.connect(title=title_name, class_name='Afx:00400000:0')
+    afx = app[title_name]
+    afx.close()
     pass
     
 
@@ -114,9 +106,10 @@ def getProcessList():
     return prcslst
 
 def click(x,y):
-    win32api.SetCursorPos((x, y))
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
+    # win32api.SetCursorPos((x, y))
+    # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
+    # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
+    pass
 
 def cp_start():
     logger.info('start cybos....')
@@ -143,26 +136,26 @@ def cp_start():
             logger.error('there is no handle of cybos')
             return False
         
-    window = app.window_(handle=w_handle)
-    window.SetFocus()
+    window = app.window(handle=w_handle)
+    window.set_focus()
     
     time.sleep(5)
     
     logger.info('get cybos window handler')
     
-    ctrl = window[u'PLUSButton']
-    ctrl.Click()
+    # ctrl = window[u'PLUSButton']
+    # ctrl.click()
     
     ctrl = window[u'ONECLIKEdit2']
-    ctrl.DrawOutline()
-    ctrl.Click()
-    ctrl.SetEditText("h6626075")
+    ctrl.draw_outline()
+    ctrl.click()
+    ctrl.set_edit_text("h6626075")
 
     ctrl = window[u'Button']
-    ctrl.DrawOutline()
+    ctrl.draw_outline()
     time.sleep(3)
-    ctrl.SetFocus()
-    ctrl.Click()
+    ctrl.set_focus()
+    ctrl.click()
     time.sleep(30)
     
     return True
@@ -212,20 +205,20 @@ def day_session_starter():
     os.startfile('zerooptionviewer_main.py')
     logger.info('start ZeroOptionViewer back month')
     
-    time.sleep(5)
-    os.chdir(commonfolder + '\\ZeroTrader\\ZeroOMS\\')
-    os.startfile('zerooms_main.py')
-    logger.info('start ZeroOMS')
+    # time.sleep(5)
+    # os.chdir(commonfolder + '\\ZeroTrader\\ZeroOMS\\')
+    # os.startfile('zerooms_main.py')
+    # logger.info('start ZeroOMS')
     
     time.sleep(5)
     os.chdir(commonfolder + '\\ZeroTrader\\ZeroDBLoader\\')
-    os.startfile('main.py')
+    os.startfile('DBWidget.py')
     logger.info('start ZeroDBLoader')
     
-    time.sleep(5)
-    os.chdir(commonfolder + '\\ZeroTrader\\AutoTrader\\')
-    os.startfile('AutoOTMTrader.py')
-    logger.info('start AutoOTMTrader')
+    # time.sleep(5)
+    # os.chdir(commonfolder + '\\ZeroTrader\\AutoTrader\\')
+    # os.startfile('AutoOTMTrader.py')
+    # logger.info('start AutoOTMTrader')
     
     logger.info('click optionviewer start')
     click(optionviewer_front_start_pos_x, optionviewer_front_start_pos_y)
@@ -369,37 +362,45 @@ def main():
         time.sleep(10)
         nowtime = time.localtime()
         nowdatetime = dt.datetime.now()
-        if nowdatetime.weekday() >= 5:
-            logger.info('Stop@WeekEnd')
-            break
-        elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
-            logger.info('Stop@Holiday')
-            break
-        # if nowtime.tm_hour == 22 and nowtime.tm_min >= 0 and nowtime.tm_min <= 59 and test_open_trigger:
-        if nowtime.tm_hour in [7,8,9,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger:
+
+        for proc in psutil.process_iter():
+            if proc.name() in ["pythonw.exe"]:
+                logger.info('%s' % proc.name())
+
+#        if nowdatetime.weekday() >= 5:
+#            logger.info('Stop@WeekEnd')
+#            break
+#        elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
+#            logger.info('Stop@Holiday')
+#            break
+        # if nowtime.tm_hour == 20 and nowtime.tm_min >= 0 and nowtime.tm_min <= 59 and test_open_trigger:
+        if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
+           (nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 59 and not day_session_trigger):
             nowdatetime = dt.datetime.now()
             if nowdatetime.weekday() >= 5:
                 logger.info('Stop@WeekEnd')
-                break
+                continue
             elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
                 logger.info('Stop@Holiday')
-                break
+                continue
             
             prcslst = getProcessList()
-            if not ("CpStart.exe" in prcslst):
-                is_logon_to_cp = cp_start()
-                if not is_logon_to_cp:
-                    sys.exit()
-                time.sleep(10)
-                logger.info('close notice')
-                # click(close_notice_pos_x, close_notice_pos_y)
-                close_notice_window()
-                
-            prcslst = getProcessList()        
-            time.sleep(.5)
-            if "CpStart.exe" in prcslst:
-                day_session_starter()
+#            if not ("CpStart.exe" in prcslst):
+#                is_logon_to_cp = cp_start()
+#                if not is_logon_to_cp:
+#                    sys.exit()
+#                time.sleep(10)
+#                logger.info('close notice')
+#                # click(close_notice_pos_x, close_notice_pos_y)
+#                close_notice_window()
+#
+#            prcslst = getProcessList()
+#            time.sleep(.5)
+#            if "CpStart.exe" in prcslst:
+#                day_session_starter()
             
+            day_session_starter()
+
             logmsg = 'click DBLoader start button (%d, %d)' %(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)
             logger.info(logmsg)
             click(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)        
@@ -455,33 +456,33 @@ def main():
         elif nowtime.tm_hour == 17 and nowtime.tm_min >= 40 and nowtime.tm_min <= 55 and not night_session_trigger:
             nowdatetime = dt.datetime.now()  
             if nowdatetime.weekday() >= 5:
-                logger.info('Stop@WeekEnd')
-                break
+                logger.info('Pass@WeekEnd')
+                continue
             elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
-                logger.info('Stop@Holiday')
-                break
+                logger.info('Pass@Holiday')
+                continue
             
             logger.info('click utck3 sync button')
             
             click_utck3_sync_button()        
     
-            os.chdir(commonfolder + '\\ZeroTrader\\ZeroOMS\\')
-            os.startfile('zerooms_main.py')
-            logger.info('start ZeroOMS')
+            # os.chdir(commonfolder + '\\ZeroTrader\\ZeroOMS\\')
+            # os.startfile('zerooms_main.py')
+            # logger.info('start ZeroOMS')
             
             time.sleep(5)
             os.chdir(commonfolder + '\\ZeroTrader\\ZeroDBLoader\\')
-            os.startfile('main.py')
+            os.startfile('DBWidget.py')
             logger.info('start ZeroDBLoader')
             
-            time.sleep(3)
-            os.chdir(commonfolder + '\\ZeroTrader\\AutoTrader\\')
-            os.startfile('AutoOTMTrader.py')
-            logger.info( 'start AutoOTMTrader')
-            time.sleep(1.0)    
-            logger.info('click autootmtrader start button')
-            click(autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y) 
-            logger.info('%d, %d' % (autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y))
+            # time.sleep(3)
+            # os.chdir(commonfolder + '\\ZeroTrader\\AutoTrader\\')
+            # os.startfile('AutoOTMTrader.py')
+            # logger.info( 'start AutoOTMTrader')
+            # time.sleep(1.0)
+            # logger.info('click autootmtrader start button')
+            # click(autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y)
+            # logger.info('%d, %d' % (autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y))
             
             time.sleep(10)
             logger.info('click DBLoader start button')
@@ -500,10 +501,16 @@ def main():
             report_trigger = False
             
         elif nowtime.tm_hour == 18 and nowtime.tm_min == 35 and not report_trigger:
+            if nowdatetime.weekday() >= 5:
+                logger.info('Pass@WeekEnd')
+                continue
+            elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
+                logger.info('Pass@Holiday')
+                continue
             make_miniarb_research_report()
             report_trigger = True
             
-        # elif nowtime.tm_hour == 10 and nowtime.tm_min >= 0 and not test_close_trigger:
+        # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
         elif nowtime.tm_hour == 6 and nowtime.tm_min >= 30 and not night_session_close_trigger:
             nowdatetime = dt.datetime.now()        
             logger.info('click the feeder run')
@@ -547,18 +554,17 @@ def main():
             pid_dict = {}
             
             for proc in psutil.process_iter():
-                psinfo = proc.as_dict(attrs=['name'])
-                if psinfo['name'] in ["pythonw.exe"]:
-                    logger.info('%s'%psinfo['name'])
-                    os.system('TASKKILL /PID %d'%proc.pid)
-                elif psinfo['name'] in ['CpStart.exe',"DibServer.exe"]:
+                if proc.name() in ["pythonw.exe"]:
+                    logger.info('%s' % proc.name())
+                    os.system('TASKKILL /f /im pythonw.exe')
+                elif proc.name() in ['CpStart.exe', "DibServer.exe"]:
                     # print proc.pid, psinfo['name']
-                    pid_dict[psinfo['name']] = proc.pid
+                    pid_dict[proc.name()] = proc.pid()
                     
             for key in pid_dict.iterkeys():
                 logger.info('%s %s'%(pid_dict[key], key))
                 os.system('TASKKILL /PID %d'%pid_dict[key])
-    
+
             clear_ordno_dict()
     
             night_session_close_trigger = True
