@@ -84,7 +84,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         login_form.show()
         login_form.exec_()
 
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
             print self.accountlist
 
@@ -110,13 +110,13 @@ class ZeroDigitViewer(QtGui.QWidget):
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.NewQuery.flag = True
-            ret = self.NewQuery.Request(False)        
+            ret = self.NewQuery.Request(False)
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
             self.ui.lcdNumber.display(self.NewQuery.pnl)
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
     myform.initXing()
