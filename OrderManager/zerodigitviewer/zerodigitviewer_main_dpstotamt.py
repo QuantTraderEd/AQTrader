@@ -100,15 +100,13 @@ class ZeroDigitViewer(QtGui.QWidget):
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'AcntNo', 0, self.accountlist[1])
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'Pwd', 0, '0000')
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'BnsDt', 0, str_nowdt)
-        
-        
+
     def initTIMER(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.ctimer =  QtCore.QTimer()
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+            self.ctimer = QtCore.QTimer()
             self.ctimer.timeout.connect(self.onTimer)
             self.ctimer.start(5000)
-            
-        
+
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.NewQuery.flag = True

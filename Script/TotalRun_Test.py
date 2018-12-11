@@ -71,7 +71,7 @@ autootmtrader_start_stop_pos_y = 630
 autootmtrader_close_pos_x = 1675
 autootmtrader_close_pos_y = 425
 
-holiday_lst = ['20181225',                
+holiday_lst = ['20181225',
                '20190101',
                ]
 
@@ -393,8 +393,8 @@ def main():
 #                logger.info('close notice')
 #                # click(close_notice_pos_x, close_notice_pos_y)
 #                close_notice_window()
-#                
-#            prcslst = getProcessList()        
+#
+#            prcslst = getProcessList()
 #            time.sleep(.5)
 #            if "CpStart.exe" in prcslst:
 #                day_session_starter()
@@ -479,9 +479,9 @@ def main():
             # os.chdir(commonfolder + '\\ZeroTrader\\AutoTrader\\')
             # os.startfile('AutoOTMTrader.py')
             # logger.info( 'start AutoOTMTrader')
-            # time.sleep(1.0)    
+            # time.sleep(1.0)
             # logger.info('click autootmtrader start button')
-            # click(autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y) 
+            # click(autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y)
             # logger.info('%d, %d' % (autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y))
             
             time.sleep(10)
