@@ -74,7 +74,7 @@ class ZeroDigitViewer(QtGui.QWidget):
     def initXing(self, XASession=None):
         if XASession != None:
             self.XASession = XASession
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.accountlist = self.XASession.GetAccountList()
             return
 
