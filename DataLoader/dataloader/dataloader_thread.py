@@ -101,7 +101,6 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('ask1_dict', shortcd, ask1)
             self.redis_client.hset('bidqty1_dict', shortcd, bidqty1)
             self.redis_client.hset('askqty1_dict', shortcd, askqty1)
-            self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
             insert_new_tickdata(self.file_session, msg_dict)
