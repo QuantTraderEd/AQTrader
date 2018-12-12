@@ -74,7 +74,7 @@ class ZeroDigitViewer(QtGui.QWidget):
     def initXing(self, XASession=None):
         if XASession != None:
             self.XASession = XASession
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+            if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
                 self.accountlist = self.XASession.GetAccountList()
             return
 
@@ -84,7 +84,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         login_form.show()
         login_form.exec_()
 
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
             print self.accountlist
 
@@ -100,25 +100,23 @@ class ZeroDigitViewer(QtGui.QWidget):
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'AcntNo', 0, self.accountlist[1])
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'Pwd', 0, '0000')
             self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'BnsDt', 0, str_nowdt)
-        
-        
+
     def initTIMER(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.ctimer =  QtCore.QTimer()
+        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
+            self.ctimer = QtCore.QTimer()
             self.ctimer.timeout.connect(self.onTimer)
             self.ctimer.start(5000)
-            
-        
+
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.NewQuery.flag = True
-            ret = self.NewQuery.Request(False)        
+            ret = self.NewQuery.Request(False)
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
             self.ui.lcdNumber.display(self.NewQuery.pnl)
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
     myform.initXing()
