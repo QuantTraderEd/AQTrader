@@ -59,7 +59,7 @@ class MyWindow(QtGui.QMainWindow):
         message: 1.0.0.1 버전 이후 사용하지 않음.
         splm_msg: 1.0.0.1 버전 이후 사용하지 않음.
         """
-        print (trcode, rqname)
+        print (unicode(trcode), unicode(rqname))
         # data = self.ocx.getCommData(trcode, rqname, 0, u"현재가")
         itemname_lst = [u"종목코드", u"종목명", u"현재가"]
         for i in xrange(3):
@@ -67,7 +67,8 @@ class MyWindow(QtGui.QMainWindow):
                                                                                    rqname,
                                                                                    0,
                                                                                    itemname_lst[i])
-            print (data.strip())
+            print (unicode(data.toPyObject()).strip())
+
         pass
     
     def on_receive_chejan_data(self):
