@@ -1,0 +1,13 @@
+language: python
+os: windows
+python:
+    - "2.7"
+# command to install dependencies
+install: 
+#    - "pip install -r requirements.txt"
+#    - "pyinstaller main.py"
+    - "python ./PyCybos/setup.py bdist_wheel"
+    - "python ./PyXing/setup.py bdist_wheel"
+
+# command to run tests
+# script: pytest test.py
