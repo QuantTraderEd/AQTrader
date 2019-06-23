@@ -15,11 +15,13 @@ strategy:
         python.version: '2.7'
 
 steps:
-- script: pip install -r requirements.txt
+- script: | 
+    python -m pip install --upgrade setuptools wheel
+    pip install -r requirements.txt
   displayName: 'Install requirements'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
-    python ./PyCybos/setup.py bdist_wheel
-    python ./PyXing/setup.py bdist_wheel
+    python ./PyCybos/setup.py bdist_wheel --universal=1
+    python ./PyXing/setup.py bdist_wheel --universal=1
   displayName: 'Run setup.py'
