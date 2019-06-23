@@ -22,4 +22,4 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     python ./PyCybos/setup.py bdist_wheel
     python ./PyXing/setup.py bdist_wheel
-displayName: 'Run a multi-line script'
+  displayName: 'Run setup.py'
