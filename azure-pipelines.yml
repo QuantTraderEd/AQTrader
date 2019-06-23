@@ -1,0 +1,25 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- web_patch
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+strategy:
+    matrix:
+      Python27:
+        python.version: '2.7'
+
+steps:
+- script: pip install -r requirements.txt
+  displayName: 'Install requirements'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    python ./PyCybos/setup.py bdist_wheel
+    python ./PyXing/setup.py bdist_wheel
+displayName: 'Run a multi-line script'
