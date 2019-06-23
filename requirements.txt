@@ -1,3 +1,2 @@
 setuptools
-pythoncom
 pywin32
