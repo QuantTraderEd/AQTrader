@@ -61,12 +61,13 @@ class MyWindow(QtGui.QMainWindow):
         """
         print(unicode(trcode), unicode(rqname))
         # data = self.ocx.getCommData(trcode, rqname, 0, u"현재가")
-        itemname_lst = [u"종목코드", u"종목명", u"현재가"]
-        for i in xrange(3):
+        # itemname_lst = [u"종목코드", u"종목명", u"현재가"]
+        itemname_lst = [u"종목명", u"현재가", u"거래량"]
+        for itemname in itemname_lst:
             data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode,
                                         rqname,
                                         0,
-                                        itemname_lst[i])
+                                        itemname)
             print(unicode(data.toPyObject()).strip())
 
         pass
@@ -76,6 +77,10 @@ class MyWindow(QtGui.QMainWindow):
 
     def on_receive_real_data(self, shortcd, realtype, realdata):
         print(unicode(shortcd), unicode(realtype))
+        fidlist = [9001, 20, 10, 15, 13]
+        for i in fidlist:
+            data = self.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
+            print(unicode(data.toPyObject()).strip())
         pass
 
     def on_receive_msg(self, scrno, rqname, trcode, msg):
@@ -128,11 +133,19 @@ class MyWindow(QtGui.QMainWindow):
         # trcode = "OPT10001"
         # self.set_input_value(id_key, value)
         # self.comm_rq_data(rqname, trcode, 0, "0001")
+
+        id_key = u"체결틱"
+        value = u"101PJ000"
+        rqname = u"선옵현재가정보요청 "
+        trcode = "opt50001"
+        self.set_input_value(id_key, value)
+        self.comm_rq_data(rqname, trcode, 0, "0001")
+
         screen_no = u"00001"
-        code_list = u"10100000"
-        fid_list = u"9001;20;10"
+        code_list = u"101P9000"
+        fid_list = u"9001;20;10;15;13"
         opt_type = u"0"
-        self.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        # self.set_real_reg(screen_no, code_list, fid_list, opt_type)
 
 
 if __name__ == "__main__":
