@@ -14,6 +14,7 @@ class KHOPENAPI_Events:
     def OnEventConnect(self, *args):
         print "OnEventConnect", args
 
+
 gencache.EnsureModule("A1574A0D-6BFA-4BD7-9020-DED88711818D", 0, 1, 0)
 gencache.EnsureModule("CF20FBB6-EDD4-4BE5-A473-FEF91977DEB6", 0, 1, 0)
 gencache.EnsureModule("7335F12D-8973-4BD5-B7F0-12DF03D175B7", 0, 1, 0)
