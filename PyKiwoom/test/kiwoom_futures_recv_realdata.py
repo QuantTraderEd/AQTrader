@@ -60,15 +60,36 @@ class MyWindow(QtGui.QMainWindow):
         splm_msg: 1.0.0.1 버전 이후 사용하지 않음.
         """
         print(unicode(trcode), unicode(rqname))
+
         # data = self.ocx.getCommData(trcode, rqname, 0, u"현재가")
         # itemname_lst = [u"종목코드", u"종목명", u"현재가"]
-        itemname_lst = [u"종목명", u"현재가", u"거래량", u"호가시간"]
-        for itemname in itemname_lst:
-            data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode,
-                                        rqname,
-                                        0,
-                                        itemname)
-            print(itemname, unicode(data.toPyObject()).strip())
+
+        if trcode == u"opt50004":
+            # itemname_lst = [u"종목코드", u"ATM구분", u"행사가"]
+            # for itemname in itemname_lst:
+            #     data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode,
+            #                                 rqname,
+            #                                 0,
+            #                                 itemname)
+            #     print(itemname, unicode(data.toPyObject()).strip())
+
+            data = self.ocx.dynamicCall("GetCommDataEx(QString, QString)", trcode, rqname)
+            data = unicode(data.toPyObject())
+            print(data)
+
+        if trcode == u"opt50065":
+            data = self.ocx.dynamicCall("GetCommDataEx(QString, QString)", trcode, rqname)
+            data = unicode(data.toPyObject())
+            print(data)
+
+        if trcode == u"opt50001":
+            itemname_lst = [u"종목명", u"현재가", u"거래량", u"호가시간"]
+            for itemname in itemname_lst:
+                data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode,
+                                            rqname,
+                                            0,
+                                            itemname)
+                print(itemname, unicode(data.toPyObject()).strip())
 
         pass
 
@@ -77,10 +98,16 @@ class MyWindow(QtGui.QMainWindow):
 
     def on_receive_real_data(self, shortcd, realtype, realdata):
         print(unicode(shortcd), unicode(realtype))
-        fidlist = [9001, 20, 10, 15, 13]
-        for i in fidlist:
-            data = self.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
-            print(unicode(data.toPyObject()).strip())
+        if realtype == u"선물시세":
+            fidlist = [9001, 20, 10, 15, 13]
+            fid_name_dict = dict()
+            fid_name_dict[9001] = u"timestamp"
+            fid_name_dict[20] = u"last_price"
+            fid_name_dict[15] = u"last_qty"
+            fid_name_dict[13] = u"volume"
+            for i in fidlist:
+                data = self.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
+                print(fid_name_dict[i], unicode(data.toPyObject()).strip())
         pass
 
     def on_receive_msg(self, scrno, rqname, trcode, msg):
@@ -126,6 +153,18 @@ class MyWindow(QtGui.QMainWindow):
                                    opttype)
         return ret
 
+    def get_futures_list(self):
+        data = self.ocx.dynamicCall("GetFutureList()")
+        data = unicode(data.toPyObject())
+        data = data.split(u";")
+        return data
+
+    def get_month_list(self):
+        data = self.ocx.dynamicCall("GetMonthList()")
+        data = unicode(data.toPyObject())
+        data = data.split(u";")
+        return data
+
     def test(self):
         # id_key = u"종목코드"
         # value = u"000660"
@@ -134,15 +173,32 @@ class MyWindow(QtGui.QMainWindow):
         # self.set_input_value(id_key, value)
         # self.comm_rq_data(rqname, trcode, 0, "0001")
 
-        id_key = u"종목코드"
-        value = u"101P9000"
-        rqname = u"선옵현재가정보요청 "
-        trcode = "opt50001"
+        futures_list = self.get_futures_list()
+        print(futures_list)
+
+        id_key = u"만기년월"
+        value = u"201907"
+        rqname = u"콜옵션행사가요청"
+        trcode = "opt50004"
         self.set_input_value(id_key, value)
         self.comm_rq_data(rqname, trcode, 0, "0001")
 
-        screen_no = u"0002"
-        code_list = u"101P9000"
+        id_key = u"만기년월"
+        value = u"201907"
+        rqname = u"풋옵션행사가요청"
+        trcode = "opt50065"
+        self.set_input_value(id_key, value)
+        self.comm_rq_data(rqname, trcode, 0, "0002")
+
+        id_key = u"종목코드"
+        value = futures_list[0]
+        rqname = u"선옵현재가정보요청 "
+        trcode = "opt50001"
+        self.set_input_value(id_key, value)
+        self.comm_rq_data(rqname, trcode, 0, "0004")
+
+        screen_no = u"0005"
+        code_list = futures_list[0]
         fid_list = u"9001;20;10;15;13"
         opt_type = u"0"
         self.set_real_reg(screen_no, code_list, fid_list, opt_type)
