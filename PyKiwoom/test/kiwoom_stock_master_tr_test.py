@@ -107,7 +107,8 @@ class MyWindow(QtGui.QMainWindow):
         trcode = "OPT10001"
         self.set_input_value(id_key, value)
         self.comm_rq_data(rqname, trcode, 0, "0001")
-            
+
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myWindow = MyWindow()

@@ -60,6 +60,7 @@ class MyWindow(QtGui.QMainWindow):
         splm_msg: 1.0.0.1 버전 이후 사용하지 않음.
         """
         print(unicode(trcode), unicode(rqname))
+        print(type(trcode), type(rqname))
 
         # data = self.ocx.getCommData(trcode, rqname, 0, u"현재가")
         # itemname_lst = [u"종목코드", u"종목명", u"현재가"]
