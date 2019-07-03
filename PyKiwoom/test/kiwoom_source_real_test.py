@@ -65,8 +65,8 @@ class MyWindow(QtGui.QMainWindow):
         """
         print (unicode(trcode), unicode(rqname))
         # data = self.ocx.getCommData(trcode, rqname, 0, u"현재가")
-        itemname_lst = [u"종목코드", u"종목명", u"현재가"]
-        for i in xrange(3):
+        itemname_lst = [u"종목명", u"체결시간", u"현재가", u"체결량", u"누적거래량"]
+        for i in xrange(len(itemname_lst)):
             data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode,
                                                                                    rqname,
                                                                                    0,
@@ -115,13 +115,16 @@ class MyWindow(QtGui.QMainWindow):
         value = u'101P9000'
         rqname = u"선옵현재가정보요청 "
         trcode = "opt50001"
-        self.opt50001.set_input_value(id_key, value)
-        self.opt50001.comm_rq_data(rqname, trcode, 0, "0001")
-        data = self.opt50001.data
-        print(data)
 
         futures_list = self.get_futures_list()
         print(futures_list[:3])
+
+        id_key = u"종목코드"
+        value = futures_list[0]
+        rqname = u"선옵현재가정보요청 "
+        trcode = "opt50001"
+        self.set_input_value(id_key, value)
+        self.comm_rq_data(rqname, trcode, 0, "0004")
 
         # value = u'101PC000'
         # self.opt50001.set_input_value(id_key, value)
