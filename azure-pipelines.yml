@@ -16,12 +16,15 @@ strategy:
 
 steps:
 - script: | 
+    python -m pip install --upgrade pip
     python -m pip install --upgrade setuptools wheel
     pip install -r requirements.txt
   displayName: 'Install requirements'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
-    python ./PyCybos/setup.py bdist_wheel --universal=1
-    python ./PyXing/setup.py bdist_wheel --universal=1
+    cd PyCybos
+    python setup.py sdist bdist_wheel
+    cd ../PyXing
+    python setup.py sdist bdist_wheel
   displayName: 'Run setup.py'
