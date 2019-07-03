@@ -87,3 +87,41 @@ class Kiwoom(object):
         """
         print(unicode(trcode), unicode(rqname))
         self.on_signal(trcode, rqname)
+
+
+class KiwoomSession(object):
+    def __init__(self):
+        self.ocx = QAxContainer.QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
+        self.ocx.OnEventConnect.connect(self.on_event_connect)
+        # self.ocx.OnReceiveTrData.connect(self.on_receive_tr_data)
+        # self.ocx.OnReceiveChejanData.connect(self.on_receive_chejan_data)
+        # self.ocx.OnReceiveRealData.connect(self.on_receive_real_data)
+        # self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
+        # self.ocx.OnReceiveConditionVer.connect(self.on_receive_condition_ver)
+        # self.ocx.OnReceiveTrCondition.connect(self.on_receive_tr_condition)
+        # self.ocx.OnReceiveRealCondition.connect(self.on_receive_real_condition)
+        # self.ocx.parent = proxy(self)
+        # self.observers = []
+        self.data = None
+        self.event = None
+
+    def on_event_connect(self, errcode):
+        print("ErrCode: %d" % errcode)
+        pass
+
+    def get_connect_state(self):
+        data = self.ocx.dynamicCall("GetConnectState()")
+        data = int(data.toPyObject())
+        return data
+
+    def get_futures_list(self):
+        data = self.ocx.dynamicCall("GetFutureList()")
+        data = unicode(data.toPyObject())
+        data = data.split(u";")
+        return data
+
+    def get_month_list(self):
+        data = self.ocx.dynamicCall("GetMonthList()")
+        data = unicode(data.toPyObject())
+        data = data.split(u";")
+        return data
