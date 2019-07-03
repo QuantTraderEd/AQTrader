@@ -28,3 +28,8 @@ steps:
     cd ../PyXing
     python setup.py sdist bdist_wheel
   displayName: 'Run setup.py'
+
+- script: |
+    python -m pip install flake8
+    flake8 .
+  displayNmae: 'Run lint tests'
