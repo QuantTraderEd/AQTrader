@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
-from kiwoom_source import Kiwoom
+from kiwoom_source import KiwoomTR
 
 
-class KiwoomOPT50001(Kiwoom):
+class KiwoomOPT50001(KiwoomTR):
     """
     TR: futures & option last price
     """
