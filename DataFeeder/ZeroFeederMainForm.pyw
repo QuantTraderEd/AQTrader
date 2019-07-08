@@ -15,9 +15,9 @@ from PyQt4 import QtGui
 # import AQTrader.PyXing.pyxing as px
 # import AQTrader.PyCybos.pycybos as pc
 # from AQTrader.CommUtil.FeedCodeList import FeedCodeList
-from CommUtil.FeedCodeList import FeedCodeList
-from PyXing import pyxing as px
-from PyCybos import pycybos as pc
+from commutil.FeedCodeList import FeedCodeList
+import pyxing as px
+import pycybos as pc
 from ui_zerofeeder import Ui_MainWindow
 from xinglogindlg import LoginForm
 from ZMQTickSender import ZMQTickSender, ZMQTickSender_New
@@ -518,6 +518,7 @@ class MainForm(QtGui.QMainWindow):
             self.slot_ToggleFeed(True)
 
         if close_trigger:
+            logger.info("close trigger")
             self.close()
 
     def CybosTimerUpdate(self):

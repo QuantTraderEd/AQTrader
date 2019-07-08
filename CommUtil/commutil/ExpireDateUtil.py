@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # today = '20170608'
 
     expiredate_util = ExpireDateUtil()
-    expiredate_util.read_expire_date('.')
+    expiredate_util.read_expire_date('expire_date.txt')
     is_expiredate = expiredate_util.is_expire_date(today)
 
     result1 = expiredate_util.make_expire_date(today)

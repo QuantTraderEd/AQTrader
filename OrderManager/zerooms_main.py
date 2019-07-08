@@ -22,7 +22,7 @@ from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
 
-import CommUtil.ExpireDateUtil as ExpireDateUtil
+import commutil.ExpireDateUtil as ExpireDateUtil
 
 logger = logging.getLogger('ZeroOMS')
 logger.setLevel(logging.DEBUG)
@@ -67,7 +67,7 @@ class MainForm(QtGui.QMainWindow):
         self.order_port = 6001
         self.exec_report_port = 7001
         self.accountindex = 1
-        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
+        self.db_path = 'C:/Python/AQTrader/OrderManager/orderlist_db/'
 
         self.initUI()
 
@@ -95,13 +95,13 @@ class MainForm(QtGui.QMainWindow):
 
         logger.info('Start ZeroOMS')
         
-        f = open('auto_config', 'r')
-        auto_config = json.load(f)
-        if auto_config['setauto']:
-            print auto_config
-            self.setAuto = True
-            self.slot_AutoStartXing(auto_config)
-        f.close()
+        with open('auto_config', 'r') as f:
+            auto_config = json.load(f)
+            if auto_config['setauto']:
+                print auto_config
+                self.setAuto = True
+                self.slot_AutoStartXing(auto_config)
+            f.close()
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -162,6 +162,7 @@ class MainForm(QtGui.QMainWindow):
             strdbname = "orderlist_night_%s.db" %(strtime)
 
         strdbname = self.db_path + strdbname
+        print(strdbname)
 
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
@@ -211,7 +212,7 @@ class MainForm(QtGui.QMainWindow):
         now_dt = dt.datetime.now()
         today = now_dt.strftime('%Y%m%d')
 
-        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__) + "\\expire_date.txt")
         expire_date_lst = self.expiredate_util.make_expire_date(today)
         logger.info('%s' % ','.join(expire_date_lst))
 
@@ -264,6 +265,14 @@ class MainForm(QtGui.QMainWindow):
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        now_dt = dt.datetime.now()
+        close_trigger = False
+        if now_dt.hour == 6 and now_dt.minute == 15:
+            close_trigger = True
+
+        if close_trigger:
+            logger.info("close trigger")
+            self.close()
 
     def queryTimerUpdate(self):
         chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \
@@ -314,10 +323,15 @@ class MainForm(QtGui.QMainWindow):
         user = str(auto_config['id'])
         password = str(auto_config['pwd'].decode('hex'))
         certpw = str(auto_config['cetpwd'].decode('hex'))
+        servertype = int(auto_config['servertype'])
+        if servertype == 1:
+            server = 'demo.ebestsec.co.kr'
+        elif servertype == 0:
+            server = 'hts.ebestsec.co.kr'
         
-        self.XASession.ConnectServer(server,port)
+        self.XASession.ConnectServer(server, port)
         # print 'connect server'
-        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)
+        ret = self.XASession.Login(user, password, certpw, servertype, showcerterror)
                 
         px.XASessionEvents.session = self.XASession
         self.XASession.flag = True

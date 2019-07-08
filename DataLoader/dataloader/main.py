@@ -33,6 +33,7 @@ class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.initUI()
+        self.initTIMER()
         self.initThread()
         pass
 
@@ -59,6 +60,11 @@ class MainForm(QtGui.QWidget):
         self.restoreGeometry(setting.value("geometry").toByteArray())
 
         pass
+
+    def initTIMER(self):
+        self.ctimer = QtCore.QTimer()
+        self.ctimer.start(300000)
+        self.ctimer.timeout.connect(self.ctimer_update)
 
     def initThread(self):
         self.dataloader_thread = DBLoaderThread(subtype='Real')
@@ -90,6 +96,20 @@ class MainForm(QtGui.QWidget):
             self.plainTextEditor.appendPlainText(strtime + 'Stop Thread')
             self.startPushButton.setText('Start')
         pass
+
+    def ctimer_update(self):
+        now_dt = dt.datetime.now()
+        close_trigger = False
+        if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
+            close_trigger = True
+        elif now_dt.hour == 17 and  now_dt.minute >= 15 and now_dt.minute <= 30:
+            close_trigger = True
+
+        if close_trigger:
+            logger.info("close trigger")
+            if self.dataloader_thread.isRunning():
+                self.dataloader_thread.stop()
+            self.close()
 
 
 if __name__ == '__main__':
