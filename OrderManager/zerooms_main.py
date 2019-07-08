@@ -22,7 +22,7 @@ from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
 
-import CommUtil.ExpireDateUtil as ExpireDateUtil
+import commutil.ExpireDateUtil as ExpireDateUtil
 
 logger = logging.getLogger('ZeroOMS')
 logger.setLevel(logging.DEBUG)
@@ -67,7 +67,7 @@ class MainForm(QtGui.QMainWindow):
         self.order_port = 6001
         self.exec_report_port = 7001
         self.accountindex = 1
-        self.db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
+        self.db_path = 'C:/Python/AQTrader/OrderManager/orderlist_db/'
 
         self.initUI()
 
@@ -162,6 +162,7 @@ class MainForm(QtGui.QMainWindow):
             strdbname = "orderlist_night_%s.db" %(strtime)
 
         strdbname = self.db_path + strdbname
+        print(strdbname)
 
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
@@ -211,7 +212,7 @@ class MainForm(QtGui.QMainWindow):
         now_dt = dt.datetime.now()
         today = now_dt.strftime('%Y%m%d')
 
-        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
+        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__) + "\\expire_date.txt")
         expire_date_lst = self.expiredate_util.make_expire_date(today)
         logger.info('%s' % ','.join(expire_date_lst))
 
