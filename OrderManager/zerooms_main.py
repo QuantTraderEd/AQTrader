@@ -95,13 +95,13 @@ class MainForm(QtGui.QMainWindow):
 
         logger.info('Start ZeroOMS')
         
-        f = open('auto_config', 'r')
-        auto_config = json.load(f)
-        if auto_config['setauto']:
-            print auto_config
-            self.setAuto = True
-            self.slot_AutoStartXing(auto_config)
-        f.close()
+        with open('auto_config', 'r') as f:
+            auto_config = json.load(f)
+            if auto_config['setauto']:
+                print auto_config
+                self.setAuto = True
+                self.slot_AutoStartXing(auto_config)
+            f.close()
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -265,6 +265,14 @@ class MainForm(QtGui.QMainWindow):
         
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        now_dt = dt.datetime.now()
+        close_trigger = False
+        if now_dt.hour == 6 and now_dt.minute == 15:
+            close_trigger = True
+
+        if close_trigger:
+            logger.info("close trigger")
+            self.close()
 
     def queryTimerUpdate(self):
         chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \

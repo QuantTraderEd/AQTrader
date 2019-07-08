@@ -74,7 +74,7 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def initTIMER(self):
-        self.ctimer =  QtCore.QTimer()
+        self.ctimer = QtCore.QTimer()
         self.ctimer.start(300000)
         self.ctimer.timeout.connect(self.ctimer_update)
 
@@ -193,10 +193,11 @@ class MainForm(QtGui.QMainWindow):
     def ctimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
-        if now_dt.hour == 6 and  now_dt.min >= 15 and now_dt.min <= 30:
+        if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
             close_trigger = True
 
         if close_trigger:
+            logger.info("close trigger")
             if self.mythread.isRunning():
                 self.mythread.stop()
             self.close()

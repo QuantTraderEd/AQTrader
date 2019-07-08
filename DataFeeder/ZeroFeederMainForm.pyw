@@ -518,6 +518,7 @@ class MainForm(QtGui.QMainWindow):
             self.slot_ToggleFeed(True)
 
         if close_trigger:
+            logger.info("close trigger")
             self.close()
 
     def CybosTimerUpdate(self):
