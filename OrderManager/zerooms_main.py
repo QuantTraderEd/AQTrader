@@ -314,10 +314,15 @@ class MainForm(QtGui.QMainWindow):
         user = str(auto_config['id'])
         password = str(auto_config['pwd'].decode('hex'))
         certpw = str(auto_config['cetpwd'].decode('hex'))
+        servertype = int(auto_config['servertype'])
+        if servertype == 1:
+            server = 'demo.ebestsec.co.kr'
+        elif servertype == 0:
+            server = 'hts.ebestsec.co.kr'
         
-        self.XASession.ConnectServer(server,port)
+        self.XASession.ConnectServer(server, port)
         # print 'connect server'
-        ret = self.XASession.Login(user,password,certpw,servertype,showcerterror)
+        ret = self.XASession.Login(user, password, certpw, servertype, showcerterror)
                 
         px.XASessionEvents.session = self.XASession
         self.XASession.flag = True
