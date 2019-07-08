@@ -11,7 +11,7 @@ from PyQt4 import QtGui
 from ui_AutoOTMTrader import Ui_MainWindow
 from AutoOTMTrader_thread import TickDataReceiverThread, ExecutionReportThread, OrderThread
 from FeedCodeList import FeedCodeList
-import CommUtil.ExpireDateUtil as ExpireDateUtil
+import commutil.ExpireDateUtil as ExpireDateUtil
 
 import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity

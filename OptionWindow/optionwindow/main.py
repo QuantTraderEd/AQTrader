@@ -10,8 +10,8 @@ from PyQt4 import QtGui, QtCore
 from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
-from AQTrader.CommUtil.FeedCodeList import FeedCodeList
-from AQTrader.CommUtil import ExpireDateUtil
+from commutil.FeedCodeList import FeedCodeList
+from commutil import ExpireDateUtil
 
 
 logger = logging.getLogger('OptionWindow')
@@ -208,7 +208,10 @@ class MainForm(QtGui.QMainWindow):
             if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
             self.ui.tableWidget.setItem(row,col,NewItem)
         else:
-            widgetItem.setText(text)
+            if isinstance(text, int):
+                widgetItem.setText(str(text))
+            elif isinstance(text, float):
+                widgetItem.setText("%.2f" % text)
         pass
     
     def onDoubleClicked(self, row, col):

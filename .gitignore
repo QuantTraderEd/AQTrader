@@ -9,5 +9,5 @@ dist
 *.log.*
 .idea/
 .cache/
-
+auto_config
 *.db
