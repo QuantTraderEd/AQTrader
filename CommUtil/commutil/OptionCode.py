@@ -9,16 +9,6 @@ FutureCode = pc.CpFutureCode()
 OptionCode = pc.CpOptionCode()
 expiredate_util = ExpireDateUtil.ExpireDateUtil()
 
-filepath = [
-'D:/Python/ZeroTrader/ZeroFeeder/',
-'D:/Python/ZeroTrader/ZeroOptionViewer/',
-'D:/Python/ZeroTrader/ZeroOptionViewer_BackMonth/',
-'D:/Python/ZeroTrader/AutoTrader/',
-'D:/Python/ZeroTrader_Test/ZeroOptionViewer/',
-'D:/Python/ZeroTrader_Test/AutoTrader/',
-'D:/Python/ZeroTrader_Test/AutoFutArbTrader/',
-]
-
 now_dt = dt.datetime.now()
 today = now_dt.strftime('%Y%m%d')
 
