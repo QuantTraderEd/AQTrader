@@ -2,6 +2,7 @@
 
 import time
 import logging
+import datetime as dt
 
 from logging.handlers import RotatingFileHandler
 from PyQt4 import QtGui, QtCore
@@ -102,8 +103,14 @@ class MainForm(QtGui.QWidget):
         close_trigger = False
         if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
             close_trigger = True
-        elif now_dt.hour == 17 and  now_dt.minute >= 15 and now_dt.minute <= 30:
-            close_trigger = True
+        elif now_dt.hour == 17 and  now_dt.minute >= 22 and now_dt.minute <= 30:
+            if self.dataloader_thread.isRunning():
+                logger.info("auto stop")
+                self.onClick()
+        elif now_dt.hour == 17 and  now_dt.minute >= 45 and now_dt.minute <= 59:
+            if not self.dataloader_thread.isRunning():
+                logger.info("auto start")
+                self.onClick()
 
         if close_trigger:
             logger.info("close trigger")
