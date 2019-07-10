@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 import zmq
 import json
@@ -72,7 +71,7 @@ class MainForm(QtGui.QMainWindow):
             auto_config = json.load(f)
             if auto_config['setauto']:
                 print auto_config
-                self.setAuto = True
+                self.set_auto = True
                 self.slot_CheckCybosStarter(0, 2)
                 self.slot_AutoStartXing(auto_config)
             f.close()
@@ -366,6 +365,7 @@ class MainForm(QtGui.QMainWindow):
             self.initFeedCode()
             self.initZMQSender()
             self.initTAQFeederLst()
+            logger.info('set feed code & zmq')
         else:
             logger.info('tick count: %d'%ZMQTickSender.count)
 
@@ -430,6 +430,7 @@ class MainForm(QtGui.QMainWindow):
 
         if boolToggle:
             pythoncom.PumpMessages()
+            logger.info('start pumping msg')
 
         pass
 
@@ -567,13 +568,16 @@ class CpCybosNULL():
 
 
 if __name__ == '__main__':
+    import sys
     import ctypes
     myappid = 'zerofeeder'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
-#    if myform.setAuto:
-#        myform.ui.actionFeed.setChecked(True)
-    app.exec_()
+    if myform.set_auto:
+        logger.info('set_auto: True')
+        # myform.slot_ToggleFeed(True) ??
+        # myform.ui.actionFeed.setChecked(True) ??
+    sys.exit(app.exec_())
 

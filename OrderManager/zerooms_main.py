@@ -100,7 +100,7 @@ class MainForm(QtGui.QMainWindow):
             auto_config = json.load(f)
             if auto_config['setauto']:
                 print auto_config
-                self.setAuto = True
+                self.set_auto = True
                 self.slot_AutoStartXing(auto_config)
             f.close()
 
@@ -447,8 +447,12 @@ class XingXASessionUpdate():
 
         
 if __name__ == "__main__":
+    import sys
     app = QtGui.QApplication(sys.argv)
-    myForm = MainForm()
-    myForm.show()        
-    app.exec_()
+    myform = MainForm()
+    myform.show()
+    if myform.set_auto:
+        myform.slot_ToggleExecute(True)
+        myform.ui.actionExecute.setChecked(True)
+    sys.exit(app.exec_())
 
