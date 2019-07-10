@@ -11,6 +11,7 @@ import logging
 import datetime as dt
 import pyxing as px
 import sqlite3 as lite
+import pandas as pd
 
 from PyQt4 import QtCore, QtGui
 from ui_zerooms import Ui_MainWindow
@@ -166,29 +167,38 @@ class MainForm(QtGui.QMainWindow):
 
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
-            self.cursor_db = self.conn_db.cursor()
-            self.cursor_db.execute("DROP TABLE IF EXISTS OrderList")
-            self.cursor_db.execute("""CREATE TABLE OrderList(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                           AutoTraderID TEXT,
-                                           OrdNo TEXT,
-                                           OrgOrdNo TEXT,
-                                           ExecNo TEXT,
-                                           Time TEXT,                  
-                                           BuySell TEXT,                                       
-                                           ShortCD TEXT,
-                                           Price TEXT,
-                                           Qty TEXT,
-                                           Type1 TEXT,
-                                           Type2 TEXT,
-                                           ExecPrice TEXT,
-                                           ExecQty TEXT,
-                                           UnExecQty TEXT,
-                                           ChkReq TEXT
-                                           )""")
+            self.create_db_table()
             self.conn_db.close()
             logger.info('Init New OrdList DB File: %s' % strdbname)
+        else:
+            self.conn_db = lite.connect(strdbname)
+            sql_text = "SELECT name FROM sqlite_master WHERE type='table'"
+            df_master = pd.read_sql(sql_text, self.conn_db)
+            if df_master['name'][0] != 'OrderList':
+                self.create_db_table()
+            self.conn_db.close()
 
         self.myOrdListDlg.init_dbname(strdbname)
+
+    def create_db_table(self):
+        self.cursor_db = self.conn_db.cursor()
+        self.cursor_db.execute("""CREATE TABLE OrderList(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                                                   AutoTraderID TEXT,
+                                                   OrdNo TEXT,
+                                                   OrgOrdNo TEXT,
+                                                   ExecNo TEXT,
+                                                   Time TEXT,                  
+                                                   BuySell TEXT,                                       
+                                                   ShortCD TEXT,
+                                                   Price TEXT,
+                                                   Qty TEXT,
+                                                   Type1 TEXT,
+                                                   Type2 TEXT,
+                                                   ExecPrice TEXT,
+                                                   ExecQty TEXT,
+                                                   UnExecQty TEXT,
+                                                   ChkReq TEXT
+                                                   )""")
 
     def initThread(self):
         logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
