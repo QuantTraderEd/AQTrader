@@ -105,14 +105,14 @@ class MainForm(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
-        setting = QtCore.QSettings("ZeroOMS.ini",QtCore.QSettings.IniFormat)
-        setting.setValue("OMS_Geometry",self.saveGeometry())
-        setting.setValue("OrdListDlg_Geometry",self.myOrdListDlg.saveGeometry())
-        setting.setValue("PositionViewer_Geometry",self.myPositionViewer.saveGeometry())
-        setting.setValue("DigitViewer_Geometry",self.myDigitViewer.saveGeometry())
-        setting.setValue("OrdListDlg_Show",self.myOrdListDlg.isVisible())
-        setting.setValue("PositionViewer_Show",self.myPositionViewer.isVisible())
-        setting.setValue("DigitViewer_Show",self.myDigitViewer.isVisible())
+        setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
+        setting.setValue("OMS_Geometry", self.saveGeometry())
+        setting.setValue("OrdListDlg_Geometry", self.myOrdListDlg.saveGeometry())
+        setting.setValue("PositionViewer_Geometry", self.myPositionViewer.saveGeometry())
+        setting.setValue("DigitViewer_Geometry", self.myDigitViewer.saveGeometry())
+        setting.setValue("OrdListDlg_Show", self.myOrdListDlg.isVisible())
+        setting.setValue("PositionViewer_Show", self.myPositionViewer.isVisible())
+        setting.setValue("DigitViewer_Show", self.myDigitViewer.isVisible())
         self.myOrdListDlg.close()
         self.myPositionViewer.close()
         self.myDigitViewer.close()
@@ -153,16 +153,16 @@ class MainForm(QtGui.QMainWindow):
     def initDB(self):
         nowtime = time.localtime()
         strtime = time.strftime('%Y%m%d',nowtime)
-        if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
-            strdbname = "orderlist_%s.db" %(strtime)
-        elif nowtime.tm_hour >= 16:
-            strdbname = "orderlist_night_%s.db" %(strtime)
+        if nowtime.tm_hour >= 6 and nowtime.tm_hour < 17:
+            strdbname = "orderlist_%s.db" % strtime
+        elif nowtime.tm_hour >= 17:
+            strdbname = "orderlist_night_%s.db" % strtime
         elif nowtime.tm_hour < 6:
-            strtime = "%d%.2d%.2d" %(nowtime.tm_year,nowtime.tm_mon,nowtime.tm_mday-1)
-            strdbname = "orderlist_night_%s.db" %(strtime)
+            strtime = "%d%.2d%.2d" %(nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
+            strdbname = "orderlist_night_%s.db" % strtime
 
         strdbname = self.db_path + strdbname
-        print(strdbname)
+        logger.info("Order List DB: %s" % strdbname)
 
         if not os.path.isfile(strdbname):        
             self.conn_db = lite.connect(strdbname)
@@ -186,7 +186,7 @@ class MainForm(QtGui.QMainWindow):
                                            ChkReq TEXT
                                            )""")
             self.conn_db.close()
-            logger.info('Init New OrdList DB File')
+            logger.info('Init New OrdList DB File: %s' % strdbname)
 
         self.myOrdListDlg.init_dbname(strdbname)
 
@@ -379,6 +379,7 @@ class MainForm(QtGui.QMainWindow):
                 # print  self.servername, self.accountlist
                 logmsg = 'servername: %s   account_no: %s' % (self.servername, self.accountlist[self.accountindex])
                 logger.info(logmsg)
+                self.initDB()
                 if not self.initQuery():
                     self.ui.actionExecute.setChecked(False)
                     return
@@ -408,7 +409,7 @@ class MainForm(QtGui.QMainWindow):
     def NotifyOrderListViewer(self):
         # update ordlistDB
         logger.info('will update ordlistDB')
-        self.myOrdListDlg.OnUpdateList()
+        self.myOrdListDlg.on_update_list()
         pass
     
     def triggeredDigitViewer(self):
