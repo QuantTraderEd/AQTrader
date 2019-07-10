@@ -11,3 +11,4 @@ dist
 .cache/
 auto_config
 *.db
+*.db-journal
