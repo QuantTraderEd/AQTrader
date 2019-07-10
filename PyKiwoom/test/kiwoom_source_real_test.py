@@ -37,7 +37,8 @@ class MyWindow(QtGui.QMainWindow):
         button2.clicked.connect(self.button2_clicked)
         
     def button1_clicked(self):
-        ret = self.ocx.dynamicCall("CommConnect()")
+        # ret = self.ocx.dynamicCall("CommConnect()")
+        self.real_futures_trade_tick.ocx.dynamicCall("CommConnect()")
         
     def button2_clicked(self):
         if self.ocx.dynamicCall("GetConnectState()") == 0:
@@ -119,12 +120,12 @@ class MyWindow(QtGui.QMainWindow):
         futures_list = self.get_futures_list()
         print(futures_list[:3])
 
-        id_key = u"종목코드"
-        value = futures_list[0]
-        rqname = u"선옵현재가정보요청 "
-        trcode = "opt50001"
-        self.set_input_value(id_key, value)
-        self.comm_rq_data(rqname, trcode, 0, "0004")
+        # id_key = u"종목코드"
+        # value = futures_list[0]
+        # rqname = u"선옵현재가정보요청 "
+        # trcode = "opt50001"
+        # self.set_input_value(id_key, value)
+        # self.comm_rq_data(rqname, trcode, 0, "0001")
 
         # value = u'101PC000'
         # self.opt50001.set_input_value(id_key, value)
@@ -132,11 +133,15 @@ class MyWindow(QtGui.QMainWindow):
         # data = self.opt50001.data
         # print(data)
 
+        ret = self.real_futures_trade_tick.ocx.dynamicCall("GetConnectState()")
+        print("conn:", ret.toPyObject())
+
         screen_no = u"0002"
-        code_list = futures_list[0]
+        code_list = u"101P9000"
         fid_list = u"20;10;15;13"
         opt_type = u"0"
-        self.real_futures_trade_tick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        ret = self.real_futures_trade_tick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        print(ret.toPyObject())
 
 
 if __name__ == "__main__":

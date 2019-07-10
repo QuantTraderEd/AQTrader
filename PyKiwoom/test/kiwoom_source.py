@@ -209,11 +209,11 @@ class KiwoomTR(object):
 class KiwoomReal(object):
     def __init__(self):
         self.ocx = QAxContainer.QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        # self.ocx.OnEventConnect.connect(self.on_event_connect)
+        self.ocx.OnEventConnect.connect(self.on_event_connect)
         # self.ocx.OnReceiveTrData.connect(self.on_receive_tr_data)
         self.ocx.OnReceiveChejanData.connect(self.on_receive_chejan_data)
         self.ocx.OnReceiveRealData.connect(self.on_receive_real_data)
-        # self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
+        self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
         # self.ocx.OnReceiveConditionVer.connect(self.on_receive_condition_ver)
         # self.ocx.OnReceiveTrCondition.connect(self.on_receive_tr_condition)
         # self.ocx.OnReceiveRealCondition.connect(self.on_receive_real_condition)
@@ -239,6 +239,13 @@ class KiwoomReal(object):
 
     def on_signal(self, realtype, shortcd):
         raise NotImplementedError
+
+    def on_event_connect(self, errcode):
+        print("ErrCode: %d" % errcode)
+        pass
+
+    def on_receive_msg(self, scrno, rqname, trcode, msg):
+        print(scrno, rqname, trcode, msg)
 
     def set_real_reg(self, scrno, cdlist, fidlist, opttype):
         """

@@ -98,14 +98,16 @@ class MyWindow(QtGui.QMainWindow):
         pass
 
     def on_receive_real_data(self, shortcd, realtype, realdata):
-        print(unicode(shortcd), unicode(realtype))
+        # print(unicode(shortcd), unicode(realtype))
         if realtype == u"선물시세":
             fidlist = [9001, 20, 10, 15, 13]
             fid_name_dict = dict()
-            fid_name_dict[9001] = u"timestamp"
-            fid_name_dict[20] = u"last_price"
+            fid_name_dict[9001] = u""
+            fid_name_dict[20] = u"timestamp"
+            fid_name_dict[10] = u"last_price"
             fid_name_dict[15] = u"last_qty"
             fid_name_dict[13] = u"volume"
+
             for i in fidlist:
                 data = self.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
                 print(fid_name_dict[i], unicode(data.toPyObject()).strip())
