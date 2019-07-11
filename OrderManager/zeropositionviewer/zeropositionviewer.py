@@ -156,7 +156,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_vega = 0
             total_pnl = 0
 
-            print 'P/L Day: ', data[0]['tdtsunik'] + data[0]['tsunik']
+            print 'P/L Day: {:,} P/L Open: {:,}'.format(data[0]['tdtsunik'], data[0]['tsunik'])
 
             for i in xrange(1, len(data)):
                 shortcd = data[i]['expcode']

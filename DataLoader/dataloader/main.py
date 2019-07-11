@@ -107,10 +107,7 @@ class MainForm(QtGui.QWidget):
             if self.dataloader_thread.isRunning():
                 logger.info("auto stop")
                 self.onClick()
-        elif now_dt.hour == 17 and  now_dt.minute >= 45 and now_dt.minute <= 59:
-            if not self.dataloader_thread.isRunning():
-                logger.info("auto start")
-                self.onClick()
+                close_trigger = True
 
         if close_trigger:
             logger.info("close trigger")
