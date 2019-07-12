@@ -178,11 +178,11 @@ def cp_kill():
         psinfo = proc.as_dict(attrs=['name'])
         if psinfo['name'] in ['CpStart.exe',"DibServer.exe"]:            
             pid_dict[psinfo['name']] = proc.pid
-            logger.info("ps_name: %s pid: %d" %(psinfo['name'], proc.pid))
+            logger.info("ps_name: %s pid: %d" % (psinfo['name'], proc.pid))
             
     for key in pid_dict.iterkeys():
-        logger.info('TASKKILL PID %s %s'%(pid_dict[key], key))
-        os.system('TASKKILL /PID %d'%pid_dict[key])        
+        logger.info('TASKKILL PID %s %s' % (pid_dict[key], key))
+        os.system('TASKKILL /PID %d' % pid_dict[key])
         
     pass
 
@@ -204,8 +204,7 @@ def dataloader_starter():
 
 
 def day_session_starter():
-    logger.info('start ZeroTrader...')
-    nowtime = time.localtime()
+    logger.info('start day session...')
 
     os.chdir(pjt_path + '/CommUtil/commutil')
     os.startfile('OptionCode.py')
@@ -234,7 +233,7 @@ def day_session_starter():
     pass
 
 
-def test_trader_starter():
+def auto_test_trader_starter():
     time.sleep(5)
     os.chdir(pjt_path)
     os.chdir('../AutoFutArbTrader/')
@@ -369,7 +368,7 @@ def main():
                 time_sleep_interval = 30
             
             day_session_starter()
-            test_trader_starter()
+            auto_test_trader_starter()
 
             # logmsg = 'click DBLoader start button (%d, %d)' %(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)
             # logger.info(logmsg)
