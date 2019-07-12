@@ -77,7 +77,7 @@ holiday_lst = ['20181225',
                ]
 
 restart_option = False
-time_sleep_interval = 30
+time_sleep_interval = 10
 pjt_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -187,8 +187,18 @@ def cp_kill():
     pass
 
 
+def oms_starter():
+    os.chdir(pjt_path + '/OrderManager')
+    if not os.path.exists('./orderlist_db/'):
+        os.makedirs('./orderlist_db/')
+    os.startfile('zerooms_main.py')
+    logger.info('start OMS')
+
+
 def dataloader_starter():
     os.chdir(pjt_path + '/DataLoader/dataloader')
+    if not os.path.exists('./TAQ_Data/'):
+        os.makedirs('./TAQ_Data/')
     os.startfile('main.py')
     logger.info('start DataLoader')
 
@@ -202,7 +212,7 @@ def day_session_starter():
     logger.info('start optioncode.py')
 
     time.sleep(3)
-    os.chdir(pjt_path + '/DataFeeder/datafeeder')
+    os.chdir(pjt_path + '/DataFeeder')
     os.startfile('ZeroFeederMainForm.pyw')
     logger.info('start DataFeeder')
     
@@ -217,9 +227,7 @@ def day_session_starter():
     # logger.info('start ZeroOptionViewer back month')
     
     time.sleep(5)
-    os.chdir(commonfolder + '/OrdderManager')
-    os.startfile('zerooms_main.py')
-    logger.info('start OMS')
+    oms_starter()
     
     time.sleep(5)
     dataloader_starter()
@@ -265,6 +273,7 @@ def make_miniarb_research_report():
 
 
 def main():
+    global time_sleep_interval
     logger.info('init TotalRun')
     
     prcslst = get_process_list()
@@ -344,6 +353,7 @@ def main():
             if proc.name() in ["pythonw.exe"]:
                 logger.info('%s' % proc.name())
 
+        # if nowtime.tm_hour == 22 and 0 <= nowtime.tm_min <= 45 and test_open_trigger:
         # if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
         if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 15 and not day_session_trigger:
             nowdatetime = dt.datetime.now()

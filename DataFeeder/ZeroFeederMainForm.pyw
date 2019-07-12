@@ -66,6 +66,7 @@ class MainForm(QtGui.QMainWindow):
         self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
 
+        self.set_auto = False
         try:
             f = open('auto_config', 'r')
             auto_config = json.load(f)

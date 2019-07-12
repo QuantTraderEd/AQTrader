@@ -2,7 +2,6 @@
 
 import sys
 import time
-import os
 import re
 import json
 import pythoncom
@@ -13,6 +12,7 @@ import pyxing as px
 import sqlite3 as lite
 import pandas as pd
 
+from os import path
 from PyQt4 import QtCore, QtGui
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
@@ -68,7 +68,8 @@ class MainForm(QtGui.QMainWindow):
         self.order_port = 6001
         self.exec_report_port = 7001
         self.accountindex = 1
-        self.db_path = 'C:/Python/AQTrader/OrderManager/orderlist_db/'
+        # self.db_path = 'C:/Python/AQTrader/OrderManager/orderlist_db/'
+        self.db_path = './orderlist_db/'
 
         self.initUI()
 
@@ -95,14 +96,19 @@ class MainForm(QtGui.QMainWindow):
         self.initExpireDateUtil()
 
         logger.info('Start ZeroOMS')
-        
-        with open('auto_config', 'r') as f:
-            auto_config = json.load(f)
-            if auto_config['setauto']:
-                print auto_config
-                self.set_auto = True
-                self.slot_AutoStartXing(auto_config)
-            f.close()
+
+        self.set_auto = False
+        try:
+            with open('auto_config', 'r') as f:
+                auto_config = json.load(f)
+                if auto_config['setauto']:
+                    print auto_config
+                    self.set_auto = True
+                    self.slot_AutoStartXing(auto_config)
+                f.close()
+        except IOError:
+            logger.info('not found auto_config file')
+        pass
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -165,7 +171,7 @@ class MainForm(QtGui.QMainWindow):
         strdbname = self.db_path + strdbname
         logger.info("Order List DB: %s" % strdbname)
 
-        if not os.path.isfile(strdbname):        
+        if not path.isfile(strdbname):
             self.conn_db = lite.connect(strdbname)
             self.create_db_table()
             self.conn_db.close()
@@ -222,7 +228,7 @@ class MainForm(QtGui.QMainWindow):
         now_dt = dt.datetime.now()
         today = now_dt.strftime('%Y%m%d')
 
-        self.expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__) + "\\expire_date.txt")
+        self.expiredate_util.read_expire_date(path.dirname(ExpireDateUtil.__file__) + "\\expire_date.txt")
         expire_date_lst = self.expiredate_util.make_expire_date(today)
         logger.info('%s' % ','.join(expire_date_lst))
 
