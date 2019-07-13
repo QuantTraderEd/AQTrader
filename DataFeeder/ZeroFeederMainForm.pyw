@@ -7,6 +7,7 @@ import json
 import logging
 import pythoncom
 
+import sip
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
@@ -111,6 +112,7 @@ class MainForm(QtGui.QMainWindow):
         value = setting.value("port", type=int)
         if value:
             self.port = value
+        pass
 
     def initTIMER(self):
         self.ctimer = QtCore.QTimer()
