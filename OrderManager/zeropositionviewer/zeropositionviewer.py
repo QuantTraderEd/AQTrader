@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
-
-import os
 import time
 import sys
 import logging
 import pythoncom
 import pyxing as px
+from os import path
 from PyQt4 import QtGui, QtCore
-from ui_zeropositionviewer import Ui_Form
+from zeropositionviewer_ui import Ui_Form
 from weakref import proxy
 
-xinglogindlg_dir = os.path.dirname(os.path.realpath(__file__)) + '\\..'
+xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
 
 from xinglogindlg import LoginForm
@@ -44,6 +43,7 @@ class ZeroPositionViewer(QtGui.QWidget):
         # self.initXing()
         # self.initQuery()
         # self.initTIMER()
+        QtGui.qApp.setStyle('Cleanlooks')
         self.logger = logging.getLogger('ZeroOMS.PositionViewer')
         self.logger.info('Init PositionViewer')
         
@@ -60,7 +60,8 @@ class ZeroPositionViewer(QtGui.QWidget):
         self.ui.tableWidget.setColumnWidth(5, 70)   # Gamma
         self.ui.tableWidget.setColumnWidth(6, 70)   # Theta
         self.ui.tableWidget.setColumnWidth(7, 70)   # Vega
-        self.ui.tableWidget.setColumnWidth(8, 120)   # P/L Open
+        self.ui.tableWidget.setColumnWidth(8, 120)  # P/L Day
+        self.ui.tableWidget.setColumnWidth(9, 120)  # P/L Open
 
     def initXing(self, XASession=None):
         if not isinstance(XASession, px.XASession):
@@ -154,10 +155,16 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_gamma = 0
             total_theta = 0
             total_vega = 0
-            total_pnl = 0
+            total_pnl_day = 0
+            total_pnl_open = 0
 
-            # print 'P/L Day: {:,} P/L Open: {:,}'.format(data[0]['tdtsunik'], data[0]['tsunik'])
-            print 'P/L Day: %s P/L Open: %s' %(data[0]['tdtsunik'], data[0]['tsunik'])
+            pnl_day = 0
+            pnl_open = 0
+            if data[0]['tdtsunik'] != '-':
+                pnl_day = "{:,}".format(long(data[i]['tdtsunik']))
+            if data[0]['tsunik'] != '-':
+                pnl_open = "{:,}".format(long(data[i]['tsunik']))
+            # print 'P/L Day: %s P/L Open: %s' % (data[0]['tdtsunik'], data[0]['tsunik'])
 
             for i in xrange(1, len(data)):
                 shortcd = data[i]['expcode']
@@ -168,10 +175,14 @@ class ZeroPositionViewer(QtGui.QWidget):
                 else:
                     pos = ''
 
-                if data[i]['dtsunik1'] == '-':
-                    pnl = 0
-                else:
-                    pnl = "{:,}".format(long(data[i]['dtsunik1']))
+                pnl_day = 0
+                pnl_open = 0
+
+                if data[i]['dtsunik1'] != '-':
+                    pnl_open = "{:,}".format(long(data[i]['dtsunik1']))
+                if data[i]['dtsunik'] != '-':
+                    pnl_day = "{:,}".format(long(data[i]['dtsunik']))
+
                 avgprc = '%.5f' % float(data[i]['pamt'])
                 lastprc = '%.2f' % float(data[i]['price'])
 
@@ -191,8 +202,11 @@ class ZeroPositionViewer(QtGui.QWidget):
                 total_gamma += gamma
                 total_theta += theta
                 total_vega += vega
+
                 if data[i]['dtsunik1'] != '-':
-                    total_pnl += long(data[i]['dtsunik1'])
+                    total_pnl_open += long(data[i]['dtsunik1'])
+                if data[i]['dtsunik'] != '-':
+                    total_pnl_day += long(data[i]['dtsunik'])
 
                 delta = '%.4f' % delta
                 gamma = '%.4f' % gamma
@@ -207,13 +221,15 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.updateTableWidgetItem(i-1, 5, gamma)
                 self.updateTableWidgetItem(i-1, 6, theta)
                 self.updateTableWidgetItem(i-1, 7, vega)
-                self.updateTableWidgetItem(i-1, 8, pnl)
+                self.updateTableWidgetItem(i-1, 8, pnl_day)
+                self.updateTableWidgetItem(i-1, 9, pnl_open)
 
             total_delta = '%.4f' % total_delta
             total_gamma = '%.4f' % total_gamma
             total_theta = '%.4f' % total_theta
             total_vega = '%.4f' % total_vega
-            total_pnl = "{:,}".format(total_pnl)
+            total_pnl_day = "{:,}".format(total_pnl_day)
+            total_pnl_open = "{:,}".format(total_pnl_open)
 
             self.updateTableWidgetItem(len(data) - 1, 0, 'Total')
             self.updateTableWidgetItem(len(data) - 1, 1, '')
@@ -223,17 +239,21 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.updateTableWidgetItem(len(data) - 1, 5, total_gamma)
             self.updateTableWidgetItem(len(data) - 1, 6, total_theta)
             self.updateTableWidgetItem(len(data) - 1, 7, total_vega)
-            self.updateTableWidgetItem(len(data) - 1, 8, total_pnl)
+            self.updateTableWidgetItem(len(data) - 1, 8, total_pnl_day)
+            self.updateTableWidgetItem(len(data) - 1, 9, total_pnl_open)
 
         elif exchange_code == 'EUREX':
             self.ui.tableWidget.setRowCount(len(data)-2 + 1)
             self.ui.tableWidget.resizeRowsToContents()
 
+            print 'Tot P/L: %s Net P/L: %s' % (data[1]['TotPnlAmt'], data[1]['NetPnlAmt'])
+
             total_delta = 0
             total_gamma = 0
             total_theta = 0
             total_vega = 0
-            total_pnl = 0
+            total_pnl_day = 0
+            total_pnl_open = 0
 
             for i in xrange(2, len(data)):
                 shortcd = data[i]['FnoIsuNo']
@@ -241,7 +261,8 @@ class ZeroPositionViewer(QtGui.QWidget):
                     pos = u'-' + data[i]['UnsttQty']
                 elif data[i]['BnsTpCode'] == '2':
                     pos = data[i]['UnsttQty']
-                pnl = "{:,}".format(long(data[i]['EvalPnl']))
+                pnl_day = 0
+                pnl_open = "{:,}".format(long(data[i]['EvalPnl']))
                 avgprc = '%.5f' % float(data[i]['FnoAvrPrc'])
                 lastprc = '%.2f' % float(data[i]['NowPrc'])
 
@@ -261,7 +282,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                 total_gamma += gamma
                 total_theta += theta
                 total_vega += vega
-                total_pnl += long(data[i]['EvalPnl'])
+                total_pnl_open += long(data[i]['EvalPnl'])
 
                 delta = '%.4f' % delta
                 gamma = '%.4f' % gamma
@@ -276,13 +297,14 @@ class ZeroPositionViewer(QtGui.QWidget):
                 self.updateTableWidgetItem(i-2, 5, gamma)
                 self.updateTableWidgetItem(i-2, 6, theta)
                 self.updateTableWidgetItem(i-2, 7, vega)
-                self.updateTableWidgetItem(i-2, 8, pnl)
+                self.updateTableWidgetItem(i-2, 8, pnl_day)
+                self.updateTableWidgetItem(i-2, 9, pnl_open)
 
             total_delta = '%.4f' % total_delta
             total_gamma = '%.4f' % total_gamma
             total_theta = '%.4f' % total_theta
             total_vega = '%.4f' % total_vega
-            total_pnl = "{:,}".format(total_pnl)
+            total_pnl_open = "{:,}".format(total_pnl_open)
 
             # print total_pnl
 
@@ -294,7 +316,8 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.updateTableWidgetItem(len(data)-2, 5, total_gamma)
             self.updateTableWidgetItem(len(data)-2, 6, total_theta)
             self.updateTableWidgetItem(len(data)-2, 7, total_vega)
-            self.updateTableWidgetItem(len(data)-2, 8, total_pnl)
+            self.updateTableWidgetItem(len(data)-2, 8, total_pnl_day)
+            self.updateTableWidgetItem(len(data)-2, 9, total_pnl_open)
             
     def updateTableWidgetItem(self, row, col, text):
         widget_item = self.ui.tableWidget.item(row, col)
@@ -309,6 +332,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             widget_item.setText(str(text))
         pass
 
+
 if __name__ == '__main__':    
     app = QtGui.QApplication(sys.argv)
     myform = ZeroPositionViewer()
@@ -317,4 +341,4 @@ if __name__ == '__main__':
     myform.initTIMER()
     myform.show()
     app.exec_()
-    
+
