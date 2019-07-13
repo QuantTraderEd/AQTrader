@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import time
 import re
 import json
@@ -49,7 +48,7 @@ logger.addHandler(ch)
 
 
 class MainForm(QtGui.QMainWindow):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         # QtGui.QWidget.__init__(self,parent)
         super(MainForm, self).__init__(parent)
 
@@ -76,7 +75,9 @@ class MainForm(QtGui.QMainWindow):
         self.ctimer = QtCore.QTimer()
         self.ctimer.start(1000)
         self.ctimer.timeout.connect(self.ctimerUpdate)
-
+        self.autotimer = QtCore.QTimer()
+        self.autotimer.start(20000)
+        self.autotimer.timeout.connect(self.autotimer_update)
         self.xingTimer = QtCore.QTimer()
         self.xingTimer.timeout.connect(self.xingTimerUpdate)
         self.queryTimer = QtCore.QTimer()
@@ -280,15 +281,7 @@ class MainForm(QtGui.QMainWindow):
         pass
         
     def ctimerUpdate(self):
-        self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
-        now_dt = dt.datetime.now()
-        close_trigger = False
-        if now_dt.hour == 6 and now_dt.minute == 15:
-            close_trigger = True
-
-        if close_trigger:
-            logger.info("close trigger")
-            self.close()
+        self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
     def queryTimerUpdate(self):
         chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \
@@ -371,6 +364,17 @@ class MainForm(QtGui.QMainWindow):
                 self.status_xi.setText('connect')
         else:
             self.status_xi.setText('disconnect')
+
+    def autotimer_upate(self):
+        now_dt = dt.datetime.now()
+        close_trigger = False
+        if now_dt.hour == 6 and now_dt.minute == 10:
+            if self.exchange_code == 'KRX':
+                close_trigger = True
+
+        if close_trigger:
+            logger.info("close trigger")
+            self.close()
             
     def slot_ToggleExecute(self, boolToggle):
         if (not self.ordermachineThread.isRunning()) and boolToggle:

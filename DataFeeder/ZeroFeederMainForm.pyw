@@ -64,19 +64,23 @@ class MainForm(QtGui.QMainWindow):
         self.initTAQFeederLst()
         self.initZMQ()
 
+        self.exchange_code = 'KRX'
+
         self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
 
         self.set_auto = False
+        logger.info('%s', os.getcwd())
         try:
-            f = open('auto_config', 'r')
-            auto_config = json.load(f)
-            if auto_config['setauto']:
-                print auto_config
-                self.set_auto = True
-                self.slot_CheckCybosStarter(0, 2)
-                self.slot_AutoStartXing(auto_config)
-            f.close()
+            file_path = os.path.dirname(os.path.abspath(__file__))
+            with open(file_path + '/' + 'auto_config', 'r') as f:
+                auto_config = json.load(f)
+                if auto_config['setauto']:
+                    print auto_config
+                    self.set_auto = True
+                    self.slot_CheckCybosStarter(0, 2)
+                    self.slot_AutoStartXing(auto_config)
+                f.close()
         except IOError:
             logger.info('not found auto_config file')
         pass
@@ -122,7 +126,10 @@ class MainForm(QtGui.QMainWindow):
         self.cybostimer.timeout.connect(self.CybosTimerUpdate)
         self.xingtimer = QtCore.QTimer()
         self.xingtimer.timeout.connect(self.XingTimerUpdate)
-        self.lbltime = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        self.autotimer = QtCore.QTimer()
+        self.autotimer.start(20000)
+        self.autotimer.timeout.connect(self.autotimer_update)
+        self.lbltime = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         self.statusBar().addPermanentWidget(self.lbltime)
 
     def initAPI(self):
@@ -372,9 +379,14 @@ class MainForm(QtGui.QMainWindow):
         else:
             logger.info('tick count: %d' % ZMQTickSender.count)
 
+        nowlocaltime = time.localtime()
+        if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            self.exchange_code = 'KRX'
+        else:
+            self.exchange_code = 'EUREX'
+
         if self.XASession.IsConnected() and boolToggle:
             logger.info('regist feed data @ xing')
-            nowlocaltime = time.localtime()
             if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                 self.initYFC()
                 for shortcd in self._FeedCodeList.future_shortcd_list:
@@ -411,8 +423,7 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_I5_(shortcd)
 
         if self.cpcybos.IsConnect() and boolToggle:
-            logger.info('regist feed data @ xing')
-            nowlocaltime = time.localtime()
+            logger.info('regist feed data @ cybos')
             for shortcd in self._FeedCodeList.future_shortcd_list:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                     self.registerFeedItem_FutureJpBid(shortcd)
@@ -515,17 +526,7 @@ class MainForm(QtGui.QMainWindow):
 
     def CtimerUpdate(self):
         now_time = time.localtime()
-        self.lbltime.setText(time.strftime("%Y-%m-%d %H:%M:%S",now_time))
-        close_trigger = False
-        if now_time.tm_hour == 6 and  now_time.tm_min == 25:
-            self.cpcybos.PlusDisconnect()
-            close_trigger = True
-        elif now_time.tm_hour == 17 and  now_time.tm_min == 25:
-            self.slot_ToggleFeed(True)
-
-        if close_trigger:
-            logger.info("close trigger")
-            self.close()
+        self.lbltime.setText(time.strftime("%Y-%m-%d %H:%M:%S", now_time))
 
     def CybosTimerUpdate(self):
         if self.cpcybos.IsConnect():
@@ -552,6 +553,20 @@ class MainForm(QtGui.QMainWindow):
                 self.status_xi.setText('connect')
         else:
             self.status_xi.setText('disconnect')
+
+    def autotimer_update(self):
+        now_time = time.localtime()
+        close_trigger = False
+        if now_time.tm_hour == 6 and now_time.tm_min == 10:
+            self.cpcybos.PlusDisconnect()
+            close_trigger = True
+        elif now_time.tm_hour == 17 and now_time.tm_min == 30:
+            if self.exchange_code == 'KRX':
+                self.slot_ToggleFeed(True)
+
+        if close_trigger:
+            logger.info("close trigger")
+            self.close()
 
 
 class XingXASessionUpdate():
