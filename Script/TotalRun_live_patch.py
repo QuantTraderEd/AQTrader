@@ -348,24 +348,20 @@ def main():
         nowtime = time.localtime()
         nowdatetime = dt.datetime.now()
 
-        for proc in psutil.process_iter():
-            if proc.name() in ["pythonw.exe"]:
-                logger.info('%s' % proc.name())
-
-        # if nowtime.tm_hour == 22 and 0 <= nowtime.tm_min <= 45 and test_open_trigger:
+        # if nowtime.tm_hour == 8 and 0 <= nowtime.tm_min <= 45 and test_open_trigger:
         # if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
         if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 15 and not day_session_trigger:
             nowdatetime = dt.datetime.now()
-            if nowdatetime.weekday() >= 5:
-                logger.info('Stop@WeekEnd')
-                time_sleep_interval = 60 * 5
-                continue
-            elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
-                logger.info('Stop@Holiday')
-                time_sleep_interval = 60 * 5
-                continue
-            else:
-                time_sleep_interval = 30
+            # if nowdatetime.weekday() >= 5:
+            #     logger.info('Stop@WeekEnd')
+            #     time_sleep_interval = 60 * 5
+            #     continue
+            # elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
+            #     logger.info('Stop@Holiday')
+            #     time_sleep_interval = 60 * 5
+            #     continue
+            # else:
+            #     time_sleep_interval = 30
             
             day_session_starter()
             auto_test_trader_starter()
@@ -379,8 +375,7 @@ def main():
             # time.sleep(2.0)
             # logger.info('click the oms run (%d, %d)' %(oms_toggle_pos_x, oms_toggle_pos_y))
             # click(oms_toggle_pos_x, oms_toggle_pos_y)
-            
-            logger.info('End_day_session_trigger')
+
             day_session_trigger = True
             night_session_trigger = False
             
@@ -407,7 +402,7 @@ def main():
             # time.sleep(3)
             
             clear_ordno_dict()
-            
+            logger.info('End_day_session_trigger')
             day_session_trigger = False
             night_session_trigger = False
             
@@ -471,15 +466,15 @@ def main():
             
             for proc in psutil.process_iter():
                 if proc.name() in ["pythonw.exe"]:
-                    logger.info('%s' % proc.name())
+                    logger.info('proc name: %s' % proc.name())
                     os.system('TASKKILL /f /im pythonw.exe')
                 elif proc.name() in ['CpStart.exe', "DibServer.exe"]:
                     # print proc.pid, psinfo['name']
                     pid_dict[proc.name()] = proc.pid()
                     
             for key in pid_dict.iterkeys():
-                logger.info('%s %s'%(pid_dict[key], key))
-                os.system('TASKKILL /PID %d'%pid_dict[key])
+                logger.info('pid: %s proc name: %s' % (pid_dict[key], key))
+                os.system('TASKKILL /PID %d' % pid_dict[key])
 
             clear_ordno_dict()
     

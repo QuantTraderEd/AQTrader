@@ -46,7 +46,7 @@ logger.addHandler(fh)
 
 
 class ConsoleObserver:
-    def Update(self,subject):
+    def Update(self, subject):
         for i in xrange(len(subject.data)):
             print subject.data[i],
         print
@@ -82,11 +82,11 @@ class MainForm(QtGui.QMainWindow):
 
     def __del__(self):
         self.XASession.DisconnectServer()
-        ctypes.windll.user32.PostQuitMessage(0)
+        # ctypes.windll.user32.PostQuitMessage(0)
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
-        ctypes.windll.user32.PostQuitMessage(0)
+        # ctypes.windll.user32.PostQuitMessage(0)
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
         setting.setValue("port", self.port)
@@ -98,10 +98,10 @@ class MainForm(QtGui.QMainWindow):
         self.conn_xi = QtGui.QTableWidgetItem("conn xi")
         self.status_xi = QtGui.QTableWidgetItem("ready")
         self.status_cy = QtGui.QTableWidgetItem("ready")
-        self.ui.tableWidget.setItem(0,2,self.conn_cy)
-        self.ui.tableWidget.setItem(1,2,self.conn_xi)
-        self.ui.tableWidget.setItem(0,1,self.status_cy)
-        self.ui.tableWidget.setItem(1,1,self.status_xi)
+        self.ui.tableWidget.setItem(0, 2, self.conn_cy)
+        self.ui.tableWidget.setItem(1, 2, self.conn_xi)
+        self.ui.tableWidget.setItem(0, 1, self.status_cy)
+        self.ui.tableWidget.setItem(1, 1, self.status_xi)
         # self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
 
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
@@ -368,9 +368,10 @@ class MainForm(QtGui.QMainWindow):
             self.initTAQFeederLst()
             logger.info('set feed code & zmq')
         else:
-            logger.info('tick count: %d'%ZMQTickSender.count)
+            logger.info('tick count: %d' % ZMQTickSender.count)
 
         if self.XASession.IsConnected() and boolToggle:
+            logger.info('regist feed data @ xing')
             nowlocaltime = time.localtime()
             if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                 self.initYFC()
@@ -408,6 +409,7 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_I5_(shortcd)
 
         if self.cpcybos.IsConnect() and boolToggle:
+            logger.info('regist feed data @ xing')
             nowlocaltime = time.localtime()
             for shortcd in self._FeedCodeList.future_shortcd_list:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
@@ -430,8 +432,8 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_ExpectIndexS(shortcd)
 
         if boolToggle:
-            pythoncom.PumpMessages()
             logger.info('start pumping msg')
+            pythoncom.PumpMessages()
 
         pass
 
@@ -570,15 +572,15 @@ class CpCybosNULL():
 
 if __name__ == '__main__':
     import sys
-    import ctypes
-    myappid = 'zerofeeder'
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    # import ctypes
+    # myappid = 'zerofeeder'
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
     if myform.set_auto:
         logger.info('set_auto: True')
-        # myform.slot_ToggleFeed(True) ??
-        # myform.ui.actionFeed.setChecked(True) ??
+        myform.ui.actionFeed.setChecked(True)
+        myform.slot_ToggleFeed(True)
     sys.exit(app.exec_())
 
