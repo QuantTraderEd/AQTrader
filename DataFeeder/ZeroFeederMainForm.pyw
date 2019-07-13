@@ -558,10 +558,12 @@ class MainForm(QtGui.QMainWindow):
         now_time = time.localtime()
         close_trigger = False
         if now_time.tm_hour == 6 and now_time.tm_min == 10:
-            self.cpcybos.PlusDisconnect()
-            close_trigger = True
-        elif now_time.tm_hour == 17 and now_time.tm_min == 30:
-            if self.exchange_code == 'KRX':
+            if self.set_auto:
+                self.cpcybos.PlusDisconnect()
+                close_trigger = True
+        elif now_time.tm_hour == 17 and now_time.tm_min == 10:
+            if self.exchange_code == 'KRX' and self.set_auto:
+                logger.info('auto toggle feed from KRX to EUREX')
                 self.slot_ToggleFeed(True)
 
         if close_trigger:
@@ -599,5 +601,5 @@ if __name__ == '__main__':
         logger.info('set_auto: True')
         myform.ui.actionFeed.setChecked(True)
         myform.slot_ToggleFeed(True)
-    sys.exit(app.exec_())
+    app.exec_()
 

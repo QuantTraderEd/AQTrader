@@ -135,4 +135,4 @@ if __name__ == '__main__':
     myform.show()
     if myform.set_auto:
         myform.onClick()
-    sys.exit(app.exec_())
+    app.exec_()

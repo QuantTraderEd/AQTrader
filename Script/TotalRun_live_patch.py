@@ -348,9 +348,9 @@ def main():
         nowtime = time.localtime()
         nowdatetime = dt.datetime.now()
 
-        if nowtime.tm_hour == 13 and 0 <= nowtime.tm_min <= 58 and test_open_trigger:
+        # if nowtime.tm_hour == 13 and 0 <= nowtime.tm_min <= 58 and test_open_trigger:
         # if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
-        # if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 15 and not day_session_trigger:
+        if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 10 and not day_session_trigger:
             nowdatetime = dt.datetime.now()
             # if nowdatetime.weekday() >= 5:
             #     logger.info('Stop@WeekEnd')

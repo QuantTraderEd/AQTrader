@@ -146,7 +146,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
         self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
 
-        setting = QtCore.QSettings("ZeroOMS.ini",QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("OMS_Geometry").toByteArray())
         self.myOrdListDlg.restoreGeometry(setting.value("OrdListDlg_Geometry").toByteArray())
         self.myPositionViewer.restoreGeometry(setting.value("PositionViewer_Geometry").toByteArray())
@@ -365,15 +365,20 @@ class MainForm(QtGui.QMainWindow):
         else:
             self.status_xi.setText('disconnect')
 
-    def autotimer_upate(self):
+    def autotimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
         if now_dt.hour == 6 and now_dt.minute == 10:
-            if self.exchange_code == 'KRX':
+            if self.set_auto:
                 close_trigger = True
+        elif now_dt.hour == 17 and now_dt.minute == 10:
+            if self.exchange_code == 'KRX' and self.set_auto:
+                print("need to toggle...")
+                # self.slot_ToggleExecute(False)
+                # self.slot_ToggleExecute(True)
 
         if close_trigger:
-            logger.info("close trigger")
+            logger.info("auto close trigger")
             self.close()
             
     def slot_ToggleExecute(self, boolToggle):
@@ -464,5 +469,6 @@ if __name__ == "__main__":
     if myform.set_auto:
         myform.slot_ToggleExecute(True)
         myform.ui.actionExecute.setChecked(True)
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_())
+    app.exec_()
 
