@@ -161,9 +161,9 @@ class ZeroPositionViewer(QtGui.QWidget):
             pnl_day = 0
             pnl_open = 0
             if data[0]['tdtsunik'] != '-':
-                pnl_day = "{:,}".format(long(data[i]['tdtsunik']))
+                pnl_day = "{:,}".format(long(data[0]['tdtsunik']))
             if data[0]['tsunik'] != '-':
-                pnl_open = "{:,}".format(long(data[i]['tsunik']))
+                pnl_open = "{:,}".format(long(data[0]['tsunik']))
             # print 'P/L Day: %s P/L Open: %s' % (data[0]['tdtsunik'], data[0]['tsunik'])
 
             for i in xrange(1, len(data)):
