@@ -99,6 +99,7 @@ class MainForm(QtGui.QMainWindow):
     def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        QtGui.qApp.setStyle('Cleanlooks')
         self.conn_cy = QtGui.QTableWidgetItem("conn cy")
         self.conn_xi = QtGui.QTableWidgetItem("conn xi")
         self.status_xi = QtGui.QTableWidgetItem("ready")
