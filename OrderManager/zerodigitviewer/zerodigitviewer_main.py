@@ -113,7 +113,6 @@ class ZeroDigitViewer(QtGui.QWidget):
             self.ui.lcdNumber.display(self.NewQuery.pnl)
         
         
-        
 if __name__ == '__main__':    
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
@@ -122,4 +121,4 @@ if __name__ == '__main__':
     myform.initTIMER()
     myform.show()
     app.exec_()
-    
+
