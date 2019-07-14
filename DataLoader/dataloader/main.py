@@ -30,12 +30,6 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 # logger.addHandler(ch)
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
 
 class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -50,8 +44,7 @@ class MainForm(QtGui.QWidget):
         setting.setValue("geometry", self.saveGeometry())
 
     def initUI(self):
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/resource/database-arrow-down-icon.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon = QtGui.QIcon("./resource/database-arrow-down-icon.png")
         self.setWindowIcon(icon)
 
         self.startPushButton = QtGui.QPushButton(self)
