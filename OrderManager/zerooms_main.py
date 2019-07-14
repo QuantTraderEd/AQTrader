@@ -134,6 +134,8 @@ class MainForm(QtGui.QMainWindow):
         self.labelTimer = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
         self.ui.statusbar.addPermanentWidget(self.labelTimer)
 
+        QtGui.qApp.setStyle('Cleanlooks')
+
         self.conn_xi = QtGui.QTableWidgetItem("conn xi")
         self.status_xi = QtGui.QTableWidgetItem("ready")
         self.ui.tableWidget.setItem(0,2,self.conn_xi)
