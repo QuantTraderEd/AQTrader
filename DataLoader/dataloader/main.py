@@ -44,9 +44,6 @@ class MainForm(QtGui.QWidget):
         setting.setValue("geometry", self.saveGeometry())
 
     def initUI(self):
-        icon = QtGui.QIcon("./resource/database-arrow-down-icon.png")
-        self.setWindowIcon(icon)
-
         self.startPushButton = QtGui.QPushButton(self)
         self.plainTextEditor = QtGui.QPlainTextEdit(self)
         self.vboxLayout = QtGui.QVBoxLayout(self)
@@ -60,6 +57,9 @@ class MainForm(QtGui.QWidget):
 
         self.resize(340, 140)
         self.setWindowTitle('DataLoader')
+        icon = QtGui.QIcon("./resource/database-arrow-down-icon.png")
+        self.setWindowIcon(icon)
+        QtGui.qApp.setStyle('Cleanlooks')
 
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
