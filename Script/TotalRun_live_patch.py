@@ -340,6 +340,18 @@ def main():
     logger.info('day_session_trigger: ' + str(day_session_trigger))
     logger.info('night_session_trigger: ' + str(night_session_trigger))
     logger.info('night_session_close_trigger: ' + str(night_session_close_trigger))
+
+    nowdatetime = dt.datetime.now()
+    if nowdatetime.weekday() >= 5:
+        logger.info('Stop@WeekEnd')
+        time_sleep_interval = 60 * 5
+        continue
+    elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
+        logger.info('Stop@Holiday')
+        time_sleep_interval = 60 * 5
+        continue
+    else:
+        time_sleep_interval = 30
     
     logger.info('Run TotalRun Loop')
     
@@ -351,17 +363,16 @@ def main():
         # if nowtime.tm_hour == 13 and 0 <= nowtime.tm_min <= 58 and test_open_trigger:
         # if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
         if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 10 and not day_session_trigger:
-            nowdatetime = dt.datetime.now()
-            # if nowdatetime.weekday() >= 5:
-            #     logger.info('Stop@WeekEnd')
-            #     time_sleep_interval = 60 * 5
-            #     continue
-            # elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
-            #     logger.info('Stop@Holiday')
-            #     time_sleep_interval = 60 * 5
-            #     continue
-            # else:
-            #     time_sleep_interval = 30
+            if nowdatetime.weekday() >= 5:
+                logger.info('Stop@WeekEnd')
+                time_sleep_interval = 60 * 5
+                continue
+            elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
+                logger.info('Stop@Holiday')
+                time_sleep_interval = 60 * 5
+                continue
+            else:
+                time_sleep_interval = 30
             
             day_session_starter()
             auto_test_trader_starter()
