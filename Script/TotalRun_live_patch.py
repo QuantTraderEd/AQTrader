@@ -345,15 +345,14 @@ def main():
     if nowdatetime.weekday() >= 5:
         logger.info('Stop@WeekEnd')
         time_sleep_interval = 60 * 5
-        continue
     elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
         logger.info('Stop@Holiday')
         time_sleep_interval = 60 * 5
-        continue
     else:
         time_sleep_interval = 30
     
     logger.info('Run TotalRun Loop')
+    logger.info('time_sleep_interval-> %d' % time_sleep_interval)
     
     while True:
         time.sleep(time_sleep_interval)
@@ -373,6 +372,8 @@ def main():
                 continue
             else:
                 time_sleep_interval = 30
+
+            logger.info('time_sleep_interval-> %d' % time_sleep_interval)
             
             day_session_starter()
             auto_test_trader_starter()
