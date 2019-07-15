@@ -558,11 +558,11 @@ class MainForm(QtGui.QMainWindow):
     def autotimer_update(self):
         now_time = time.localtime()
         close_trigger = False
-        if now_time.tm_hour == 6 and now_time.tm_min == 10:
+        if now_time.tm_hour == 6 and now_time.tm_min == 5:
             if self.set_auto:
                 self.cpcybos.PlusDisconnect()
                 close_trigger = True
-        elif now_time.tm_hour == 17 and now_time.tm_min == 10:
+        elif now_time.tm_hour == 17 and now_time.tm_min == 5:
             if self.exchange_code == 'KRX' and self.set_auto:
                 logger.info('auto toggle feed from KRX to EUREX')
                 self.slot_ToggleFeed(True)

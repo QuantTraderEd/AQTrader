@@ -446,7 +446,7 @@ def main():
             # report_trigger = True
             
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
-        elif nowtime.tm_hour == 6 and nowtime.tm_min >= 30 and not night_session_close_trigger:
+        elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
             nowdatetime = dt.datetime.now()        
             # logger.info('click the feeder run')
             # click(feeder_toggle_pos_x, feeder_toggle_pos_y)
