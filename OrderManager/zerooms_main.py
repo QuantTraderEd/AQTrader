@@ -4,6 +4,7 @@ import time
 import re
 import json
 import pythoncom
+import ctypes
 
 import logging
 import datetime as dt
@@ -113,6 +114,7 @@ class MainForm(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
+        ctypes.windll.user32.PostQuitMessage(0)
         setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
         setting.setValue("OMS_Geometry", self.saveGeometry())
         setting.setValue("OrdListDlg_Geometry", self.myOrdListDlg.saveGeometry())
@@ -370,17 +372,31 @@ class MainForm(QtGui.QMainWindow):
     def autotimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
-        if now_dt.hour == 6 and now_dt.minute == 10:
-            if self.set_auto:
-                close_trigger = True
-        elif now_dt.hour == 17 and now_dt.minute == 10:
-            if self.exchange_code == 'KRX' and self.set_auto:
-                print("need to toggle...")
-                # self.slot_ToggleExecute(False)
-                # self.slot_ToggleExecute(True)
+        close_hour = 6
+        close_minute = 5
+        re_toggle_hour = 17
+        re_toggle_minute = 5
+        if now_dt.hour == close_hour and now_dt.minute == close_minute and self.set_auto:
+            close_trigger = True
+        elif now_dt.hour == re_toggle_hour and now_dt.minute == re_toggle_minute and self.set_auto:
+            if self.exchange_code == 'KRX':
+                if self.ordermachineThread.isRunning():
+                    logger.info("auto toggle false")
+                    self.ui.actionExecute.setChecked(False)
+                    self.ordermachineThread.terminate()
+                    self.ordermachineThread.wait()
+                    logger.info('OrderMachineThread stop')
+        elif now_dt.hour == 21 and now_dt.minute == re_toggle_minute + 1:
+            if not self.ordermachineThread.isRuning():
+                logger.info("auto toggle true")
+                self.ui.actionExecute.setChecked(True)
+                self.slot_ToggleExecute(True)
 
         if close_trigger:
             logger.info("auto close trigger")
+            self.ui.actionExecute.setChecked(False)
+            self.ordermachineThread.terminate()
+            self.ordermachineThread.wait()
             self.close()
             
     def slot_ToggleExecute(self, boolToggle):
