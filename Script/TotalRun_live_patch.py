@@ -345,15 +345,14 @@ def main():
     if nowdatetime.weekday() >= 5:
         logger.info('Stop@WeekEnd')
         time_sleep_interval = 60 * 5
-        continue
     elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
         logger.info('Stop@Holiday')
         time_sleep_interval = 60 * 5
-        continue
     else:
         time_sleep_interval = 30
     
     logger.info('Run TotalRun Loop')
+    logger.info('time_sleep_interval-> %d' % time_sleep_interval)
     
     while True:
         time.sleep(time_sleep_interval)
@@ -373,6 +372,8 @@ def main():
                 continue
             else:
                 time_sleep_interval = 30
+
+            logger.info('time_sleep_interval-> %d' % time_sleep_interval)
             
             day_session_starter()
             auto_test_trader_starter()
@@ -445,7 +446,7 @@ def main():
             # report_trigger = True
             
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
-        elif nowtime.tm_hour == 6 and nowtime.tm_min >= 30 and not night_session_close_trigger:
+        elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
             nowdatetime = dt.datetime.now()        
             # logger.info('click the feeder run')
             # click(feeder_toggle_pos_x, feeder_toggle_pos_y)
