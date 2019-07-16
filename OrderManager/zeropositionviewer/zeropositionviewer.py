@@ -4,11 +4,15 @@ import time
 import sys
 import logging
 import pythoncom
+import datetime as dt
 import pyxing as px
 from os import path
-from PyQt4 import QtGui, QtCore
-from zeropositionviewer_ui import Ui_Form
 from weakref import proxy
+from PyQt4 import QtGui, QtCore
+
+from zeropositionviewer_ui import Ui_Form
+
+import commutil.ExpireDateUtil as ExpireDateUtil
 
 xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
@@ -30,9 +34,9 @@ class observer_t0441:
 
 class observer_CEXAQ31200:
     def Update(self, subject):
+        subject.flag = False
         item = subject.data[1]
         subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
-        subject.flag = False
         pass
 
 
@@ -43,9 +47,19 @@ class ZeroPositionViewer(QtGui.QWidget):
         # self.initXing()
         # self.initQuery()
         # self.initTIMER()
+        self.initExpireDateUtil()
+        self.XASession = None
+        self.ctimer = QtCore.QTimer()
         QtGui.qApp.setStyle('Cleanlooks')
         self.logger = logging.getLogger('ZeroOMS.PositionViewer')
         self.logger.info('Init PositionViewer')
+
+    def closeEvent(self, event):
+        self.ctimer.stop()
+        if isinstance(self.XASession, px.XASession):
+            self.XASession.DisconnectServer()
+        event.accept()
+        super(ZeroPositionViewer, self).closeEvent(event)
         
     def initUI(self):
         self.ui = Ui_Form()
@@ -79,21 +93,30 @@ class ZeroPositionViewer(QtGui.QWidget):
         else:
             print 'Not IsConnected or No Account'
 
+    def initExpireDateUtil(self):
+        self.expiredate_util = ExpireDateUtil.ExpireDateUtil()
+        now_dt = dt.datetime.now()
+        today = now_dt.strftime('%Y%m%d')
+
+        self.expiredate_util.read_expire_date(path.dirname(ExpireDateUtil.__file__) + "\\expire_date.txt")
+        expire_date_lst = self.expiredate_util.make_expire_date(today)
+        # logger.info('%s' % ','.join(expire_date_lst))
+
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             nowtime = time.localtime()
-            if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+            if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
                 self.exchange = 'KRX'
                 self.NewQuery = px.XAQuery_t0441()
-                obs = observer_t0441()
-                self.NewQuery.observer = obs
+                obs_t0441 = observer_t0441()
+                self.NewQuery.observer = obs_t0441
                 self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
                 self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
             else:
                 self.exchange = 'EUREX'
                 self.NewQuery = px.XAQuery_CEXAQ31200()
-                obs = observer_CEXAQ31200()
-                self.NewQuery.observer = obs
+                obs_cexaq31200 = observer_CEXAQ31200()
+                self.NewQuery.observer = obs_cexaq31200
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
                 self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
@@ -115,23 +138,21 @@ class ZeroPositionViewer(QtGui.QWidget):
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.NewQuery.flag = True
-            ret = self.NewQuery.Request(False)        
+            ret = self.NewQuery.Request(False)
             while self.NewQuery.flag:
+                print 'test'
                 pythoncom.PumpWaitingMessages()
+                self.NewQuery.flag = False
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data('201706', 'G')
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201705')
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+                self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
                 self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data('201706', 'G')
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'yyyymm', 0, '201706')
-                self.option_greeks_query.SetFieldData('T2301InBlock', 'gubun', 0, 'G')
+                self.option_greeks_query.set_data(self.expiredate_util.back_expire_date[:6], 'G')
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()

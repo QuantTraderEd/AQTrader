@@ -18,7 +18,7 @@ from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
-from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_t0441, observer_CEXAQ31200, observer_cmd
+from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_CEXAQ31200
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
@@ -113,8 +113,8 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def closeEvent(self, event):
+        self.queryTimer.stop()
         self.XASession.DisconnectServer()
-        ctypes.windll.user32.PostQuitMessage(0)
         setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
         setting.setValue("OMS_Geometry", self.saveGeometry())
         setting.setValue("OrdListDlg_Geometry", self.myOrdListDlg.saveGeometry())
@@ -129,6 +129,7 @@ class MainForm(QtGui.QMainWindow):
         logger.info("Close ZeroOMS")
         event.accept()
         super(MainForm, self).closeEvent(event)
+        ctypes.windll.user32.PostQuitMessage(0)
 
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -240,7 +241,7 @@ class MainForm(QtGui.QMainWindow):
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             nowtime = time.localtime()
-            if nowtime.tm_hour >= 6 and nowtime.tm_hour < 16:
+            if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
                 self.exchange_code = 'KRX'
                 logger.info(self.exchange_code)
                 self.NewQuery = px.XAQuery_t0441()
@@ -290,32 +291,32 @@ class MainForm(QtGui.QMainWindow):
     def queryTimerUpdate(self):
         chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \
                              isinstance(self.NewQuery, px.XAQuery_t0441)
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and chk_query_instance:
-            self.NewQuery.flag = True
-            ret = self.NewQuery.Request(False)        
-            while self.NewQuery.flag:
-                pythoncom.PumpWaitingMessages()
+        # if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and chk_query_instance:
+            # self.NewQuery.flag = True
+            # ret = self.NewQuery.Request(False)
+            # while self.NewQuery.flag:
+            #     pythoncom.PumpWaitingMessages()
 
-            if self.servername in ['X', 'SERVER']:
-                self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
-                ret = self.option_greeks_query.Request(False)
-                while self.option_greeks_query.flag:
-                    pythoncom.PumpWaitingMessages()
-
-                self.option_greeks_query.flag = True
-                self.option_greeks_query.set_data(self.expiredate_util.back_expire_date[:6], 'G')
-                ret = self.option_greeks_query.Request(False)
-                while self.option_greeks_query.flag:
-                    pythoncom.PumpWaitingMessages()
+            # if self.servername in ['X', 'SERVER']:
+            #     self.option_greeks_query.flag = True
+            #     self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
+            #     ret = self.option_greeks_query.Request(False)
+            #     while self.option_greeks_query.flag:
+            #         pythoncom.PumpWaitingMessages()
+            #
+            #     self.option_greeks_query.flag = True
+            #     self.option_greeks_query.set_data(self.expiredate_util.back_expire_date[:6], 'G')
+            #     ret = self.option_greeks_query.Request(False)
+            #     while self.option_greeks_query.flag:
+            #         pythoncom.PumpWaitingMessages()
 
             # logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
             # print self.servername
             # print self.option_greeks_query.block_data
-            self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
-            self.myPositionViewer.onReceiveData(self.exchange_code,
-                                                self.NewQuery.data,
-                                                self.option_greeks_query.block_data)
+            # self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
+            # self.myPositionViewer.onReceiveData(self.exchange_code,
+            #                                     self.NewQuery.data,
+            #                                     self.option_greeks_query.block_data)
         pass
 
     def slot_StartXingDlg(self, row, column):
@@ -324,8 +325,7 @@ class MainForm(QtGui.QMainWindow):
             myform = LoginForm(self, proxy(self.XASession))
             myform.show()
             # myform.exec_()
-            self.xingTimer.start(1000)
-
+            self.start_xing_query()
         pass
             
     def slot_AutoStartXing(self, auto_config):
@@ -350,9 +350,17 @@ class MainForm(QtGui.QMainWindow):
         self.XASession.flag = True
         while self.XASession.flag:
             pythoncom.PumpWaitingMessages()
-            
-        self.xingTimer.start(1000)
+        self.start_xing_query()
         pass
+
+    def start_xing_query(self):
+        self.xingTimer.start(1000)
+        self.myDigitViewer.initXing(self.XASession)
+        self.myDigitViewer.initQuery()
+        self.myDigitViewer.initTIMER()
+        self.myPositionViewer.initXing(self.XASession)
+        self.myPositionViewer.initQuery()
+        self.myPositionViewer.initTIMER()
 
     def xingTimerUpdate(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -446,7 +454,6 @@ class MainForm(QtGui.QMainWindow):
     def slot_TriggerOrderList(self):
         if not self.myOrdListDlg.isVisible():
             self.myOrdListDlg.show()
-            self.myOrdListDlg.exec_()        
         pass
 
     def NotifyOrderListViewer(self):
@@ -476,6 +483,26 @@ class XingXASessionUpdate():
             msg = msg + ' ' + item                        
         if msg[:5] == ' 0000':
             self.status_xi.setText('connect:' + msg[:5])    
+        pass
+
+
+class observer_cmd:
+    def Update(self,subject):
+        subject.flag = False
+        pass
+
+
+class observer_t0441:
+    def Update(self,subject):
+        if len(subject.data) > 0:
+            item = subject.data[0]
+            if item['tsunik'] != '-':
+                subject.pnl = int(int(item['tsunik'] or 0) * 0.001)
+            else:
+                subject.pnl = 0
+        else:
+            subject.pnl = 0
+        subject.flag = False
         pass
 
         

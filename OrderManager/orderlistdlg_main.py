@@ -11,7 +11,7 @@ from PyQt4 import QtGui, QtCore
 from ui_orderlistdlg import Ui_Dialog
 
 
-class OrderListDialog(QtGui.QDialog):
+class OrderListDialog(QtGui.QWidget):
     def __init__(self, order_port=6001):
         super(OrderListDialog, self).__init__()
         self.ui = Ui_Dialog()

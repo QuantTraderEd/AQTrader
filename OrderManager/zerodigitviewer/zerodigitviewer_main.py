@@ -5,17 +5,17 @@ Created on Wed Jul 02 22:20:29 2014
 @author: assa
 """
 
-import os
 import time
 import sys
 import pythoncom
 import pyxing as px
+from os import path
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSlot
 from zerodigitviewer_ui import Ui_Form
 from weakref import proxy
 
-xinglogindlg_dir = os.path.dirname(os.path.realpath(__file__)) + '\\..'
+xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
 
 from xinglogindlg import LoginForm
@@ -56,7 +56,16 @@ class ZeroDigitViewer(QtGui.QWidget):
         # self.initXing()
         # self.initQuery()
         # self.initTIMER()
+        self.XASession = None
+        self.ctimer = QtCore.QTimer()
         self.display_name = 'pnl_day'
+
+    def closeEvent(self, event):
+        self.ctimer.stop()
+        if isinstance(self.XASession, px.XASession):
+            self.XASession.DisconnectServer()
+        event.accept()
+        super(ZeroDigitViewer, self).closeEvent(event)
         
     def initUI(self):
         self.ui = Ui_Form()
@@ -72,7 +81,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         pnl_open_action.triggered.connect(self.select_pnl_open)
         
     def initXing(self, XASession=None):
-        if XASession != None:
+        if isinstance(XASession, px.XASession):
             self.XASession = XASession
             if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
                 self.accountlist = self.XASession.GetAccountList()
@@ -80,7 +89,7 @@ class ZeroDigitViewer(QtGui.QWidget):
 
         self.XASession = px.XASession()
 
-        myform = LoginForm(self,proxy(self.XASession))
+        myform = LoginForm(self, proxy(self.XASession))
         myform.show()
         myform.exec_()
 
@@ -113,7 +122,7 @@ class ZeroDigitViewer(QtGui.QWidget):
 
     def initTIMER(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
-            self.ctimer =  QtCore.QTimer()
+            self.ctimer = QtCore.QTimer()
             self.ctimer.timeout.connect(self.onTimer)
             self.ctimer.start(5000)
         
@@ -123,6 +132,7 @@ class ZeroDigitViewer(QtGui.QWidget):
             ret = self.NewQuery.Request(False)        
             while self.NewQuery.flag:
                 pythoncom.PumpWaitingMessages()
+
             if self.display_name == 'pnl_day':
                 self.ui.lcdNumber.display(self.NewQuery.pnl_day)
             elif self.display_name == 'pnl_open':
