@@ -386,7 +386,7 @@ class MainForm(QtGui.QMainWindow):
                     self.ordermachineThread.terminate()
                     self.ordermachineThread.wait()
                     logger.info('OrderMachineThread stop')
-        elif now_dt.hour == 21 and now_dt.minute == re_toggle_minute + 1:
+        elif now_dt.hour == re_toggle_hour and now_dt.minute == re_toggle_minute + 1:
             if not self.ordermachineThread.isRuning():
                 logger.info("auto toggle true")
                 self.ui.actionExecute.setChecked(True)
