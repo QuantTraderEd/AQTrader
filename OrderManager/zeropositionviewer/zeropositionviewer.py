@@ -138,12 +138,12 @@ class ZeroPositionViewer(QtGui.QWidget):
         
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-            self.NewQuery.flag = True
-            ret = self.NewQuery.Request(False)
-            while self.NewQuery.flag:
-                print 'test'
+            self.new_query.flag = True
+            ret = self.new_query.Request(False)
+            while self.new_query.flag:
+                # print 'test'
                 pythoncom.PumpWaitingMessages()
-                # self.new_query.flag = False
+                self.new_query.flag = False
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
