@@ -20,29 +20,32 @@ sys.path.append(xinglogindlg_dir)
 from xinglogindlg import LoginForm
 
 
-class observer_cmd:
-    def Update(self, subject):
+class Observer_cmd(object):
+    @classmethod
+    def Update(cls, subject):
         subject.flag = False
         pass
 
 
-class observer_t0441:
-    def Update(self, subject):
+class Observer_t0441(object):
+    @classmethod
+    def Update(cls, subject):
         subject.flag = False
         pass
 
 
-class observer_CEXAQ31200:
-    def Update(self, subject):
-        subject.flag = False
+class Observer_CEXAQ31200(object):
+    @classmethod
+    def Update(cls, subject):
         item = subject.data[1]
         subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
+        subject.flag = False
         pass
 
 
 class ZeroPositionViewer(QtGui.QWidget):
     def __init__(self, parent=None):
-        super(ZeroPositionViewer, self).__init__()
+        super(ZeroPositionViewer, self).__init__(parent)
         self.initUI()
         # self.initXing()
         # self.initQuery()
@@ -56,8 +59,6 @@ class ZeroPositionViewer(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.ctimer.stop()
-        if isinstance(self.XASession, px.XASession):
-            self.XASession.DisconnectServer()
         event.accept()
         super(ZeroPositionViewer, self).closeEvent(event)
         
@@ -107,24 +108,24 @@ class ZeroPositionViewer(QtGui.QWidget):
             nowtime = time.localtime()
             if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
                 self.exchange = 'KRX'
-                self.NewQuery = px.XAQuery_t0441()
-                obs_t0441 = observer_t0441()
-                self.NewQuery.observer = obs_t0441
-                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
-                self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
+                self.new_query = px.XAQuery_t0441()
+                obs_t0441 = Observer_t0441()
+                self.new_query.observer = obs_t0441
+                self.new_query.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
+                self.new_query.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
             else:
                 self.exchange = 'EUREX'
-                self.NewQuery = px.XAQuery_CEXAQ31200()
-                obs_cexaq31200 = observer_CEXAQ31200()
-                self.NewQuery.observer = obs_cexaq31200
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+                self.new_query = px.XAQuery_CEXAQ31200()
+                obs_cexaq31200 = Observer_CEXAQ31200()
+                self.new_query.observer = obs_cexaq31200
+                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
+                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
+                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
 
             self.option_greeks_query = px.XAQuery_t2301()
-            obs = observer_cmd()
+            obs = Observer_cmd()
             self.option_greeks_query.observer = obs
         pass
         
@@ -142,7 +143,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             while self.NewQuery.flag:
                 print 'test'
                 pythoncom.PumpWaitingMessages()
-                self.NewQuery.flag = False
+                # self.new_query.flag = False
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
@@ -157,7 +158,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
-            self.onReceiveData(self.exchange, self.NewQuery.data, self.option_greeks_query.block_data)
+            self.onReceiveData(self.exchange, self.new_query.data, self.option_greeks_query.block_data)
         pass
 
     def onReceiveData(self, exchange_code, data, block_data):

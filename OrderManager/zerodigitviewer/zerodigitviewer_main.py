@@ -21,8 +21,9 @@ sys.path.append(xinglogindlg_dir)
 from xinglogindlg import LoginForm
 
 
-class observer_CEXAQ31200:
-    def Update(self,subject):
+class observer_CEXAQ31200(object):
+    @classmethod
+    def Update(cls, subject):
         subject.pnl_open = 0
         subject.pnl_day = 0
         if len(subject.data) > 1:
@@ -34,8 +35,9 @@ class observer_CEXAQ31200:
         pass
 
 
-class observer_CFOEQ11100:
-    def Update(self, subject):
+class observer_CFOEQ11100(object):
+    @classmethod
+    def Update(cls, subject):
         subject.pnl_day = 0
         subject.pnl_open = 0
         if len(subject.data) == 2:
@@ -51,7 +53,7 @@ class observer_CFOEQ11100:
 
 class ZeroDigitViewer(QtGui.QWidget):
     def __init__(self, parent=None):
-        super(ZeroDigitViewer, self).__init__()
+        super(ZeroDigitViewer, self).__init__(parent)
         self.initUI()
         # self.initXing()
         # self.initQuery()
@@ -62,8 +64,6 @@ class ZeroDigitViewer(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.ctimer.stop()
-        if isinstance(self.XASession, px.XASession):
-            self.XASession.DisconnectServer()
         event.accept()
         super(ZeroDigitViewer, self).closeEvent(event)
         
