@@ -39,11 +39,14 @@ class Observer_CEXAQ31200(object):
     def Update(cls, subject):
         item = subject.data[1]
         subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
+        # print subject.pnl
         subject.flag = False
         pass
 
 
 class ZeroPositionViewer(QtGui.QWidget):
+    update_CEXAQ31200 = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         super(ZeroPositionViewer, self).__init__(parent)
         self.initUI()
@@ -143,7 +146,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             while self.new_query.flag:
                 # print 'test'
                 pythoncom.PumpWaitingMessages()
-                self.new_query.flag = False
+                # self.new_query.flag = False
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
@@ -158,6 +161,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
 
+            self.update_CEXAQ31200.emit()
             self.onReceiveData(self.exchange, self.new_query.data, self.option_greeks_query.block_data)
         pass
 
@@ -208,12 +212,19 @@ class ZeroPositionViewer(QtGui.QWidget):
                 avgprc = '%.5f' % float(data[i]['pamt'])
                 lastprc = '%.2f' % float(data[i]['price'])
 
-                # FIXME: switch futures greeks
                 if shortcd[0] in ['2', '3']:
                     delta = float(block_data.get(shortcd, greek_default_dict)['delt']) * int(pos)
                     gamma = float(block_data.get(shortcd, greek_default_dict)['gama']) * int(pos)
                     theta = float(block_data.get(shortcd, greek_default_dict)['ceta']) * int(pos)
                     vega = float(block_data.get(shortcd, greek_default_dict)['vega']) * int(pos)
+                elif shortcd[:3] in ['101', '105']:
+                    if shortcd[:3] == '101':
+                        delta = 1.0 * int(pos)
+                    elif shortcd[:3] == '105':
+                        delta = 1.0 * int(pos) * 0.2
+                    gamma = 0
+                    theta = 0
+                    vega = 0
                 else:
                     delta = 0
                     gamma = 0
@@ -268,7 +279,7 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.ui.tableWidget.setRowCount(len(data)-2 + 1)
             self.ui.tableWidget.resizeRowsToContents()
 
-            print 'Tot P/L: %s Net P/L: %s' % (data[1]['TotPnlAmt'], data[1]['NetPnlAmt'])
+            # print 'Tot P/L: %s Net P/L: %s' % (data[1]['TotPnlAmt'], data[1]['NetPnlAmt'])
 
             total_delta = 0
             total_gamma = 0
@@ -294,6 +305,14 @@ class ZeroPositionViewer(QtGui.QWidget):
                     gamma = float(block_data.get(shortcd, greek_default_dict)['gama']) * int(pos)
                     theta = float(block_data.get(shortcd, greek_default_dict)['ceta']) * int(pos)
                     vega = float(block_data.get(shortcd, greek_default_dict)['vega']) * int(pos)
+                elif shortcd[:3] in ['101', '105']:
+                    if shortcd[:3] == '101':
+                        delta = 1.0 * int(pos)
+                    elif shortcd[:3] == '105':
+                        delta = 1.0 * int(pos) * 0.2
+                    gamma = 0
+                    theta = 0
+                    vega = 0
                 else:
                     delta = 0
                     gamma = 0

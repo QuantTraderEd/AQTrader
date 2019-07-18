@@ -18,7 +18,7 @@ from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
-from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_CEXAQ31200
+from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_CEXAQ31100
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
 
 from weakref import proxy
@@ -81,8 +81,6 @@ class MainForm(QtGui.QMainWindow):
         self.autotimer.timeout.connect(self.autotimer_update)
         self.xingTimer = QtCore.QTimer()
         self.xingTimer.timeout.connect(self.xingTimerUpdate)
-        self.queryTimer = QtCore.QTimer()
-        self.queryTimer.timeout.connect(self.queryTimerUpdate)
         
         self.FuturesOptionTAQFeederLst = []
         self.EquityTAQFeederLst = []
@@ -113,7 +111,6 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def closeEvent(self, event):
-        self.queryTimer.stop()
         self.XASession.DisconnectServer()
         setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
         setting.setValue("OMS_Geometry", self.saveGeometry())
@@ -238,86 +235,8 @@ class MainForm(QtGui.QMainWindow):
         expire_date_lst = self.expiredate_util.make_expire_date(today)
         logger.info('%s' % ','.join(expire_date_lst))
 
-    def initQuery(self):
-        if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-            nowtime = time.localtime()
-            if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
-                self.exchange_code = 'KRX'
-                logger.info(self.exchange_code)
-                self.NewQuery = px.XAQuery_t0441()
-                obs = observer_t0441()
-                self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('t0441InBlock', 'accno', 0 , self.accountlist[self.accountindex])
-                if self.servername[:3] == 'MIS':
-                    self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
-                elif self.servername in ['X', 'SERVER']:
-                    # it need the real account pw
-                    self.NewQuery.SetFieldData('t0441InBlock', 'passwd', 0, '0302')
-                else:
-                    logger.warn('unknown servername: %s' % self.servername)
-                    return False
-            else:
-                self.exchange_code = 'EUREX'
-                logger.info(self.exchange_code)
-                self.NewQuery = px.XAQuery_CEXAQ31200()
-                obs = observer_CEXAQ31200()
-                self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[self.accountindex])
-                if self.servername[:3] == 'MIS':
-                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
-                elif self.servername in ['X', 'SERVER']:
-                    # it need the real account pw
-                    self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0302')
-                else:
-                    logger.info('unknown servername: %s' % self.servername)
-                    return False
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
-
-            self.option_greeks_query = px.XAQuery_t2301()
-            obs = observer_cmd()
-            self.option_greeks_query.observer = obs
-            return True
-
-        else:
-            logger.warn('disconnect xaseesion or account list cnt zero')
-            return False
-        pass
-        
     def ctimerUpdate(self):
         self.labelTimer.setText(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-
-    def queryTimerUpdate(self):
-        chk_query_instance = isinstance(self.NewQuery, px.XAQuery_CEXAQ31200) or \
-                             isinstance(self.NewQuery, px.XAQuery_t0441)
-        # if self.XASession.IsConnected() and self.XASession.GetAccountListCount() and chk_query_instance:
-            # self.NewQuery.flag = True
-            # ret = self.NewQuery.Request(False)
-            # while self.NewQuery.flag:
-            #     pythoncom.PumpWaitingMessages()
-
-            # if self.servername in ['X', 'SERVER']:
-            #     self.option_greeks_query.flag = True
-            #     self.option_greeks_query.set_data(self.expiredate_util.front_expire_date[:6], 'G')
-            #     ret = self.option_greeks_query.Request(False)
-            #     while self.option_greeks_query.flag:
-            #         pythoncom.PumpWaitingMessages()
-            #
-            #     self.option_greeks_query.flag = True
-            #     self.option_greeks_query.set_data(self.expiredate_util.back_expire_date[:6], 'G')
-            #     ret = self.option_greeks_query.Request(False)
-            #     while self.option_greeks_query.flag:
-            #         pythoncom.PumpWaitingMessages()
-
-            # logger.info('P/L Open: %d', self.NewQuery.pnl * 1000)
-            # print self.servername
-            # print self.option_greeks_query.block_data
-            # self.myDigitViewer.ui.lcdNumber.display(self.NewQuery.pnl)
-            # self.myPositionViewer.onReceiveData(self.exchange_code,
-            #                                     self.NewQuery.data,
-            #                                     self.option_greeks_query.block_data)
-        pass
 
     def slot_StartXingDlg(self, row, column):
         if row == 0 and column == 2:
@@ -431,10 +350,6 @@ class MainForm(QtGui.QMainWindow):
                 logmsg = 'servername: %s   account_no: %s' % (self.servername, self.accountlist[self.accountindex])
                 logger.info(logmsg)
                 self.initDB()
-                if not self.initQuery():
-                    self.ui.actionExecute.setChecked(False)
-                    return
-                self.queryTimer.start(10000)
                 self.ordermachineThread.init_thread_pool()
                 self.ordermachineThread.start()
                 logger.info('OrderMachineThread start')

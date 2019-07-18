@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 02 22:20:29 2014
-
-@author: assa
-"""
 
 import time
 import sys
@@ -21,16 +16,14 @@ sys.path.append(xinglogindlg_dir)
 from xinglogindlg import LoginForm
 
 
-class observer_CEXAQ31200(object):
+class observer_CEXAQ31100(object):
     @classmethod
     def Update(cls, subject):
         subject.pnl_open = 0
         subject.pnl_day = 0
-        if len(subject.data) > 1:
-            item = subject.data[1]
-            subject.pnl_open = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
-        else:
-            subject.pnl_open = 0
+        item = subject.data[1]
+        subject.pnl_open = int(item['TotEvalAmt'])
+        subject.pnl_day = int(item['TotEvalAmt']) + int(item['BnsplAmt'])
         subject.flag = False
         pass
 
@@ -111,14 +104,14 @@ class ZeroDigitViewer(QtGui.QWidget):
                 self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'Pwd', 0, '0000')
                 self.NewQuery.SetFieldData('CFOEQ11100InBlock1', 'BnsDt', 0, str_nowdt)
             else:
-                self.NewQuery = px.XAQuery_CEXAQ31200()
-                obs = observer_CEXAQ31200()
+                self.NewQuery = px.XAQuery_CEXAQ31100()
+                obs = observer_CEXAQ31100()
                 self.NewQuery.observer = obs
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
-                self.NewQuery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+                self.NewQuery.SetFieldData('CEXAQ31100InBlock1', 'RecCnt', 0, 1)
+                self.NewQuery.SetFieldData('CEXAQ31100InBlock1', 'AcntNo', 0, self.accountlist[1])
+                self.NewQuery.SetFieldData('CEXAQ31100InBlock1', 'InptPwd', 0, '0000')
+                self.NewQuery.SetFieldData('CEXAQ31100InBlock1', 'BalEvalTp', 0, '1')
+                self.NewQuery.SetFieldData('CEXAQ31100InBlock1', 'FutsPrcEvalTp', 0, '1')
 
     def initTIMER(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
