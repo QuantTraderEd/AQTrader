@@ -22,8 +22,12 @@ class observer_CEXAQ31100(object):
         subject.pnl_open = 0
         subject.pnl_day = 0
         item = subject.data[1]
-        subject.pnl_open = int(item['TotEvalAmt'])
-        subject.pnl_day = int(item['TotEvalAmt']) + int(item['BnsplAmt'])
+        if item['TotEvalAmt'] != '':
+            subject.pnl_open = int(item['TotEvalAmt'])
+        if int(item['BnsplAmt']) != '':
+            subject.pnl_day = subject.pnl_open + int(item['BnsplAmt'])
+        else:
+            subject.pnl_day = subject.pnl_open
         subject.flag = False
         pass
 

@@ -38,7 +38,10 @@ class Observer_CEXAQ31200(object):
     @classmethod
     def Update(cls, subject):
         item = subject.data[1]
-        subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
+        if item['OptEvalPnlAmt'] != '' and item['FutsEvalPnlAmt'] != '':
+            subject.pnl = int((int(item['OptEvalPnlAmt'] or 0) + int(item['FutsEvalPnlAmt'] or 0)) * 0.001)
+        else:
+            subject.pnl = 0
         # print subject.pnl
         subject.flag = False
         pass
