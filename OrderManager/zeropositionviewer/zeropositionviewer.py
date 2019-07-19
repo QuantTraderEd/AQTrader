@@ -114,21 +114,21 @@ class ZeroPositionViewer(QtGui.QWidget):
             nowtime = time.localtime()
             if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
                 self.exchange = 'KRX'
-                self.new_query = px.XAQuery_t0441()
+                self.xquery = px.XAQuery_t0441()
                 obs_t0441 = Observer_t0441()
-                self.new_query.observer = obs_t0441
-                self.new_query.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
-                self.new_query.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
+                self.xquery.observer = obs_t0441
+                self.xquery.SetFieldData('t0441InBlock', 'accno', 0, self.accountlist[1])
+                self.xquery.SetFieldData('t0441InBlock', 'passwd', 0, '0000')
             else:
                 self.exchange = 'EUREX'
-                self.new_query = px.XAQuery_CEXAQ31200()
+                self.xquery = px.XAQuery_CEXAQ31200()
                 obs_cexaq31200 = Observer_CEXAQ31200()
-                self.new_query.observer = obs_cexaq31200
-                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
-                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
-                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
-                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
-                self.new_query.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+                self.xquery.observer = obs_cexaq31200
+                self.xquery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+                self.xquery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
+                self.xquery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
+                self.xquery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+                self.xquery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
 
             self.option_greeks_query = px.XAQuery_t2301()
             obs = Observer_cmd()
@@ -144,12 +144,12 @@ class ZeroPositionViewer(QtGui.QWidget):
         
     def onTimer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
-            self.new_query.flag = True
-            ret = self.new_query.Request(False)
-            while self.new_query.flag:
+            self.xquery.flag = True
+            ret = self.xquery.Request(False)
+            while self.xquery.flag:
                 # print 'test'
                 pythoncom.PumpWaitingMessages()
-                # self.new_query.flag = False
+                # self.xquery.flag = False
 
             if self.servername[0] == 'X':
                 self.option_greeks_query.flag = True
@@ -165,7 +165,7 @@ class ZeroPositionViewer(QtGui.QWidget):
                     pythoncom.PumpWaitingMessages()
 
             self.update_CEXAQ31200.emit()
-            self.onReceiveData(self.exchange, self.new_query.data, self.option_greeks_query.block_data)
+            self.onReceiveData(self.exchange, self.xquery.data, self.option_greeks_query.block_data)
         pass
 
     def onReceiveData(self, exchange_code, data, block_data):
