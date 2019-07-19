@@ -33,6 +33,7 @@ class TestClass(object):
 
         now_dt = dt.datetime.now()
         str_nowdt = now_dt.strftime("%Y%m%d")
+        str_nowdt = '20190715'
 
         user = 'usr_id'
         passwd = getpass.getpass('passwd:')
@@ -64,3 +65,6 @@ class TestClass(object):
         assert len(xquery.data) == 2
         assert xquery.data[1]['RecCnt'] == '1'
         assert xquery.data[0]['BnsDt'] == str_nowdt
+
+        for key in xquery.data[1]:
+            print key, xquery.data[1][key]
