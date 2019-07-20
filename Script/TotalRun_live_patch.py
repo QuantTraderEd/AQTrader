@@ -266,8 +266,11 @@ def clear_ordno_dict():
 def make_miniarb_research_report():
     time.sleep(3)
     os.chdir(pjt_path + '/Script')
+<<<<<<< HEAD
     if not os.path.exists('./miniarb_research/'):
         os.makedirs('./miniarb_research/')
+=======
+>>>>>>> 45c0f8dd2e544611e600ad5b669e48556269159d
     os.startfile('run_miniarb_research_report.py')
     logger.info('run miniarb_research_report')
     pass
