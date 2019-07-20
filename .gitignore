@@ -11,3 +11,6 @@ dist
 .cache/
 auto_config
 *.db
+*.db-journal
+UTCk.conf
+UTCk.sche

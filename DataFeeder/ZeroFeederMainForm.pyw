@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 import zmq
 import json
 import logging
 import pythoncom
 
+import ctypes
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
@@ -47,7 +47,7 @@ logger.addHandler(fh)
 
 
 class ConsoleObserver:
-    def Update(self,subject):
+    def Update(self, subject):
         for i in xrange(len(subject.data)):
             print subject.data[i],
         print
@@ -64,25 +64,26 @@ class MainForm(QtGui.QMainWindow):
         self.initTAQFeederLst()
         self.initZMQ()
 
+        self.exchange_code = 'KRX'
+
         self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
 
+        self.set_auto = False
+        logger.info('%s', os.getcwd())
         try:
-            f = open('auto_config', 'r')
-            auto_config = json.load(f)
-            if auto_config['setauto']:
-                print auto_config
-                self.setAuto = True
-                self.slot_CheckCybosStarter(0, 2)
-                self.slot_AutoStartXing(auto_config)
-            f.close()
+            file_path = os.path.dirname(os.path.abspath(__file__))
+            with open(file_path + '/' + 'auto_config', 'r') as f:
+                auto_config = json.load(f)
+                if auto_config['setauto']:
+                    print auto_config
+                    self.set_auto = True
+                    self.slot_CheckCybosStarter(0, 2)
+                    self.slot_AutoStartXing(auto_config)
+                f.close()
         except IOError:
             logger.info('not found auto_config file')
         pass
-
-    def __del__(self):
-        self.XASession.DisconnectServer()
-        ctypes.windll.user32.PostQuitMessage(0)
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -90,18 +91,21 @@ class MainForm(QtGui.QMainWindow):
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
         setting.setValue("port", self.port)
+        logger.info("Close DataFeeder")
+        super(MainForm, self).closeEvent(event)
 
     def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        QtGui.qApp.setStyle('Cleanlooks')
         self.conn_cy = QtGui.QTableWidgetItem("conn cy")
         self.conn_xi = QtGui.QTableWidgetItem("conn xi")
         self.status_xi = QtGui.QTableWidgetItem("ready")
         self.status_cy = QtGui.QTableWidgetItem("ready")
-        self.ui.tableWidget.setItem(0,2,self.conn_cy)
-        self.ui.tableWidget.setItem(1,2,self.conn_xi)
-        self.ui.tableWidget.setItem(0,1,self.status_cy)
-        self.ui.tableWidget.setItem(1,1,self.status_xi)
+        self.ui.tableWidget.setItem(0, 2, self.conn_cy)
+        self.ui.tableWidget.setItem(1, 2, self.conn_xi)
+        self.ui.tableWidget.setItem(0, 1, self.status_cy)
+        self.ui.tableWidget.setItem(1, 1, self.status_xi)
         # self.ui.tableWidget.cellClicked.connect(self.cell_was_clicked)
 
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
@@ -111,6 +115,7 @@ class MainForm(QtGui.QMainWindow):
         value = setting.value("port", type=int)
         if value:
             self.port = value
+        pass
 
     def initTIMER(self):
         self.ctimer = QtCore.QTimer()
@@ -120,7 +125,10 @@ class MainForm(QtGui.QMainWindow):
         self.cybostimer.timeout.connect(self.CybosTimerUpdate)
         self.xingtimer = QtCore.QTimer()
         self.xingtimer.timeout.connect(self.XingTimerUpdate)
-        self.lbltime = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+        self.autotimer = QtCore.QTimer()
+        self.autotimer.start(20000)
+        self.autotimer.timeout.connect(self.autotimer_update)
+        self.lbltime = QtGui.QLabel(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         self.statusBar().addPermanentWidget(self.lbltime)
 
     def initAPI(self):
@@ -176,7 +184,6 @@ class MainForm(QtGui.QMainWindow):
         self.OptionTAQFeederDict = {}
         self.EquityTAQFeederLst = []
 
-
     def initOptionJpBid(self):
         newitemquote = pc.OptionJpBid()        
         newitemquote.Attach(self.ZMQOptionsQuoteSender)
@@ -191,11 +198,8 @@ class MainForm(QtGui.QMainWindow):
         self.OptionTAQFeederDict['OC0_New'] = newitemtrade_new
             
     def initOH0(self):
-        # newitemquote = px.XAReal_OH0(DataType='list')
         newitemquote_new = px.XAReal_OH0(DataType='dictionary')
-        # newitemquote.Attach(self.ZMQOptionsQuoteSender)
         newitemquote_new.Attach(self.ZMQOptionsQuoteSender_test)
-        # self.OptionTAQFeederDict['OH0'] = newitemquote
         self.OptionTAQFeederDict['OH0_New'] = newitemquote_new
             
     def initEC0(self):
@@ -234,14 +238,14 @@ class MainForm(QtGui.QMainWindow):
         newitemtrade.Attach(self.ZMQFuturesTradeSender)
         newitemtrade.AdviseRealData()
         self.FutureTAQFeederLst.append(newitemtrade)
-        #==================================================
+        # ==================================================
         newitemtrade_new = px.XAReal_FC0(shortcd, 'dictionary')
         newitemtrade_new.Attach(self.ZMQFuturesTradeSender_test)
         newitemtrade_new.AdviseRealData()
         self.FutureTAQFeederLst.append(newitemtrade_new)
         
     def registerFeedItem_FH0(self, shortcd):
-        #==================================================
+        # ==================================================
         newitemquote_new = px.XAReal_FH0(shortcd, 'dictionary')
         newitemquote_new.Attach(self.ZMQFuturesQuoteSender_test)
         newitemquote_new.AdviseRealData()
@@ -252,7 +256,7 @@ class MainForm(QtGui.QMainWindow):
         newitemtrade.Attach(self.ZMQFuturesTradeSender)
         newitemtrade.AdviseRealData()
         self.FutureTAQFeederLst.append(newitemtrade)
-        #==================================================
+        # ==================================================
         newitemtrade_new = px.XAReal_NC0(shortcd, 'dictionary')
         newitemtrade_new.Attach(self.ZMQFuturesNightTradeSender_test)
         newitemtrade_new.AdviseRealData()
@@ -331,7 +335,7 @@ class MainForm(QtGui.QMainWindow):
         newitemquote.Attach(self.ZMQFuturesNightQuoteSender)
         newitemquote.AdviseRealData()
         self.FutureTAQFeederLst.append(newitemquote)
-        #===================================================
+        # ===================================================
         newitemquote_new = px.XAReal_NH0(shortcd, 'dictionary')
         newitemquote_new.Attach(self.ZMQFuturesNightQuoteSender_test)
         newitemquote_new.AdviseRealData()
@@ -366,11 +370,19 @@ class MainForm(QtGui.QMainWindow):
             self.initFeedCode()
             self.initZMQSender()
             self.initTAQFeederLst()
+            logger.info('set feed code & zmq')
         else:
-            logger.info('tick count: %d'%ZMQTickSender.count)
+            logger.info('tick count: %d' % ZMQTickSender.count)
+            ZMQTickSender.count = 0
+
+        nowlocaltime = time.localtime()
+        if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            self.exchange_code = 'KRX'
+        else:
+            self.exchange_code = 'EUREX'
 
         if self.XASession.IsConnected() and boolToggle:
-            nowlocaltime = time.localtime()
+            logger.info('regist feed data @ xing')
             if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                 self.initYFC()
                 for shortcd in self._FeedCodeList.future_shortcd_list:
@@ -407,7 +419,7 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_I5_(shortcd)
 
         if self.cpcybos.IsConnect() and boolToggle:
-            nowlocaltime = time.localtime()
+            logger.info('regist feed data @ cybos')
             for shortcd in self._FeedCodeList.future_shortcd_list:
                 if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
                     self.registerFeedItem_FutureJpBid(shortcd)
@@ -429,8 +441,11 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_ExpectIndexS(shortcd)
 
         if boolToggle:
+            logger.info('start pumping msg')
             pythoncom.PumpMessages()
-
+        else:
+            logger.info('wait pumping msg')
+            # pythoncom.PumpWaitingMessages
         pass
 
     def slot_RequestPrevClosePrice(self):
@@ -472,7 +487,7 @@ class MainForm(QtGui.QMainWindow):
             filep.close()
         pass
 
-    def slot_StartXingDlg(self,row,column):
+    def slot_StartXingDlg(self, row, column):
         if row == 1 and column == 2:
             # print("Row %d and Column %d was doblueclicked" % (row,column))
             local_login_form = LoginForm(XASession=proxy(self.XASession))
@@ -488,12 +503,17 @@ class MainForm(QtGui.QMainWindow):
         user = str(auto_config['id'])
         password = str(auto_config['pwd'].decode('hex'))
         certpw = str(auto_config['cetpwd'].decode('hex'))
+        servertype = int(auto_config['servertype'])
+        if servertype == 1:
+            server = 'demo.ebestsec.co.kr'
+        elif servertype == 0:
+            server = 'hts.ebestsec.co.kr'
         
-        self.XASession.ConnectServer(server,port)
+        self.XASession.ConnectServer(server, port)
         # print 'connect server'
         ret = self.XASession.Login(user, password, certpw, servertype, showcerterror)
                 
-        px.XASessionEvents.session = self.XASession
+        px.XASessionEvents.session = proxy(self.XASession)
         self.XASession.flag = True
         while self.XASession.flag:
             pythoncom.PumpWaitingMessages()
@@ -509,17 +529,7 @@ class MainForm(QtGui.QMainWindow):
 
     def CtimerUpdate(self):
         now_time = time.localtime()
-        self.lbltime.setText(time.strftime("%Y-%m-%d %H:%M:%S",now_time))
-        close_trigger = False
-        if now_time.tm_hour == 6 and  now_time.tm_min == 25:
-            self.cpcybos.PlusDisconnect()
-            close_trigger = True
-        elif now_time.tm_hour == 17 and  now_time.tm_min == 25:
-            self.slot_ToggleFeed(True)
-
-        if close_trigger:
-            logger.info("close trigger")
-            self.close()
+        self.lbltime.setText(time.strftime("%Y-%m-%d %H:%M:%S", now_time))
 
     def CybosTimerUpdate(self):
         if self.cpcybos.IsConnect():
@@ -547,13 +557,36 @@ class MainForm(QtGui.QMainWindow):
         else:
             self.status_xi.setText('disconnect')
 
+    def autotimer_update(self):
+        now_time = time.localtime()
+        close_trigger = False
+        close_hour = 23
+        close_minute = 36
+        re_toggle_hour = 17
+        re_toggle_minute = 5
+        if now_time.tm_hour == close_hour and now_time.tm_min == close_minute and self.set_auto:
+            if self.cpcybos.IsConnect():
+                self.cpcybos.PlusDisconnect()
+            close_trigger = True
+        elif now_time.tm_hour == re_toggle_hour and now_time.tm_min == re_toggle_minute and self.set_auto:
+            if self.exchange_code == 'KRX':
+                logger.info('auto toggle feed from KRX to EUREX')
+                logger.info('tick count: %d' % ZMQTickSender.count)
+                ZMQTickSender.count = 0
+                self.slot_ToggleFeed(True)
+
+        if close_trigger:
+            logger.info("close trigger")
+            self.slot_ToggleFeed(False)
+            self.close()
+
 
 class XingXASessionUpdate():
     def __init__(self, status_xi=None):
         self.status_xi = status_xi
 
     def Update(self, subject):
-        msg =''
+        msg = ''
         for item in subject.data:
             msg = msg + ' ' + item
         if msg[:5] == ' 0000':
@@ -567,13 +600,16 @@ class CpCybosNULL():
 
 
 if __name__ == '__main__':
-    import ctypes
-    myappid = 'zerofeeder'
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    import sys
+    # import ctypes
+    # myappid = 'zerofeeder'
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
-#    if myform.setAuto:
-#        myform.ui.actionFeed.setChecked(True)
+    if myform.set_auto:
+        logger.info('set_auto: True')
+        myform.ui.actionFeed.setChecked(True)
+        myform.slot_ToggleFeed(True)
     app.exec_()
 

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import time
+import json
 import logging
+import datetime as dt
 
 from logging.handlers import RotatingFileHandler
 from PyQt4 import QtGui, QtCore
@@ -55,11 +57,27 @@ class MainForm(QtGui.QWidget):
 
         self.resize(340, 140)
         self.setWindowTitle('DataLoader')
+        icon = QtGui.QIcon("./resource/database-arrow-down-icon.png")
+        self.setWindowIcon(icon)
+        QtGui.qApp.setStyle('Cleanlooks')
 
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
 
+        self.set_auto = False
+        self.set_auto_config()
         pass
+
+    def set_auto_config(self, file_name='auto_config'):
+        try:
+            with open(file_name, 'r') as f:
+                auto_config = json.load(f)
+                if auto_config['setauto']:
+                    print auto_config
+                    self.set_auto = True
+                f.close()
+        except IOError:
+            logger.info('not found auto_config file')
 
     def initTIMER(self):
         self.ctimer = QtCore.QTimer()
@@ -68,6 +86,7 @@ class MainForm(QtGui.QWidget):
 
     def initThread(self):
         self.dataloader_thread = DBLoaderThread(subtype='Real')
+        self.dataloader_thread.filepath = './TAQ_Data/'
         self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
         self.dataloader_thread.MsgNotify.connect(self.onNotify)
 
@@ -100,9 +119,9 @@ class MainForm(QtGui.QWidget):
     def ctimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
-        if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
+        if now_dt.hour == 6 and  now_dt.minute >= 0 and now_dt.minute <= 20:
             close_trigger = True
-        elif now_dt.hour == 17 and  now_dt.minute >= 15 and now_dt.minute <= 30:
+        elif now_dt.hour == 17 and  now_dt.minute >= 0 and now_dt.minute <= 20:
             close_trigger = True
 
         if close_trigger:
@@ -115,7 +134,8 @@ class MainForm(QtGui.QWidget):
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
-    local_form = MainForm()
-    local_form.show()
-    local_form.onClick()
-    sys.exit(app.exec_())
+    myform = MainForm()
+    myform.show()
+    if myform.set_auto:
+        myform.onClick()
+    app.exec_()

@@ -6,7 +6,7 @@ import pythoncom
 import pyxing as px
 from os import path
 from PyQt4 import QtGui, QtCore
-from ui_zerodigitviewer import Ui_Form
+from zerodigitviewer_ui import Ui_Form
 from weakref import proxy
 
 xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
@@ -51,7 +51,10 @@ class observer_CFOEQ11100:
     def Update(self, subject):
         if len(subject.data) == 2:
             item = subject.data[1]
-            subject.pnl = int((int(item['EvalDpsamtTotamt'] or 0) - 100000000) * 0.001)
+            # subject.pnl = int((int(item['TotAmt'] or 0)) * 0.000001)
+            pnl_day = int(item['FutsBnsplAmt'] or 0) * 0.001 + int(item['OptBnsplAmt'] or 0) * 0.001
+            pnl_open = int(item['FutsEvalPnlAmt'] or 0) * 0.001 + int(item['OptEvalPnlAmt'] or 0) * 0.001
+            subject.pnl = pnl_day + pnl_open  # P/L Day
         else:
             subject.pnl = 0
         print 'Tot Pnl: ' + str(subject.pnl)

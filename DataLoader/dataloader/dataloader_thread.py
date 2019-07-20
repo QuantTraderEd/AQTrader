@@ -36,10 +36,10 @@ class DBLoaderThread(SubscribeThread):
     def initDB(self):
         now_dt = dt.datetime.now()
         strtime = now_dt.strftime('%Y%m%d')
-        if 7 <= now_dt.hour < 16:
+        if 7 <= now_dt.hour < 17:
             self.dbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
-        elif now_dt.hour >= 16:
+        elif now_dt.hour >= 17:
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
         elif now_dt.hour < 7:
