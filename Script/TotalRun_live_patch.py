@@ -265,7 +265,9 @@ def clear_ordno_dict():
 
 def make_miniarb_research_report():
     time.sleep(3)
-    os.chdir(pjt_path + '\\ZeroTrader_Test\\algo strategy\\')
+    os.chdir(pjt_path + '/Script')
+    if not os.path.exists('./miniarb_research/'):
+        os.makedirs('./miniarb_research/')
     os.startfile('run_miniarb_research_report.py')
     logger.info('run miniarb_research_report')
     pass
@@ -288,10 +290,12 @@ def main():
         logger.info('redis-server ok')
     
     if not ("UTCk3.exe" in prcslst):
-        logger.info('start clock...')        
-        # os.chdir('C:\\Program Files (x86)\\KRISS\\UTCk3.1\\')
+        logger.info('start clock...')
+        target_path = 'C:\\Program Files (x86)\\KRISS\\UTCk3.0'
+        if not os.path.exists(target_path):
+            target_path = 'C:\\Program Files (x86)\\KRISS\\UTCk3.1'
         app = pywinauto.application.Application()
-        app = app.start('C:\\Program Files (x86)\\KRISS\\UTCk3.1\\utck3.exe')
+        app = app.start(target_path + '\\utck3.exe')
     else:
         logger.info('UTCK3 ok')
         
@@ -435,15 +439,15 @@ def main():
             night_session_close_trigger = False
             report_trigger = False
             
-        elif nowtime.tm_hour == 18 and nowtime.tm_min == 35 and not report_trigger:
+        elif nowtime.tm_hour == 18 and nowtime.tm_min == 45 and not report_trigger:
             if nowdatetime.weekday() >= 5:
                 logger.info('Pass@WeekEnd')
                 continue
             elif nowdatetime.strftime('%Y%m%d') in holiday_lst:
                 logger.info('Pass@Holiday')
                 continue
-            # make_miniarb_research_report()
-            # report_trigger = True
+            make_miniarb_research_report()
+            report_trigger = True
             
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
         elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
