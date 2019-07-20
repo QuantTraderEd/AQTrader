@@ -265,7 +265,7 @@ def clear_ordno_dict():
 
 def make_miniarb_research_report():
     time.sleep(3)
-    os.chdir(pjt_path + '\\ZeroTrader_Test\\algo strategy\\')
+    os.chdir(pjt_path + '/Script')
     os.startfile('run_miniarb_research_report.py')
     logger.info('run miniarb_research_report')
     pass
@@ -290,8 +290,11 @@ def main():
     if not ("UTCk3.exe" in prcslst):
         logger.info('start clock...')        
         # os.chdir('C:\\Program Files (x86)\\KRISS\\UTCk3.1\\')
+        target_path = 'C:\\Program Files (x86)\\KRISS\\UTCk3.0'
+        if not os.path.exists(target_path):
+            target_path = 'C:\\Program Files (x86)\\KRISS\\UTCk3.1'
         app = pywinauto.application.Application()
-        app = app.start('C:\\Program Files (x86)\\KRISS\\UTCk3.1\\utck3.exe')
+        app = app.start(target_path + '\\utck3.exe')
     else:
         logger.info('UTCK3 ok')
         
