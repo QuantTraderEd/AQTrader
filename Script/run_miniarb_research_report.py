@@ -2,9 +2,10 @@
 
 import os
 import datetime as dt
+
 now_dt = dt.datetime.now()
 strdate = now_dt.strftime("%Y%m%d")
-strdate = '20190719'
+# strdate = '20190719'
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 result = os.system('runipy -o miniarb_research_template.ipynb')
