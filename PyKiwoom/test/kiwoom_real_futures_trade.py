@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from kiwoom_source import KiwoomReal
+from PyKiwoom.pykiwoom.kiwoom_source import KiwoomReal
 
 
 class KiwoomFuturesTrade(KiwoomReal):

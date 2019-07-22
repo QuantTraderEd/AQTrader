@@ -110,9 +110,31 @@ class KiwoomSession(object):
         print(msg)
         pass
 
+    def comm_connect(self):
+        ret = self.ocx.dynamicCall("CommConnect()")
+        self.event = QtCore.QEventLoop()
+        self.event.exec_()
+        return ret
+
+
     def get_connect_state(self):
         data = self.ocx.dynamicCall("GetConnectState()")
         data = int(data.toPyObject())
+        return data
+
+    def get_login_info(self, tag):
+        """
+        "ACCOUNT_CNT”–전체계좌개수를반환한다.
+        "ACCNO"–전체계좌를반환한다. 계좌별구분은‘;’이다.
+        “USER_ID”-사용자ID를반환한다.
+        “USER_NAME”–사용자명을반환한다.
+        “KEY_BSECGB”–키보드보안해지여부. 0:정상, 1:해지
+        “FIREW_SECGB”–방화벽설정여부. 0:미설정, 1:설정, 2:해지
+        """
+        data = self.ocx.dynamicCall("GetLoginInfo(QString)", tag)
+        data = unicode(data.toPyObject())
+        if tag == "ACCNO":
+            data = data.split(u";")
         return data
 
     def get_futures_list(self):

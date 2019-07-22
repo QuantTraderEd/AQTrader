@@ -9,5 +9,8 @@ dist
 *.log.*
 .idea/
 .cache/
-
+auto_config
 *.db
+*.db-journal
+UTCk.conf
+UTCk.sche

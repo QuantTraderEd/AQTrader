@@ -4,9 +4,8 @@ from __future__ import print_function
 
 import sys
 from PyQt4 import QtGui
-from PyQt4 import QtCore
 from PyQt4 import QAxContainer
-from kiwoom_tr_opt50001 import KiwoomOPT50001
+from PyKiwoom.pykiwoom.kiwoom_tr_opt50001 import KiwoomOPT50001
 
 
 class MyWindow(QtGui.QMainWindow):
