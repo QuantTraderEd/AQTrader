@@ -10,8 +10,8 @@ from PyQt4 import QtGui, QtCore
 from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
-from AQTrader.CommUtil.FeedCodeList import FeedCodeList
-from AQTrader.CommUtil import ExpireDateUtil
+from commutil.FeedCodeList import FeedCodeList
+from commutil import ExpireDateUtil
 
 
 logger = logging.getLogger('OptionWindow')
@@ -74,7 +74,7 @@ class MainForm(QtGui.QMainWindow):
         pass
 
     def initTIMER(self):
-        self.ctimer =  QtCore.QTimer()
+        self.ctimer = QtCore.QTimer()
         self.ctimer.start(300000)
         self.ctimer.timeout.connect(self.ctimer_update)
 
@@ -193,10 +193,11 @@ class MainForm(QtGui.QMainWindow):
     def ctimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
-        if now_dt.hour == 6 and  now_dt.min >= 15 and now_dt.min <= 30:
+        if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
             close_trigger = True
 
         if close_trigger:
+            logger.info("close trigger")
             if self.mythread.isRunning():
                 self.mythread.stop()
             self.close()
@@ -208,7 +209,10 @@ class MainForm(QtGui.QMainWindow):
             if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
             self.ui.tableWidget.setItem(row,col,NewItem)
         else:
-            widgetItem.setText(text)
+            if isinstance(text, int):
+                widgetItem.setText(str(text))
+            elif isinstance(text, float):
+                widgetItem.setText("%.2f" % text)
         pass
     
     def onDoubleClicked(self, row, col):

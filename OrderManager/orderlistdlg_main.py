@@ -11,22 +11,21 @@ from PyQt4 import QtGui, QtCore
 from ui_orderlistdlg import Ui_Dialog
 
 
-class OrderListDialog(QtGui.QDialog):
+class OrderListDialog(QtGui.QWidget):
     def __init__(self, order_port=6001):
         super(OrderListDialog, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)        
-        self.ui.pushButton.clicked.connect(self.OnUpdateList)
+        self.ui.pushButton.clicked.connect(self.on_update_list)
         self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.tableWidget.resizeRowsToContents()
         for i in range(self.ui.tableWidget.columnCount()):        
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
         self.ui.tableWidget.setColumnWidth(5, 80)
-        self.ui.tableWidget.cellDoubleClicked.connect(self.OnCellDoubleClicked)
+        self.ui.tableWidget.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
         self.logger = logging.getLogger('ZeroOMS.OrderListDlg')
         self.logger.info('Init OrderListDlg')
-
 
         self.order_port = order_port
         self.init_zmq()
@@ -61,8 +60,7 @@ class OrderListDialog(QtGui.QDialog):
         self.conn_db = lite.connect(self.strdbname)
         self.cursor_db = self.conn_db.cursor()
 
-        
-    def OnUpdateList(self):
+    def on_update_list(self):
         if not os.path.isfile(self.strdbname):
             return
 
@@ -88,7 +86,7 @@ class OrderListDialog(QtGui.QDialog):
         self.adjust_transaction_reversion()
         pass
     
-    def OnCellDoubleClicked(self,row,col):        
+    def on_cell_double_clicked(self, row, col):
         type1 = self.ui.tableWidget.item(row,8).text()
         if col == 0 and (type1 == 'limit'):
             orgordno = self.ui.tableWidget.item(row,col).text()
