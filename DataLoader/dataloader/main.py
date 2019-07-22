@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
 import logging
-import datetime as dt
 
 from logging.handlers import RotatingFileHandler
 from PyQt4 import QtGui, QtCore
@@ -35,7 +33,6 @@ class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.initUI()
-        self.initTIMER()
         self.initThread()
         pass
 
@@ -57,36 +54,14 @@ class MainForm(QtGui.QWidget):
 
         self.resize(340, 140)
         self.setWindowTitle('DataLoader')
-        icon = QtGui.QIcon("./resource/database-arrow-down-icon.png")
-        self.setWindowIcon(icon)
-        QtGui.qApp.setStyle('Cleanlooks')
 
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
 
-        self.set_auto = False
-        self.set_auto_config()
         pass
-
-    def set_auto_config(self, file_name='auto_config'):
-        try:
-            with open(file_name, 'r') as f:
-                auto_config = json.load(f)
-                if auto_config['setauto']:
-                    print auto_config
-                    self.set_auto = True
-                f.close()
-        except IOError:
-            logger.info('not found auto_config file')
-
-    def initTIMER(self):
-        self.ctimer = QtCore.QTimer()
-        self.ctimer.start(300000)
-        self.ctimer.timeout.connect(self.ctimer_update)
 
     def initThread(self):
         self.dataloader_thread = DBLoaderThread(subtype='Real')
-        self.dataloader_thread.filepath = './TAQ_Data/'
         self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
         self.dataloader_thread.MsgNotify.connect(self.onNotify)
 
@@ -116,26 +91,11 @@ class MainForm(QtGui.QWidget):
             self.startPushButton.setText('Start')
         pass
 
-    def ctimer_update(self):
-        now_dt = dt.datetime.now()
-        close_trigger = False
-        if now_dt.hour == 6 and  now_dt.minute >= 0 and now_dt.minute <= 20:
-            close_trigger = True
-        elif now_dt.hour == 17 and  now_dt.minute >= 0 and now_dt.minute <= 20:
-            close_trigger = True
-
-        if close_trigger:
-            logger.info("close trigger")
-            if self.dataloader_thread.isRunning():
-                self.dataloader_thread.stop()
-            self.close()
-
 
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
-    myform = MainForm()
-    myform.show()
-    if myform.set_auto:
-        myform.onClick()
-    app.exec_()
+    local_form = MainForm()
+    local_form.show()
+    local_form.onClick()
+    sys.exit(app.exec_())

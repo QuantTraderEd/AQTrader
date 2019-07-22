@@ -2,7 +2,7 @@
 
 
 import redis
-from commutil.FeedCodeList import FeedCodeList
+from ..CommUtil.FeedCodeList import FeedCodeList
 
 
 class OptionPrice(object):

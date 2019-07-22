@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>969</width>
+    <width>777</width>
     <height>146</height>
    </rect>
   </property>
@@ -72,11 +72,6 @@
      <column>
       <property name="text">
        <string>Vega</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>P/L Day</string>
       </property>
      </column>
      <column>

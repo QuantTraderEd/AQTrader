@@ -35,9 +35,9 @@ logger.addHandler(ch)
 class OptionViewerSendOrderWidget(QtGui.QWidget):
     def __init__(self,parent = None, widget = None):
         QtGui.QWidget.__init__(self,parent)
-        self.minimum_tick = 0.01
         self.initVar()
-        self.initUI(widget)
+        self.initUI(widget)        
+        
         
     def initVar(self):
         self.synthfutures_dict = {}
@@ -64,10 +64,7 @@ class OptionViewerSendOrderWidget(QtGui.QWidget):
             global_point = widget.mapToGlobal(point)
             self.move(global_point - QtCore.QPoint(self.width(), 0))
         pass
-
-    def set_minimum_tick(self, minimum_tick):
-        self.minimum_tick = minimum_tick
-        self.ui.doubleSpinBoxPrice.setSingleStep(minimum_tick)
+        
     
     def initZMQ(self):
         context = zmq.Context()

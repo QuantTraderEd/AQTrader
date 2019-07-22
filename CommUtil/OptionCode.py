@@ -1,29 +1,40 @@
+__author__ = 'assa'
 
 import os
 import shutil
 import datetime as dt
 import pycybos as pc
-import ExpireDateUtil as ExpireDateUtil
+import CommUtil.ExpireDateUtil as ExpireDateUtil
 
 FutureCode = pc.CpFutureCode()
 OptionCode = pc.CpOptionCode()
 expiredate_util = ExpireDateUtil.ExpireDateUtil()
 
+filepath = [
+'D:/Python/ZeroTrader/ZeroFeeder/',
+'D:/Python/ZeroTrader/ZeroOptionViewer/',
+'D:/Python/ZeroTrader/ZeroOptionViewer_BackMonth/',
+'D:/Python/ZeroTrader/AutoTrader/',
+'D:/Python/ZeroTrader_Test/ZeroOptionViewer/',
+'D:/Python/ZeroTrader_Test/AutoTrader/',
+'D:/Python/ZeroTrader_Test/AutoFutArbTrader/',
+]
+
 now_dt = dt.datetime.now()
 today = now_dt.strftime('%Y%m%d')
 
-expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__)+"\\expire_date.txt")
+expiredate_util.read_expire_date(os.path.dirname(ExpireDateUtil.__file__))
 expire_code_lst = expiredate_util.make_expire_shortcd(today)
 print expire_code_lst
 
 filename = 'feedcodelist.txt'
 
-f = open('feedcodelist.txt', 'w+')
+f = open('feedcodelist.txt','w+')
 
 big_shortcd1 = FutureCode.GetData('0', 0)
 big_shortcd2 = FutureCode.GetData('0', 1)
-# mini_shortcd1 = '105LB000'
-# mini_shortcd2 = '105LC000'
+#mini_shortcd1 = '105LB000'
+#mini_shortcd2 = '105LC000'
 mini_shortcd1 = '105%s000' % (expire_code_lst[0])
 mini_shortcd2 = '105%s000' % (expire_code_lst[1])
 f.write('<Futures/>\n')
@@ -68,9 +79,9 @@ f.write('U180\n')
         
 f.close()
 
-# for item in filepath:
-#     src = os.getcwd() + '\\'  + filename
-#     des = item+filename
-#     print src
-#     print des
-#     shutil.copyfile(src,des)
+for item in filepath:
+    src = os.getcwd() + '\\'  + filename
+    des = item+filename
+    print src
+    print des
+    shutil.copyfile(src,des)

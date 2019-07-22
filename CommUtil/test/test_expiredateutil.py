@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # from ..pycybos import CpCybos
-from CommUtil.commutil.ExpireDateUtil import ExpireDateUtil
+from ..ExpireDateUtil import ExpireDateUtil
 
 
 class TestClass(object):

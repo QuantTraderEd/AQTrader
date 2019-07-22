@@ -25,13 +25,13 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(969, 146)
+        Form.resize(777, 146)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tableWidget = QtGui.QTableWidget(Form)
         self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
-        self.tableWidget.setColumnCount(10)
+        self.tableWidget.setColumnCount(9)
         self.tableWidget.setRowCount(3)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setVerticalHeaderItem(0, item)
@@ -57,8 +57,6 @@ class Ui_Form(object):
         self.tableWidget.setHorizontalHeaderItem(7, item)
         item = QtGui.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(8, item)
-        item = QtGui.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(9, item)
         self.verticalLayout.addWidget(self.tableWidget)
 
         self.retranslateUi(Form)
@@ -89,7 +87,5 @@ class Ui_Form(object):
         item = self.tableWidget.horizontalHeaderItem(7)
         item.setText(_translate("Form", "Vega", None))
         item = self.tableWidget.horizontalHeaderItem(8)
-        item.setText(_translate("Form", "P/L Day", None))
-        item = self.tableWidget.horizontalHeaderItem(9)
         item.setText(_translate("Form", "P/L Open", None))
 

@@ -8,10 +8,10 @@ import redis
 import sip
 from PyQt4 import QtCore
 from PyQt4 import QtGui
-from AutoOTMTrader_ui import Ui_MainWindow
+from ui_AutoOTMTrader import Ui_MainWindow
 from AutoOTMTrader_thread import TickDataReceiverThread, ExecutionReportThread, OrderThread
-from commutil.FeedCodeList import FeedCodeList
-import commutil.ExpireDateUtil as ExpireDateUtil
+from FeedCodeList import FeedCodeList
+import CommUtil.ExpireDateUtil as ExpireDateUtil
 
 import sqlalchemy_pos_init as position_db_init
 from sqlalchemy_pos_declarative import PositionEntity
@@ -178,11 +178,8 @@ class MainForm(QtGui.QMainWindow):
 
         else:
             now_dt = dt.datetime.now()
-            if self.atm_strike == '0':
-                logger.info("not found atm_strike")
-                return
-
-            if now_dt.hour >= 9 and now_dt.hour <= 15:
+            # if now_dt.hour >= 9 and now_dt.hour <= 15:
+            if now_dt.hour >= 9:
                 call_shortcd = self.find_target_shortcd('call')
                 put_shortcd = self.find_target_shortcd('put')
 
@@ -228,8 +225,8 @@ class MainForm(QtGui.QMainWindow):
 
     def initStrikeList(self):
         self._FeedCodeList = FeedCodeList()
-        self._FeedCodeList.read_code_list()
-        option_shortcd_lst = self._FeedCodeList.option_shortcd_list
+        self._FeedCodeList.ReadCodeListFile()
+        option_shortcd_lst = self._FeedCodeList.optionshcodelst
         self.expire_code_lst = list(set([shortcd[3:5] for shortcd in option_shortcd_lst]))
         self.expire_code_lst.sort()
         self.expireMonthCode = self.expire_code_lst[1]
@@ -239,7 +236,7 @@ class MainForm(QtGui.QMainWindow):
 
     def find_atm_strike(self):
         put_call_parity_min = 99999
-        atm_strike = '0'
+        atm_strike = ''
         for strike in self.strikelst:
             call_shortcd = '201' + self.expire_code_lst[0] + strike
             put_shortcd = '301' + self.expire_code_lst[0] + strike
