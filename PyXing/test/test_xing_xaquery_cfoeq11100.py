@@ -33,7 +33,7 @@ class TestClass(object):
 
         now_dt = dt.datetime.now()
         str_nowdt = now_dt.strftime("%Y%m%d")
-        str_nowdt = '20190715'
+        # str_nowdt = '20190722'
 
         user = 'usr_id'
         passwd = getpass.getpass('passwd:')

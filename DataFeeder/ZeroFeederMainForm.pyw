@@ -376,14 +376,14 @@ class MainForm(QtGui.QMainWindow):
             ZMQTickSender.count = 0
 
         nowlocaltime = time.localtime()
-        if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+        if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
             self.exchange_code = 'KRX'
         else:
             self.exchange_code = 'EUREX'
 
         if self.XASession.IsConnected() and boolToggle:
             logger.info('regist feed data @ xing')
-            if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
                 self.initYFC()
                 for shortcd in self._FeedCodeList.future_shortcd_list:
                     self.registerFeedItem_FC0(shortcd)
@@ -394,7 +394,7 @@ class MainForm(QtGui.QMainWindow):
                     self.registerFeedItem_NC0(shortcd)
                     self.registerFeedItem_NH0(shortcd)
 
-            if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
                 self.initOC0()
                 self.initOH0()
                 self.initYOC()
@@ -421,7 +421,7 @@ class MainForm(QtGui.QMainWindow):
         if self.cpcybos.IsConnect() and boolToggle:
             logger.info('regist feed data @ cybos')
             for shortcd in self._FeedCodeList.future_shortcd_list:
-                if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+                if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
                     self.registerFeedItem_FutureJpBid(shortcd)
                 else:
                     self.registerFeedItem_CMECurr(shortcd)
@@ -429,7 +429,7 @@ class MainForm(QtGui.QMainWindow):
 
             self.initOptionJpBid()
             self.initFOExpect()
-            if nowlocaltime.tm_hour >= 6 and nowlocaltime.tm_hour < 16:
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
                 for shortcd in self._FeedCodeList.option_shortcd_list:
                     self.registerFeedItem_OptionJpBid(shortcd)
                     self.registerFeedItem_FOExpect(shortcd)
