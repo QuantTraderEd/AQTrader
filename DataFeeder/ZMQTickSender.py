@@ -3,30 +3,30 @@
 from datetime import datetime
 
 
-class ZMQTickSender:
-    count = 0
-
-    def __init__(self, ZMQSocket=None, feedsource=None, feedtype=None, securitiestype=None):
-        self.ZMQSocket = ZMQSocket
-        self.feedsource = feedsource
-        self.feedtype = feedtype
-        self.securitiestype = securitiestype
-        pass
-
-    def Update(self,subject):
-        dt = datetime.now()
-        timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]        
-        msg = ''
-        msg = msg + self.feedsource
-        msg = msg + ',' + self.feedtype
-        msg = msg + ',' + self.securitiestype
-        for i in xrange(len(subject.data)):
-            msg = msg + ',' +  str(subject.data[i])
-        msg = timestamp + ',' + msg        
-        self.ZMQSocket.send(msg)
-        if self.securitiestype in ['futures', 'options']:
-            ZMQTickSender.count += 1
-        pass
+# class ZMQTickSender:
+#     count = 0
+#
+#     def __init__(self, ZMQSocket=None, feedsource=None, feedtype=None, securitiestype=None):
+#         self.ZMQSocket = ZMQSocket
+#         self.feedsource = feedsource
+#         self.feedtype = feedtype
+#         self.securitiestype = securitiestype
+#         pass
+#
+#     def Update(self,subject):
+#         dt = datetime.now()
+#         timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]
+#         msg = ''
+#         msg = msg + self.feedsource
+#         msg = msg + ',' + self.feedtype
+#         msg = msg + ',' + self.securitiestype
+#         for i in xrange(len(subject.data)):
+#             msg = msg + ',' +  str(subject.data[i])
+#         msg = timestamp + ',' + msg
+#         self.ZMQSocket.send(msg)
+#         if self.securitiestype in ['futures', 'options']:
+#             ZMQTickSender.count += 1
+#         pass
 
 
 class ZMQTickSender_New:
@@ -99,5 +99,5 @@ class ZMQTickSender_New:
 
         self.zmq_socket.send_pyobj(msg_dict)
         if self.securitiestype in ['futures', 'options']:
-            ZMQTickSender.count += 1
+            ZMQTickSender_New.count += 1
         pass
