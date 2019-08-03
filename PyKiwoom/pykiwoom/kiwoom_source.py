@@ -5,6 +5,7 @@ from __future__ import print_function
 from weakref import proxy
 from PyQt4 import QtCore
 from PyQt4 import QAxContainer
+from PyQt4 import QtGui
 
 
 class Kiwoom(object):
@@ -87,6 +88,7 @@ class Kiwoom(object):
         """
         print(unicode(trcode), unicode(rqname))
         self.on_signal(trcode, rqname)
+        self.event.exit()
 
 
 class KiwoomSession(object):
@@ -108,14 +110,15 @@ class KiwoomSession(object):
     def on_event_connect(self, errcode):
         msg = "ErrCode: %d" % errcode
         print(msg)
+        self.event.exit()
         pass
 
     def comm_connect(self):
         ret = self.ocx.dynamicCall("CommConnect()")
         self.event = QtCore.QEventLoop()
+        # self.event.processEvents(QtCore.QEventLoop.AllEvents, 5000)
         self.event.exec_()
         return ret
-
 
     def get_connect_state(self):
         data = self.ocx.dynamicCall("GetConnectState()")
@@ -225,6 +228,7 @@ class KiwoomTR(object):
         splm_msg: 1.0.0.1 버전 이후 사용하지 않음.
         """
         print(unicode(trcode), unicode(rqname))
+        self.event.exit()
         self.on_signal(trcode, rqname)
 
 
