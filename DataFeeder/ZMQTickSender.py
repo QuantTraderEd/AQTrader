@@ -39,21 +39,24 @@ class ZMQTickSender_New:
         self.securitiestype = securitiestype
         pass
     
-    def Update(self,subject):        
+    def Update(self, subject):
         if type(subject.data) != dict: return
         shortcd = subject.data['ShortCD']
         now_dt = datetime.now()
         # timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
         
-        msg_dict = {}
+        msg_dict = dict()
         
         msg_dict['ShortCD'] = shortcd
         msg_dict['FeedSource'] = self.feedsource
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
-        if shortcd[:3] == '105':
-            self.securitiestype = 'futures'
-            msg_dict['SecuritiesType'] = self.securitiestype
+        # if shortcd[:3] in ['101', '105']:
+        #     self.securitiestype = 'futures'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
+        # else:
+        #     self.securitiestype = 'options'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = now_dt
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
