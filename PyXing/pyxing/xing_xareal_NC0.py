@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 04 20:19:45 2013
-
-@author: Administrator
-"""
 
 from xing_source import SourceReal
 
+
 class XAReal_NC0(SourceReal):
     """
-    kospi200 night futures trade tick real time receive
+    kospi200 CME night futures trade tick real time receive
     """
-    def __init__(self,shcode=None,DataType='dictionary'):
-        super(XAReal_NC0,self).__init__("XA_DataSet.XAReal")
+    def __init__(self, shcode=None, datatype='dictionary'):
+        super(XAReal_NC0, self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\NC0.res")
         self.shcode = shcode
-        self.DataType = DataType        
-        if shcode: self.SetFieldData('InBlock','futcode',shcode)
+        self.datatype = datatype
+        if shcode: self.SetFieldData('InBlock', 'futcode', shcode)
         pass
+
     def OnSignal(self):
-        if self.DataType == 'dictionary':
-            self.data = {}
+        if self.datatype == 'dictionary':
+            self.data = dict()
             self.data['chetime'] = self.GetFieldData('OutBlock','chetime')      
             self.data['chetime1'] = self.GetFieldData('OutBlock','chetime1')      
             self.data['sign'] = self.GetFieldData('OutBlock','sign')            
@@ -54,13 +51,13 @@ class XAReal_NC0(SourceReal):
             #===============================================================
             self.data['LastPrice'] = self.GetFieldData('OutBlock', 'price')
             self.data['LastQty'] = self.GetFieldData('OutBlock', 'cvolume')
-            self.data['BuySell'] = self.GetFieldData('OutBlock','cgubun')
-            self.data['Ask1'] = self.GetFieldData('OutBlock','offerho1')
-            self.data['Bid1'] = self.GetFieldData('OutBlock','bidho1')
-            self.data['ShortCD'] = self.GetFieldData('OutBlock','futcode')
+            self.data['BuySell'] = self.GetFieldData('OutBlock', 'cgubun')
+            self.data['Ask1'] = self.GetFieldData('OutBlock', 'offerho1')
+            self.data['Bid1'] = self.GetFieldData('OutBlock', 'bidho1')
+            self.data['ShortCD'] = self.GetFieldData('OutBlock', 'futcode')
             self.Notify()
-        elif self.DataType == 'list':
-            self.data = []
+        elif self.datatype == 'list':
+            self.data = list()
             self.data.append(self.GetFieldData('OutBlock','chetime'))      
             self.data.append(self.GetFieldData('OutBlock','chetime1'))      
             self.data.append(self.GetFieldData('OutBlock','sign'))            
