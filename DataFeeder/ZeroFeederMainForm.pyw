@@ -145,33 +145,24 @@ class MainForm(QtGui.QMainWindow):
         logger.info('zmq test port: %d' % (self.port + 1))
 
     def init_zmqsender(self):
-        self.ZMQFuturesTradeSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'futures')
-        self.ZMQFuturesQuoteSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'futures')
-        # self.ZMQFuturesExpectSender = ZMQTickSender(self.socket, 'cybos', 'E', 'futures')
-        self.ZMQOptionsTradeSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'options')
-        self.ZMQOptionsQuoteSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'options')
-        self.ZMQOptionsNightTradeSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'options')
-        self.ZMQOptionsNightQuoteSender_test = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'options')
         self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket_test, 'xing', 'E', 'futures')
         self.ZMQOptionsExpectSender_xing = ZMQTickSender_New(self.socket_test, 'xing', 'E', 'options')
         self.obs = ConsoleObserver()
 
     def init_taq_feederlist(self):
-        self.FutureTAQFeederLst = list()
         self.FutureTAQFeederDict = dict()
-        self.OptionTAQFeederLst = list()
         self.OptionTAQFeederDict = dict()
         self.EquityTAQFeederLst = list()
 
     # ======= init futures =======
 
     def initFC0(self):
-        newitemtrade_new = px.XAReal_FC0(DataType='dictionary')
+        newitemtrade_new = px.XAReal_FC0(datatype='dictionary')
         newitemtrade_new.Attach(self.ZMQFuturesTradeSender_test)
         self.FutureTAQFeederDict['FC0'] = newitemtrade_new
 
     def initFH0(self):
-        newitemtrade_new = px.XAReal_FH0(DataType='dictionary')
+        newitemtrade_new = px.XAReal_FH0(datatype='dictionary')
         newitemtrade_new.Attach(self.ZMQFuturesQuoteSender_test)
         self.FutureTAQFeederDict['FH0'] = newitemtrade_new
 
@@ -251,11 +242,11 @@ class MainForm(QtGui.QMainWindow):
         # newitemquote.Subscribe()
         # self.FutureTAQFeederLst.append(newitemquote)
 
-    def registerFeedItem_FC0(self, shortcd):
+    def regist_FeedItem_FC0(self, shortcd):
         self.FutureTAQFeederDict['FC0'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['FC0'].AdviseRealData()
 
-    def registerFeedItem_FH0(self, shortcd):
+    def regist_FeedItem_FH0(self, shortcd):
         self.FutureTAQFeederDict['FC0'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['FC0'].AdviseRealData()
 
@@ -273,7 +264,7 @@ class MainForm(QtGui.QMainWindow):
         self.FutureTAQFeederDict['NH0'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['NH0'].AdviseRealData()
 
-    def registerFeedItem_YFC(self, shortcd):
+    def regist_FeedItem_YFC(self, shortcd):
         self.FutureTAQFeederDict['YFC'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['YFC'].AdviseRealData()
 
@@ -306,7 +297,7 @@ class MainForm(QtGui.QMainWindow):
             self.OptionTAQFeederDict['EH0_New'].SetFieldData('InBlock', 'optcode', shortcd)
             self.OptionTAQFeederDict['EH0_New'].AdviseRealData()
         
-    def registerFeedItem_YOC(self, shortcd):
+    def regist_FeedItem_YOC(self, shortcd):
         self.OptionTAQFeederDict['YOC'].SetFieldData('InBlock', 'optcode', shortcd)
         self.OptionTAQFeederDict['YOC'].AdviseRealData()
 
@@ -380,11 +371,13 @@ class MainForm(QtGui.QMainWindow):
         if self.XASession.IsConnected() and boolToggle:
             logger.info('regist feed data @ xing')
             if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initFC0()
+                self.initFH0()
                 self.initYFC()
                 for shortcd in self._FeedCodeList.future_shortcd_list:
-                    self.registerFeedItem_FC0(shortcd)
-                    self.registerFeedItem_FH0(shortcd)
-                    self.registerFeedItem_YFC(shortcd)
+                    self.regist_FeedItem_FC0(shortcd)
+                    self.regist_FeedItem_FH0(shortcd)
+                    self.regist_FeedItem_YFC(shortcd)
             else:
                 self.initNC0()
                 self.initNH0()
@@ -404,7 +397,7 @@ class MainForm(QtGui.QMainWindow):
                 for shortcd in self._FeedCodeList.option_shortcd_list:
                     self.regist_FeedItem_OC0(shortcd)
                     self.regist_FeedItem_OH0(shortcd)
-                    self.registerFeedItem_YOC(shortcd)
+                    self.regist_FeedItem_YOC(shortcd)
             else:
                 self.initEC0()
                 self.initEH0()
