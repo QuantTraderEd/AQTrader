@@ -197,10 +197,14 @@ class MainForm(QtGui.QMainWindow):
 
     # ======= init options =======
 
+    def initOptionCur(self):
+        newitem_trade = pc.OptionCurOnly()
+        self.OptionTAQFeederDict['OptionCur'] = newitem_trade
+
     def initOptionJpBid(self):
-        newitemquote = pc.OptionJpBid()        
+        newitemquote = pc.OptionJpBid()
         # newitemquote.Attach(self.ZMQOptionsQuoteSender)
-        # self.OptionTAQFeederDict['OptionJpBid'] = newitemquote
+        self.OptionTAQFeederDict['OptionJpBid'] = newitemquote
 
     def initOC0(self):
         newitemtrade_new = px.XAReal_OC0(DataType='dictionary')
@@ -229,14 +233,21 @@ class MainForm(QtGui.QMainWindow):
         newitemoption_aution_new.Attach(self.ZMQOptionsExpectSender_xing)
         self.OptionTAQFeederDict['YOC'] = newitemoption_aution_new
 
-    def initFOExpect(self):
-        newitemoption_aution = pc.FOExpectCur()
-        # newitemoption_aution.Attach(self.ZMQOptionsExpectSender)
-        # self.OptionTAQFeederDict['OptionExpect'] = newitemoption_aution
+    def initFOExpect_Future(self):
+        newitemoption_futures_aution = pc.FOExpectCur()
+        zmq_sender = ZMQTickSender_New(self.socket_test, 'cybos', 'E', 'futures')
+        newitemoption_futures_aution.Attach(zmq_sender)
+        self.FutureTAQFeederDict['FutureExpect'] = newitemoption_futures_aution
+
+    def initFOExpect_Option(self):
+        newitemoption_options_aution = pc.FOExpectCur()
+        zmq_sender = ZMQTickSender_New(self.socket_test, 'cybos', 'E', 'options')
+        newitemoption_options_aution.Attach(zmq_sender)
+        self.OptionTAQFeederDict['OptionExpect'] = newitemoption_options_aution
 
     # ======= regist futures =======
 
-    def registerFeedItem_FutureJpBid(self, shortcd):
+    def regist_FeedItem_FutureJpBid(self, shortcd):
         newitemquote = pc.FutureJpBid(shortcd[:-3])
         # newitemquote.Attach(self.ZMQFuturesQuoteSender)
         # newitemquote.Subscribe()
@@ -250,7 +261,7 @@ class MainForm(QtGui.QMainWindow):
         self.FutureTAQFeederDict['FC0'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['FC0'].AdviseRealData()
 
-    def registerFeedItem_CMECurr(self, shortcd):
+    def regist_FeedItem_CMECurr(self, shortcd):
         newitemquote = pc.CmeCurr(shortcd[:-3])
         # newitemquote.Attach(self.ZMQFuturesQuoteSender)
         # newitemquote.Subscribe()
@@ -269,8 +280,10 @@ class MainForm(QtGui.QMainWindow):
         self.FutureTAQFeederDict['YFC'].AdviseRealData()
 
     # ======= regist options =======
+    def regist_FeedItem_OptionCur(self, shortcd):
+        self.OptionTAQFeederDict['OptionCur'].Subscribe('0', shortcd)
 
-    def registerFeedItem_OptionJpBid(self, shortcd):
+    def regist_FeedItem_OptionJpBid(self, shortcd):
         self.OptionTAQFeederDict['OptionJpBid'].Subscribe('0', shortcd)
 
     def regist_FeedItem_OC0(self, shortcd):
@@ -303,13 +316,10 @@ class MainForm(QtGui.QMainWindow):
 
     def registerFeedItem_FOExpect(self, shortcd):
         if shortcd[:3] in ['101', '105']:
-            newitem_aution = pc.FOExpectCur()
-            newitem_aution.Attach(self.ZMQFuturesExpectSender)
-            newitem_aution.SetInputValue(0, shortcd[:-3])
-            newitem_aution.SetInputValue(1, 'F1')
-            newitem_aution.SetInputValue(2, shortcd[3:-3])
-            newitem_aution.Subscribe()
-            self.FutureTAQFeederLst.append(newitem_aution)
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(0, shortcd[:-3])
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(1, 'F1')
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(2, shortcd[3:-3])
+            self.FutureTAQFeederDict['FutureExpect'].Subscribe()
         elif shortcd[:3] == '201' or shortcd[:3] == '301':
             self.OptionTAQFeederDict['OptionExpect'].SetInputValue(0, shortcd)
             self.OptionTAQFeederDict['OptionExpect'].SetInputValue(1, 'O1')
@@ -412,25 +422,28 @@ class MainForm(QtGui.QMainWindow):
 
         if self.cpcybos.IsConnect() and boolToggle:
             logger.info('regist feed data @ cybos')
-            for shortcd in self._FeedCodeList.future_shortcd_list:
-                if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
-                    self.registerFeedItem_FutureJpBid(shortcd)
-                else:
-                    self.registerFeedItem_CMECurr(shortcd)
-                self.registerFeedItem_FOExpect(shortcd)
-
-            self.initOptionJpBid()
-            self.initFOExpect()
             if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initFOExpect_Future()
+                for shortcd in self._FeedCodeList.future_shortcd_list:
+                    self.regist_FeedItem_FutureJpBid(shortcd)
+                    self.registerFeedItem_FOExpect(shortcd)
+            else:
+                for shortcd in self._FeedCodeList.future_shortcd_list:
+                    self.regist_FeedItem_CMECurr(shortcd)
+
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initOptionCur()
+                self.initOptionJpBid()
+                self.initFOExpect_Option()
                 for shortcd in self._FeedCodeList.option_shortcd_list:
-                    self.registerFeedItem_OptionJpBid(shortcd)
+                    self.regist_FeedItem_OptionJpBid(shortcd)
                     self.registerFeedItem_FOExpect(shortcd)
 
-            for shortcd in self._FeedCodeList.equity_shortcd_list:
-                self.registerFeedItem_StockJpBid(shortcd)
-
-            for shortcd in self._FeedCodeList.index_shortcd_list:
-                self.registerFeedItem_ExpectIndexS(shortcd)
+            # for shortcd in self._FeedCodeList.equity_shortcd_list:
+            #     self.registerFeedItem_StockJpBid(shortcd)
+            #
+            # for shortcd in self._FeedCodeList.index_shortcd_list:
+            #     self.registerFeedItem_ExpectIndexS(shortcd)
 
         if boolToggle:
             logger.info('start pumping msg')
