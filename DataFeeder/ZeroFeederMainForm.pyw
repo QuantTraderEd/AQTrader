@@ -53,7 +53,7 @@ class ConsoleObserver:
 class MainForm(QtGui.QMainWindow):
     def __init__(self):
         super(MainForm, self).__init__()
-        self.port = 5500
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
         self.init_ui()
         self.init_timer()
         self.init_api()
@@ -112,6 +112,7 @@ class MainForm(QtGui.QMainWindow):
         value = setting.value("port", type=int)
         if value:
             self.port = value
+            logger.info("port: %d" % self.port)
         pass
 
     def init_timer(self):
@@ -140,13 +141,13 @@ class MainForm(QtGui.QMainWindow):
 
     def init_zmq(self):
         context = zmq.Context()
-        self.socket_test = context.socket(zmq.PUB)
-        self.socket_test.bind("tcp://127.0.0.1:%d" % (self.port + 1))
-        logger.info('zmq test port: %d' % (self.port + 1))
+        self.socket = context.socket(zmq.PUB)
+        self.socket.bind("tcp://127.0.0.1:%d" % self.port)
+        logger.info('zmq port: %d' % self.port)
 
     def init_zmqsender(self):
-        self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket_test, 'xing', 'E', 'futures')
-        self.ZMQOptionsExpectSender_xing = ZMQTickSender_New(self.socket_test, 'xing', 'E', 'options')
+        self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket, 'xing', 'E', 'futures')
+        self.ZMQOptionsExpectSender_xing = ZMQTickSender_New(self.socket, 'xing', 'E', 'options')
         self.obs = ConsoleObserver()
 
     def init_taq_feederlist(self):
@@ -168,25 +169,25 @@ class MainForm(QtGui.QMainWindow):
 
     def initNC0(self):
         newitemtrade_new = px.XAReal_NC0(datatype='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'futures')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
         newitemtrade_new.Attach(zmqsender)
         self.FutureTAQFeederDict['NC0'] = newitemtrade_new
 
     def initNH0(self):
         newitemtrade_new = px.XAReal_NH0(datatype='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'futures')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
         newitemtrade_new.Attach(zmqsender)
         self.FutureTAQFeederDict['NH0'] = newitemtrade_new
 
     def initEC0_MINI(self):
         newitemtrade_new = px.XAReal_EC0(DataType='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'futures')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
         newitemtrade_new.Attach(zmqsender)
         self.OptionTAQFeederDict['EC0_MINI'] = newitemtrade_new
 
     def initEH0_MINI(self):
         newitemquote_new = px.XAReal_EH0(DataType='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'futures')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
         newitemquote_new.Attach(zmqsender)
         self.OptionTAQFeederDict['EH0_MINI'] = newitemquote_new
 
@@ -218,13 +219,13 @@ class MainForm(QtGui.QMainWindow):
             
     def initEC0(self):
         newitemtrade_new = px.XAReal_EC0(DataType='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'T', 'options')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'options')
         newitemtrade_new.Attach(zmqsender)
         self.OptionTAQFeederDict['EC0_New'] = newitemtrade_new
 
     def initEH0(self):
         newitemquote_new = px.XAReal_EH0(DataType='dictionary')
-        zmqsender = ZMQTickSender_New(self.socket_test, 'xing', 'Q', 'options')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'options')
         newitemquote_new.Attach(zmqsender)
         self.OptionTAQFeederDict['EH0_New'] = newitemquote_new
             
@@ -235,13 +236,13 @@ class MainForm(QtGui.QMainWindow):
 
     def initFOExpect_Future(self):
         newitemoption_futures_aution = pc.FOExpectCur()
-        zmq_sender = ZMQTickSender_New(self.socket_test, 'cybos', 'E', 'futures')
+        zmq_sender = ZMQTickSender_New(self.socket, 'cybos', 'E', 'futures')
         newitemoption_futures_aution.Attach(zmq_sender)
         self.FutureTAQFeederDict['FutureExpect'] = newitemoption_futures_aution
 
     def initFOExpect_Option(self):
         newitemoption_options_aution = pc.FOExpectCur()
-        zmq_sender = ZMQTickSender_New(self.socket_test, 'cybos', 'E', 'options')
+        zmq_sender = ZMQTickSender_New(self.socket, 'cybos', 'E', 'options')
         newitemoption_options_aution.Attach(zmq_sender)
         self.OptionTAQFeederDict['OptionExpect'] = newitemoption_options_aution
 
