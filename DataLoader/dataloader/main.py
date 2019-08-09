@@ -34,18 +34,32 @@ logger.addHandler(ch)
 class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.port = 5500
-        self.initUI()
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.set_auto = False
+        self.set_auto_config()
+
+        self.init_ui()
         self.initTIMER()
         self.initThread()
         pass
 
+    def set_auto_config(self):
+        setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        self.port = setting.value("port", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("zmq port: %d" % self.port)
+
     def closeEvent(self, event):
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
+        setting.setValue("setauto", self.set_auto)
         setting.setValue("port", self.port)
 
-    def initUI(self):
+    def init_ui(self):
         self.startPushButton = QtGui.QPushButton(self)
         self.plainTextEditor = QtGui.QPlainTextEdit(self)
         self.vboxLayout = QtGui.QVBoxLayout(self)
@@ -65,25 +79,7 @@ class MainForm(QtGui.QWidget):
 
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
-        value = setting.value("port", type=int)
-        if value:
-            self.port = value
-            logger.info("port: %d" % self.port)
-
-        self.set_auto = False
-        self.set_auto_config()
         pass
-
-    def set_auto_config(self, file_name='auto_config'):
-        try:
-            with open(file_name, 'r') as f:
-                auto_config = json.load(f)
-                if auto_config['setauto']:
-                    print auto_config
-                    self.set_auto = True
-                f.close()
-        except IOError:
-            logger.info('not found auto_config file')
 
     def initTIMER(self):
         self.ctimer = QtCore.QTimer()
