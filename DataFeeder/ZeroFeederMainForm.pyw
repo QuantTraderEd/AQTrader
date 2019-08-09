@@ -563,8 +563,8 @@ class MainForm(QtGui.QMainWindow):
     def autotimer_update(self):
         now_time = time.localtime()
         close_trigger = False
-        close_hour = 23
-        close_minute = 36
+        close_hour = 6
+        close_minute = 5
         re_toggle_hour = 17
         re_toggle_minute = 5
         if now_time.tm_hour == close_hour and now_time.tm_min == close_minute and self.set_auto:
