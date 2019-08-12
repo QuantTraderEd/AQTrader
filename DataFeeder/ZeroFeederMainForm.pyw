@@ -263,8 +263,8 @@ class MainForm(QtGui.QMainWindow):
         self.FutureTAQFeederDict['FC0'].AdviseRealData()
 
     def regist_FeedItem_FH0(self, shortcd):
-        self.FutureTAQFeederDict['FC0'].SetFieldData('InBlock', 'futcode', shortcd)
-        self.FutureTAQFeederDict['FC0'].AdviseRealData()
+        self.FutureTAQFeederDict['FH0'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['FH0'].AdviseRealData()
 
     def regist_FeedItem_CMECurr(self, shortcd):
         newitemquote = pc.CmeCurr(shortcd[:-3])
