@@ -159,12 +159,14 @@ class MainForm(QtGui.QMainWindow):
 
     def initFC0(self):
         newitemtrade_new = px.XAReal_FC0(datatype='dictionary')
-        newitemtrade_new.Attach(self.ZMQFuturesTradeSender_test)
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
+        newitemtrade_new.Attach(zmqsender)
         self.FutureTAQFeederDict['FC0'] = newitemtrade_new
 
     def initFH0(self):
         newitemtrade_new = px.XAReal_FH0(datatype='dictionary')
-        newitemtrade_new.Attach(self.ZMQFuturesQuoteSender_test)
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
+        newitemtrade_new.Attach(zmqsender)
         self.FutureTAQFeederDict['FH0'] = newitemtrade_new
 
     def initNC0(self):
@@ -209,12 +211,14 @@ class MainForm(QtGui.QMainWindow):
 
     def initOC0(self):
         newitemtrade_new = px.XAReal_OC0(DataType='dictionary')
-        newitemtrade_new.Attach(self.ZMQOptionsTradeSender_test)
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'options')
+        newitemtrade_new.Attach(zmqsender)
         self.OptionTAQFeederDict['OC0_New'] = newitemtrade_new
             
     def initOH0(self):
         newitemquote_new = px.XAReal_OH0(DataType='dictionary')
-        newitemquote_new.Attach(self.ZMQOptionsQuoteSender_test)
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'options')
+        newitemquote_new.Attach(zmqsender)
         self.OptionTAQFeederDict['OH0_New'] = newitemquote_new
             
     def initEC0(self):
