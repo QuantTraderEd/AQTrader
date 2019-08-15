@@ -3,30 +3,30 @@
 from datetime import datetime
 
 
-class ZMQTickSender:
-    count = 0
-
-    def __init__(self, ZMQSocket=None, feedsource=None, feedtype=None, securitiestype=None):
-        self.ZMQSocket = ZMQSocket
-        self.feedsource = feedsource
-        self.feedtype = feedtype
-        self.securitiestype = securitiestype
-        pass
-
-    def Update(self,subject):
-        dt = datetime.now()
-        timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]        
-        msg = ''
-        msg = msg + self.feedsource
-        msg = msg + ',' + self.feedtype
-        msg = msg + ',' + self.securitiestype
-        for i in xrange(len(subject.data)):
-            msg = msg + ',' +  str(subject.data[i])
-        msg = timestamp + ',' + msg        
-        self.ZMQSocket.send(msg)
-        if self.securitiestype in ['futures', 'options']:
-            ZMQTickSender.count += 1
-        pass
+# class ZMQTickSender:
+#     count = 0
+#
+#     def __init__(self, ZMQSocket=None, feedsource=None, feedtype=None, securitiestype=None):
+#         self.ZMQSocket = ZMQSocket
+#         self.feedsource = feedsource
+#         self.feedtype = feedtype
+#         self.securitiestype = securitiestype
+#         pass
+#
+#     def Update(self,subject):
+#         dt = datetime.now()
+#         timestamp = datetime.strftime(dt,"%H:%M:%S.%f")[:-3]
+#         msg = ''
+#         msg = msg + self.feedsource
+#         msg = msg + ',' + self.feedtype
+#         msg = msg + ',' + self.securitiestype
+#         for i in xrange(len(subject.data)):
+#             msg = msg + ',' +  str(subject.data[i])
+#         msg = timestamp + ',' + msg
+#         self.ZMQSocket.send(msg)
+#         if self.securitiestype in ['futures', 'options']:
+#             ZMQTickSender.count += 1
+#         pass
 
 
 class ZMQTickSender_New:
@@ -39,21 +39,24 @@ class ZMQTickSender_New:
         self.securitiestype = securitiestype
         pass
     
-    def Update(self,subject):        
+    def Update(self, subject):
         if type(subject.data) != dict: return
         shortcd = subject.data['ShortCD']
         now_dt = datetime.now()
         # timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
         
-        msg_dict = {}
+        msg_dict = dict()
         
         msg_dict['ShortCD'] = shortcd
         msg_dict['FeedSource'] = self.feedsource
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
-        if shortcd[:3] == '105':
-            self.securitiestype = 'futures'
-            msg_dict['SecuritiesType'] = self.securitiestype
+        # if shortcd[:3] in ['101', '105']:
+        #     self.securitiestype = 'futures'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
+        # else:
+        #     self.securitiestype = 'options'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = now_dt
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
@@ -99,5 +102,5 @@ class ZMQTickSender_New:
 
         self.zmq_socket.send_pyobj(msg_dict)
         if self.securitiestype in ['futures', 'options']:
-            ZMQTickSender.count += 1
+            ZMQTickSender_New.count += 1
         pass

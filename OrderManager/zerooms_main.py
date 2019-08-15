@@ -91,6 +91,14 @@ class MainForm(QtGui.QMainWindow):
         self.accountlist = []
         self.servername = ''
 
+        now_dt = dt.datetime.now()
+
+        if now_dt.hour >= 7 and now_dt.hour < 17:
+            self.exchange_code = 'KRX'
+        else:
+            self.exchange_code = 'EUREX'
+        logger.info("exchange_code: %s" % self.exchange_code)
+
         self.initDB()
         self.initThread()
         self.initExpireDateUtil()
@@ -313,7 +321,9 @@ class MainForm(QtGui.QMainWindow):
                     self.ordermachineThread.terminate()
                     self.ordermachineThread.wait()
                     logger.info('OrderMachineThread stop')
+                    close_trigger = True
         elif now_dt.hour == re_toggle_hour and now_dt.minute == re_toggle_minute + 1:
+            # FIXME: because thread already is terminated, could not call isRunning func
             if not self.ordermachineThread.isRuning():
                 logger.info("auto toggle true")
                 self.ui.actionExecute.setChecked(True)
@@ -332,6 +342,11 @@ class MainForm(QtGui.QMainWindow):
             now_dt = dt.datetime.now()
             strdate = now_dt.strftime('%Y%m%d')
             is_expiredate = self.expiredate_util.is_expire_date(strdate)
+            if now_dt.hour >= 7 and now_dt.hour < 17:
+                self.exchange_code = 'KRX'
+            else:
+                self.exchange_code = 'EUREX'
+            logger.info("exchange_code: %s" % self.exchange_code)
             if is_expiredate and now_dt.hour >= 17:
                 now_dt = dt.datetime.now() + dt.timedelta(days=1)
                 strdate = now_dt.strftime('%Y%m%d')

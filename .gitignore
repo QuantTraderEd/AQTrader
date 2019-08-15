@@ -9,6 +9,8 @@ dist
 *.log.*
 .idea/
 .cache/
+.ipynb_checkpoints/
+miniarb_research/
 auto_config
 *.db
 *.db-journal

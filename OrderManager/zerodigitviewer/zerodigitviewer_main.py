@@ -41,8 +41,8 @@ class observer_CFOEQ11100(object):
             item = subject.data[1]
             pnl_day_test = (int(item['NtdayTotAmt'] or 0) - int(item['OpnmkDpsamtTotamt'] or 0)) * 0.001
             futures_adj_dt_amnt = (int(item['FutsAdjstDfamt'] or 0)) * 0.001
-            print "P/L Day Test: %d FutsAdjstDfamt: %d" % (pnl_day_test, futures_adj_dt_amnt)
-            pnl_day = (int(item['FutsBnsplAmt'] or 0) + int(item['OptBnsplAmt'] or 0)) * 0.001
+            # print "P/L Day Test: %d FutsAdjstDfamt: %d" % (pnl_day_test, futures_adj_dt_amnt)
+            pnl_day = pnl_day_test
             pnl_open = (int(item['FutsEvalPnlAmt'] or 0) + int(item['OptEvalPnlAmt'] or 0)) * 0.001
             subject.pnl_day = pnl_day + pnl_open  # P/L Day
             subject.pnl_open = pnl_open

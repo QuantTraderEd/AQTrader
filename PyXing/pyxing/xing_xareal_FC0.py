@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 17 20:07:07 2013
 
-@author: Administrator
-"""
 from xing_source import SourceReal
 
 
@@ -11,17 +7,17 @@ class XAReal_FC0(SourceReal):
     """
     kospi200 futures trade tick real time receive
     """
-    def __init__(self, shcode=None, DataType='dictionary'):
+    def __init__(self, shcode=None, datatype='dictionary'):
         super(XAReal_FC0, self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\FC0.res")
         self.shcode = shcode
-        self.DataType = DataType
+        self.datatype = datatype
         if shcode: self.SetFieldData('InBlock', 'futcode', shcode)
         pass
 
     def OnSignal(self):
-        if self.DataType == 'dictionary':
-            self.data = {}
+        if self.datatype == 'dictionary':
+            self.data = dict()
             self.data['chetime'] = self.GetFieldData('OutBlock','chetime')
             self.data['sign'] = self.GetFieldData('OutBlock','sign')
             self.data['change'] = self.GetFieldData('OutBlock','change')
@@ -59,8 +55,8 @@ class XAReal_FC0(SourceReal):
             self.data['Bid1'] = self.GetFieldData('OutBlock','bidho1')
             self.data['ShortCD'] = self.GetFieldData('OutBlock','futcode') 
             self.Notify()
-        elif self.DataType == 'list':
-            self.data = []
+        elif self.datatype == 'list':
+            self.data = list()
             self.data.append(self.GetFieldData('OutBlock','chetime'))      
             self.data.append(self.GetFieldData('OutBlock','sign'))            
             self.data.append(self.GetFieldData('OutBlock','change'))
