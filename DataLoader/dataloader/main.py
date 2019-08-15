@@ -28,12 +28,13 @@ ch.setFormatter(formatter)
 
 # add the handler to logger
 logger.addHandler(fh)
-# logger.addHandler(ch)
+logger.addHandler(ch)
 
 
 class MainForm(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.port = 5500
         self.initUI()
         self.initTIMER()
         self.initThread()
@@ -42,6 +43,7 @@ class MainForm(QtGui.QWidget):
     def closeEvent(self, event):
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
+        setting.setValue("port", self.port)
 
     def initUI(self):
         self.startPushButton = QtGui.QPushButton(self)
@@ -63,6 +65,10 @@ class MainForm(QtGui.QWidget):
 
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.restoreGeometry(setting.value("geometry").toByteArray())
+        value = setting.value("port", type=int)
+        if value:
+            self.port = value
+            logger.info("port: %d" % self.port)
 
         self.set_auto = False
         self.set_auto_config()
@@ -85,7 +91,7 @@ class MainForm(QtGui.QWidget):
         self.ctimer.timeout.connect(self.ctimer_update)
 
     def initThread(self):
-        self.dataloader_thread = DBLoaderThread(subtype='Real')
+        self.dataloader_thread = DBLoaderThread(port=self.port)
         self.dataloader_thread.filepath = './TAQ_Data/'
         self.dataloader_thread.finished.connect(self.NotifyThreadEnd)
         self.dataloader_thread.MsgNotify.connect(self.onNotify)

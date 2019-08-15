@@ -19,8 +19,8 @@ from sqlalchemy_tickdata_insert import insert_new_tickdata
 class DBLoaderThread(SubscribeThread):
     MsgNotify = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None, subtype='BackTest'):
-        SubscribeThread.__init__(self, parent, subtype=subtype)
+    def __init__(self, parent=None, port=5503):
+        SubscribeThread.__init__(self, parent, port)
         self.logger = logging.getLogger('DataLoader.DataLoaderThread')
         self.count = 0
         self.count_remain = 10
