@@ -2,7 +2,7 @@
 
 import sys
 from PyQt4 import QtGui
-from AQTrader.DataLoader.dataloader.main import MainForm
+from ..dataloader.dataloader_main import MainForm
 
 
 class TestClass(object):

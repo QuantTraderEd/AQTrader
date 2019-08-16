@@ -199,7 +199,7 @@ def dataloader_starter():
     os.chdir(pjt_path + '/DataLoader/dataloader')
     if not os.path.exists('./TAQ_Data/'):
         os.makedirs('./TAQ_Data/')
-    os.startfile('main.py')
+    os.startfile('dataloader_main.py')
     logger.info('start DataLoader')
 
 
