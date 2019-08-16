@@ -18,7 +18,7 @@ logger = logging.getLogger('OptionWindow')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('OptionWindow.log')
+# fh = logging.FileHandler('OptionWindow.log')
 fh = RotatingFileHandler('OptionWindow.log', maxBytes=5242, backupCount=3)
 fh.setLevel(logging.DEBUG)
 
@@ -43,6 +43,10 @@ def convert(strprice):
 class MainForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.set_auto = False
+        self.set_auto_config()
+
         self.initExpireDateUtil()
         self.initUI()
         sip.setdestroyonexit(False)
@@ -54,10 +58,23 @@ class MainForm(QtGui.QMainWindow):
         self.initData()
         self.onStart()
 
+    def set_auto_config(self):
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("zmq port: %d" % self.port)
+
     def closeEvent(self, event):
         self.mythread.stop()
-        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
+        setting.setValue("setauto", self.set_auto)
+        setting.setValue("port", self.port)
         
     def initUI(self):
         self.ui = Ui_MainWindow()
@@ -67,7 +84,7 @@ class MainForm(QtGui.QMainWindow):
         self.myOrderWidget = OptionViewerOrderWidget(self)
         self.myOrderWidget.initZMQ()
 
-        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
         if setting.value("geometry"):
             self.restoreGeometry(setting.value("geometry").toByteArray())
             # self.restoreGeometry(setting.value("geometry"))
@@ -126,10 +143,10 @@ class MainForm(QtGui.QMainWindow):
                 strikeprice = self.strikelst[i] + '.5'
             else:
                 strikeprice = self.strikelst[i] + '.0'             
-            self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))                
+            self.ui.tableWidget.setItem(i, 7, QtGui.QTableWidgetItem(strikeprice))
 
     def initThread(self):
-        self.mythread = OptionViewerThread(None)
+        self.mythread = OptionViewerThread(port=self.port)
         self.mythread.receiveData[dict].connect(self.onReceiveData)
 
     def initExpireDateUtil(self):
@@ -183,11 +200,9 @@ class MainForm(QtGui.QMainWindow):
 
         pass
         
-        
     def onStart(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            #print "start"
         pass
     
     def ctimer_update(self):
@@ -402,6 +417,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
+    if myform.set_auto:
+        myform.onStart()
     app.exec_()   
 
 
