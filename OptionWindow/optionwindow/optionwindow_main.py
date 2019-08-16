@@ -81,6 +81,8 @@ class MainForm(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.actionStart.triggered.connect(self.onStart)
         self.resize(800, 200)
+        QtGui.qApp.setStyle('Cleanlooks')
+
         self.myOrderWidget = OptionViewerOrderWidget(self)
         self.myOrderWidget.initZMQ()
 
