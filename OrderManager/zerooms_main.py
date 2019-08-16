@@ -2,7 +2,6 @@
 
 import time
 import re
-import json
 import pythoncom
 import ctypes
 
@@ -50,26 +49,13 @@ logger.addHandler(ch)
 
 class MainForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
-        # QtGui.QWidget.__init__(self,parent)
         super(MainForm, self).__init__(parent)
 
-        # demo
-        # order_port = 6001
-        # exec_report_port = 7001
-        # accountindex = 1
-        # db_path = 'C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/'
-
-        # real
-        # order_port = 6000
-        # exec_report_port = 7000
-        # accountindex = 0
-        # db_path = 'C:/Python/ZeroTrader/ZeroOMS/orderlist_db/'
-
-        self.order_port = 6001
-        self.exec_report_port = 7001
+        self.order_port = 6001   # real: 6001 test: 6002
+        self.exec_port = 7001    # real: 7001 test: 7002
         self.accountindex = 1
-        # self.db_path = 'C:/Python/AQTrader/OrderManager/orderlist_db/'
         self.db_path = './orderlist_db/'
+        self.auto_config = self.set_auto_config()
 
         self.initUI()
 
@@ -106,17 +92,30 @@ class MainForm(QtGui.QMainWindow):
         logger.info('Start ZeroOMS')
 
         self.set_auto = False
-        try:
-            with open('auto_config', 'r') as f:
-                auto_config = json.load(f)
-                if auto_config['setauto']:
-                    print auto_config
-                    self.set_auto = True
-                    self.slot_AutoStartXing(auto_config)
-                f.close()
-        except IOError:
-            logger.info('not found auto_config file')
+        if self.set_auto:
+            self.auto_start_xing(self.auto_config)
         pass
+
+    def set_auto_config(self):
+        setting = QtCore.QSettings("ZeroOMS.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        if setting.value("order_port", type=int) != 0:
+            self.order_port = setting.value("order_port", type=int)
+        if setting.value("exec_port", type=int) != 0:
+            self.exec_port = setting.value("exec_port", type=int)
+        auto_config = dict()
+        auto_config['id'] = str(setting.value("id", type=str))
+        auto_config['pwd'] = str(setting.value("pwd", type=str))
+        auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
+        auto_config['servertype'] = setting.value("servertype", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("order_port: %d" % self.order_port)
+        logger.info("exec_port: %d" % self.exec_port)
+        print auto_config
+        return auto_config
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
@@ -128,6 +127,9 @@ class MainForm(QtGui.QMainWindow):
         setting.setValue("OrdListDlg_Show", self.myOrdListDlg.isVisible())
         setting.setValue("PositionViewer_Show", self.myPositionViewer.isVisible())
         setting.setValue("DigitViewer_Show", self.myDigitViewer.isVisible())
+        setting.setValue("setauto", self.set_auto)
+        setting.setValue("order_prot", self.order_port)
+        setting.setValue("exec_port", self.exec_port)
         self.myOrdListDlg.close()
         self.myPositionViewer.close()
         self.myDigitViewer.close()
@@ -218,8 +220,8 @@ class MainForm(QtGui.QMainWindow):
                                                    )""")
 
     def initThread(self):
-        logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_report_port))
-        self.ordermachineThread = OrderMachineNewThread(order_port=self.order_port, exec_report_port=self.exec_report_port)
+        logger.info("order_port->%d, exec_report_port->%d" % (self.order_port, self.exec_port))
+        self.ordermachineThread = OrderMachineNewThread(order_port=self.order_port, exec_report_port=self.exec_port)
         self.ordermachineThread._XASession = proxy(self.XASession)
         self.ordermachineThread.db_path = self.db_path
         self.ordermachineThread.init_func()
@@ -255,7 +257,7 @@ class MainForm(QtGui.QMainWindow):
             self.start_xing_query()
         pass
             
-    def slot_AutoStartXing(self, auto_config):
+    def auto_start_xing(self, auto_config):
         server = 'hts.ebestsec.co.kr'
         port = 20001
         servertype = 0
