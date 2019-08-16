@@ -74,7 +74,8 @@ class MainForm(QtGui.QMainWindow):
     def set_auto_config(self):
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
         self.set_auto = setting.value("setauto", type=bool)
-        self.port = setting.value("port", type=int)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
         auto_config = dict()
         auto_config['id'] = str(setting.value("id", type=str))
         auto_config['pwd'] = str(setting.value("pwd", type=str))

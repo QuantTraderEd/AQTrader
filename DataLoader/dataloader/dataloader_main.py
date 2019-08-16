@@ -46,7 +46,8 @@ class MainForm(QtGui.QWidget):
     def set_auto_config(self):
         setting = QtCore.QSettings("DataLoader.ini", QtCore.QSettings.IniFormat)
         self.set_auto = setting.value("setauto", type=bool)
-        self.port = setting.value("port", type=int)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
         if self.set_auto:
             logger.info("setauto: True")
         else:
