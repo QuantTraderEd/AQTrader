@@ -13,7 +13,8 @@ class KiwoomOPT50001(KiwoomTR):
     def on_signal(self, trcode, rqname):
         if trcode == u"opt50001":
             data = self.ocx.dynamicCall("GetCommDataEx(QString, QString)", trcode, rqname)
-            data = unicode(data.toPyObject())
+            data = data.toPyObject()[0]
+            data = [unicode(item) for item in data]
             self.data = data
             if self.event is not None:
                 self.event.exit()
