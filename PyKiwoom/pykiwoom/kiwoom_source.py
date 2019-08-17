@@ -233,20 +233,22 @@ class KiwoomTR(object):
 
 
 class KiwoomReal(object):
-    def __init__(self):
-        self.ocx = QAxContainer.QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        self.ocx.OnEventConnect.connect(self.on_event_connect)
-        # self.ocx.OnReceiveTrData.connect(self.on_receive_tr_data)
-        self.ocx.OnReceiveChejanData.connect(self.on_receive_chejan_data)
-        self.ocx.OnReceiveRealData.connect(self.on_receive_real_data)
-        self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
-        # self.ocx.OnReceiveConditionVer.connect(self.on_receive_condition_ver)
-        # self.ocx.OnReceiveTrCondition.connect(self.on_receive_tr_condition)
-        # self.ocx.OnReceiveRealCondition.connect(self.on_receive_real_condition)
-        self.ocx.parent = proxy(self)
+    def __init__(self, kiwoom_session=None):
+        self.kiwoom_session = kiwoom_session
+        self.add_recvdata_connection()
+
         self.observers = []
         self.data = None
         self.event = None
+
+    def add_recvdata_connection(self):
+        if isinstance(self.kiwoom_session, KiwoomSession):
+            self.kiwoom_session.ocx.OnReceiveRealData.connect(self.on_receive_real_data)
+            self.kiwoom_session.ocx.OnReceiveMsg.connect(self.on_receive_msg)
+            self.kiwoom_session.ocx.OnReceiveChejanData.connect(self.on_receive_chejan_data)
+            self.kiwoom_session.parent = proxy(self)
+        else:
+            print('raise error msg')
 
     # observer routine
     def attach(self, obs):
@@ -287,10 +289,10 @@ class KiwoomReal(object):
         # 타입 “1”은 이전에 실시간 등록한 종목들과 함께 실시간을 받고 싶은 종목을 추가로 등록할 때 사용합니다.
         # ※ 종목, FID는 각각 한번에 실시간 등록 할 수 있는 개수는 100개 입니다.
         """
-        ret = self.ocx.dynamicCall("SetRealReg(QString, QString, QString, QString)", scrno,
-                                   cdlist,
-                                   fidlist,
-                                   opttype)
+        ret = self.kiwoom_session.ocx.dynamicCall("SetRealReg(QString, QString, QString, QString)", scrno,
+                                                                                                   cdlist,
+                                                                                                   fidlist,
+                                                                                                   opttype)
         return ret
 
     def on_receive_chejan_data(self):
@@ -299,15 +301,6 @@ class KiwoomReal(object):
     def on_receive_real_data(self, shortcd, realtype, realdata):
         print(unicode(realtype), unicode(shortcd))
         self.on_signal(realtype, shortcd)
-        # if realtype == u"선물시세":
-        #     fidlist = [9001, 20, 10, 15, 13]
-        #     fid_name_dict = dict()
-        #     fid_name_dict[9001] = u"timestamp"
-        #     fid_name_dict[20] = u"last_price"
-        #     fid_name_dict[15] = u"last_qty"
-        #     fid_name_dict[13] = u"volume"
-        #     for i in fidlist:
-        #         data = self.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
-        #         print(fid_name_dict[i], unicode(data.toPyObject()).strip())
+
 
 
