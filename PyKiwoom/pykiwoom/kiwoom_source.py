@@ -233,6 +233,8 @@ class KiwoomTR(object):
 
 
 class KiwoomReal(object):
+    receiveData = QtCore.pyqtSignal(dict)
+
     def __init__(self, kiwoom_session=None):
         self.kiwoom_session = kiwoom_session
         self.add_recvdata_connection()

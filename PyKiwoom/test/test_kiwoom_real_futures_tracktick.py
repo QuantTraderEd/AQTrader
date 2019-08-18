@@ -30,7 +30,7 @@ class TestThread(QtCore.QThread):
 
         screen_no = u"0005"
         code_list = futures_list[0]
-        fid_list = u"9001;20;10;15;13"
+        fid_list = u"9001;20;10;15;13;195"
         opt_type = u"0"
         self.real_futures_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         self.real_futures_tradetick.receiveData.connect(self.onReceiveData)

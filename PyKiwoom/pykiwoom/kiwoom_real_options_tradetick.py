@@ -4,13 +4,13 @@ from PyQt4 import QtCore
 from kiwoom_source import KiwoomReal
 
 
-class KiwoomFuturesTradeTick(KiwoomReal):
+class KiwoomOptionsTradeTick(KiwoomReal):
     """
-    Real: futures trade tick
+    Real: options trade tick
     """
 
     def __init__(self, kiwoom_session=None):
-        super(KiwoomFuturesTradeTick, self).__init__(kiwoom_session=kiwoom_session)
+        super(KiwoomOptionsTradeTick, self).__init__(kiwoom_session=kiwoom_session)
         self.fidlist = [20, 10, 15, 13, 195]
         self.fid_name_dict = dict()
         self.fid_name_dict[20] = u"timestamp"
@@ -21,7 +21,7 @@ class KiwoomFuturesTradeTick(KiwoomReal):
         self.data = dict()
 
     def on_signal(self, realtype, shortcd):
-        if realtype == u"선물시세":
+        if realtype == u"옵션시세":
             self.data["shortcd"] = shortcd
             for i in self.fidlist:
                 data = self.kiwoom_session.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
