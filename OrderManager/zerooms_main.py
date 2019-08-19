@@ -55,6 +55,7 @@ class MainForm(QtGui.QMainWindow):
         self.exec_port = 7001    # real: 7001 test: 7002
         self.accountindex = 1
         self.db_path = './orderlist_db/'
+        self.set_auto = False
         self.auto_config = self.set_auto_config()
 
         self.initUI()
@@ -89,11 +90,10 @@ class MainForm(QtGui.QMainWindow):
         self.initThread()
         self.initExpireDateUtil()
 
-        logger.info('Start ZeroOMS')
-
-        self.set_auto = False
         if self.set_auto:
             self.auto_start_xing(self.auto_config)
+
+        logger.info('Start ZeroOMS')
         pass
 
     def set_auto_config(self):
