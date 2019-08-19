@@ -54,6 +54,9 @@ class MainForm(QtGui.QMainWindow):
     def __init__(self):
         super(MainForm, self).__init__()
         self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.set_auto = False
+        self.auto_config = self.set_auto_config()
+
         self.init_ui()
         self.init_timer()
         self.init_api()
@@ -62,31 +65,36 @@ class MainForm(QtGui.QMainWindow):
         self.init_zmq()
 
         self.exchange_code = 'KRX'
-
-        self.filepath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\zeroetfviewer'
         self.filename = 'prevclose.txt'
 
-        self.set_auto = False
-        logger.info('%s', os.getcwd())
-        try:
-            file_path = os.path.dirname(os.path.abspath(__file__))
-            with open(file_path + '/' + 'auto_config', 'r') as f:
-                auto_config = json.load(f)
-                if auto_config['setauto']:
-                    print auto_config
-                    self.set_auto = True
-                    self.slot_CheckCybosStarter(0, 2)
-                    self.slot_AutoStartXing(auto_config)
-                f.close()
-        except IOError:
-            logger.info('not found auto_config file')
-        pass
+        if self.set_auto:
+            self.slot_CheckCybosStarter(0, 2)
+            self.auto_start_xing(self.auto_config)
+
+    def set_auto_config(self):
+        setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
+        auto_config = dict()
+        auto_config['id'] = str(setting.value("id", type=str))
+        auto_config['pwd'] = str(setting.value("pwd", type=str))
+        auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
+        auto_config['servertype'] = setting.value("servertype", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("zmq port: %d" % self.port)
+        print auto_config
+        return auto_config
 
     def closeEvent(self, event):
         self.XASession.DisconnectServer()
         ctypes.windll.user32.PostQuitMessage(0)
         setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
+        setting.setValue("setauto", self.set_auto)
         setting.setValue("port", self.port)
         logger.info("Close DataFeeder")
         super(MainForm, self).closeEvent(event)
@@ -109,10 +117,6 @@ class MainForm(QtGui.QMainWindow):
         value = setting.value("geometry")
         if value:
             self.restoreGeometry(setting.value("geometry").toByteArray())
-        value = setting.value("port", type=int)
-        if value:
-            self.port = value
-            logger.info("port: %d" % self.port)
         pass
 
     def init_timer(self):
@@ -143,7 +147,6 @@ class MainForm(QtGui.QMainWindow):
         context = zmq.Context()
         self.socket = context.socket(zmq.PUB)
         self.socket.bind("tcp://127.0.0.1:%d" % self.port)
-        logger.info('zmq port: %d' % self.port)
 
     def init_zmqsender(self):
         self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket, 'xing', 'E', 'futures')
@@ -455,9 +458,9 @@ class MainForm(QtGui.QMainWindow):
             pythoncom.PumpMessages()
         pass
 
-    def slot_RequestPrevClosePrice(self):
+    def slot_request_prev_close(self):
         if self.cpcybos.IsConnect():
-            filep = open(self.filepath + '\\' + self.filename,'w+')
+            filep = open(self.filename, 'w+')
             msglist = []
             for shortcd in self._FeedCodeList.future_shortcd_list:
                 _FutureMst = pc.FutureMst(shortcd[:-3])
@@ -502,7 +505,7 @@ class MainForm(QtGui.QMainWindow):
             local_login_form.exec_()
             self.xingtimer.start(1000)
             
-    def slot_AutoStartXing(self, auto_config):
+    def auto_start_xing(self, auto_config):
         server = 'hts.ebestsec.co.kr'
         port = 20001
         servertype = 0

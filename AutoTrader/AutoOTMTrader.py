@@ -42,6 +42,13 @@ logger.addHandler(ch)
 class MainForm(QtGui.QMainWindow):
     def __init__(self):
         super(MainForm, self).__init__()
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.order_port = 6001  # real: 6001 test: 6002
+        self.exec_port = 7001  # real: 7001 test: 7002
+        self.autotrader_id = 'OTM001'
+        self.set_auto = False
+        self.set_auto_config()
+
         self.initUI()
         self.redis_client = redis.Redis()
         self.position_entity_dict = {}
@@ -54,10 +61,6 @@ class MainForm(QtGui.QMainWindow):
         self.orderseq = list()
         self.order_qu = collections.deque()
         self.order_cnt = 0
-
-        self.autotrader_id = 'OTM001'
-        self.order_port = 6001  # real 6000
-        self.exec_report_port = 7001  # real 7000
 
         self.qtimer = QtCore.QTimer()
         self.qtimer.timeout.connect(self.on_timer)
@@ -82,9 +85,28 @@ class MainForm(QtGui.QMainWindow):
 
         sip.setdestroyonexit(False)
 
+    def set_auto_config(self):
+        setting = QtCore.QSettings("AutoOTMTrader.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
+        if setting.value("order_port", type=int) != 0:
+            self.order_port = setting.value("order_port", type=int)
+        if setting.value("exec_port", type=int) != 0:
+            self.exec_port = setting.value("exec_port", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("zmq port: %d" % self.port)
+
     def closeEvent(self, event):
         setting = QtCore.QSettings("AutoOTMTrader.ini", QtCore.QSettings.IniFormat)
         setting.setValue("AutoOTMTrader_Geometry", self.saveGeometry())
+        setting.setValue("setauto", self.set_auto)
+        setting.setValue("port", self.port)
+        setting.setValue("order_prot", self.order_port)
+        setting.setValue("exec_port", self.exec_port)
         event.accept()
         super(MainForm, self).closeEvent(event)
 
@@ -127,7 +149,7 @@ class MainForm(QtGui.QMainWindow):
         self._executionreportthread = ExecutionReportThread()
         self._orderthread = OrderThread()
         self._tickreceiverthread.port = 5501
-        self._executionreportthread.port = self.exec_report_port
+        self._executionreportthread.port = self.exec_port
         self._orderthread.port = self.order_port
         self._orderthread.initZMQ()
         self._tickreceiverthread.receiveData[dict].connect(self.onReceiveData)
