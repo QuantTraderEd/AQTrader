@@ -22,10 +22,12 @@ class KiwoomFuturesTradeTick(KiwoomReal):
 
     def on_signal(self, realtype, shortcd):
         if realtype == u"선물시세":
-            self.data["shortcd"] = shortcd
+            self.data = dict()
+            self.data["shortcd"] = unicode(shortcd)
             for i in self.fidlist:
                 data = self.kiwoom_session.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
-                print(self.fid_name_dict[i], unicode(data.toPyObject()).strip(), )
+                # print(self.fid_name_dict[i], unicode(data.toPyObject()).strip(), )
                 self.data[self.fid_name_dict[i]] = unicode(data.toPyObject()).strip()
             self.notify()
+            print(self.data)
             self.receiveData.emit(self.data)

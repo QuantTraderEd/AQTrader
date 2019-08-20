@@ -7,7 +7,8 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import QAxContainer
 # from kiwoom_tr_opt50001 import KiwoomOPT50001
-from kiwoom_real_futures_trade import KiwoomFuturesTrade
+from PyKiwoom.pykiwoom.kiwoom_source import KiwoomSession
+from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
 
 
 class MyWindow(QtGui.QMainWindow):
@@ -26,7 +27,8 @@ class MyWindow(QtGui.QMainWindow):
         self.ocx.OnReceiveTrCondition.connect(self.on_receive_tr_condition)
         self.ocx.OnReceiveRealCondition.connect(self.on_receive_real_condition)
         # self.opt50001 = KiwoomOPT50001()
-        self.real_futures_trade_tick = KiwoomFuturesTrade()
+        self.kiwoom_session = KiwoomSession()
+        self.real_futures_trade_tick = KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
         
         button1 = QtGui.QPushButton("Login", self)
         button1.move(20, 20)
@@ -38,10 +40,12 @@ class MyWindow(QtGui.QMainWindow):
         
     def button1_clicked(self):
         # ret = self.ocx.dynamicCall("CommConnect()")
-        self.real_futures_trade_tick.ocx.dynamicCall("CommConnect()")
+        # self.real_futures_trade_tick.ocx.dynamicCall("CommConnect()")
+        self.kiwoom_session.comm_connect()
         
     def button2_clicked(self):
-        if self.ocx.dynamicCall("GetConnectState()") == 0:
+        # if self.ocx.dynamicCall("GetConnectState()") == 0:
+        if self.kiwoom_session.get_connect_state() == 0:
             self.statusBar().showMessage("Not connected")
         else:
             self.statusBar().showMessage("Connected")
@@ -117,7 +121,7 @@ class MyWindow(QtGui.QMainWindow):
         rqname = u"선옵현재가정보요청 "
         trcode = "opt50001"
 
-        futures_list = self.get_futures_list()
+        futures_list = self.kiwoom_session.get_futures_list()
         print(futures_list[:3])
 
         # id_key = u"종목코드"
@@ -133,8 +137,8 @@ class MyWindow(QtGui.QMainWindow):
         # data = self.opt50001.data
         # print(data)
 
-        ret = self.real_futures_trade_tick.ocx.dynamicCall("GetConnectState()")
-        print("conn:", ret.toPyObject())
+        # ret = self.real_futures_trade_tick.ocx.dynamicCall("GetConnectState()")
+        # print("conn:", ret.toPyObject())
 
         screen_no = u"0002"
         code_list = u"101P9000"
