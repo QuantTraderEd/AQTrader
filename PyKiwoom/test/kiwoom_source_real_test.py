@@ -9,6 +9,7 @@ from PyQt4 import QAxContainer
 # from kiwoom_tr_opt50001 import KiwoomOPT50001
 from PyKiwoom.pykiwoom.kiwoom_source import KiwoomSession
 from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
+from PyKiwoom.pykiwoom.kiwoom_real_options_tradetick import KiwoomOptionsTradeTick
 
 
 class MyWindow(QtGui.QMainWindow):
@@ -28,8 +29,9 @@ class MyWindow(QtGui.QMainWindow):
         self.ocx.OnReceiveRealCondition.connect(self.on_receive_real_condition)
         # self.opt50001 = KiwoomOPT50001()
         self.kiwoom_session = KiwoomSession()
-        self.real_futures_trade_tick = KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
-        
+        self.real_futures_tradetick = KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
+        self.real_options_tradetick = KiwoomOptionsTradeTick(kiwoom_session=self.kiwoom_session)
+
         button1 = QtGui.QPushButton("Login", self)
         button1.move(20, 20)
         button1.clicked.connect(self.button1_clicked)
@@ -144,7 +146,14 @@ class MyWindow(QtGui.QMainWindow):
         code_list = u"101P9000"
         fid_list = u"20;10;15;13"
         opt_type = u"0"
-        ret = self.real_futures_trade_tick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        ret = self.real_futures_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        print(ret.toPyObject())
+
+        screen_no = u"0003"
+        code_list = u"201P9257"
+        fid_list = u"20;10;15;13"
+        opt_type = u"0"
+        ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
 
 

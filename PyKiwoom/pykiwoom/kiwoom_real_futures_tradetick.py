@@ -30,4 +30,4 @@ class KiwoomFuturesTradeTick(KiwoomReal):
                 self.data[self.fid_name_dict[i]] = unicode(data.toPyObject()).strip()
             self.notify()
             print(self.data)
-            self.receiveData.emit(self.data)
+            # self.receiveData.emit(self.data)
