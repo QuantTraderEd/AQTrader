@@ -12,6 +12,8 @@ import pywinauto    # 0.6.2
 import win32api, win32con
 import win32gui, win32process
 
+from commutil.holiday_util import HoliDayUtil
+
 
 logger = logging.getLogger('TotalRun')
 logger.setLevel(logging.DEBUG)
@@ -71,10 +73,8 @@ autootmtrader_start_stop_pos_y = 630
 autootmtrader_close_pos_x = 1675
 autootmtrader_close_pos_y = 425
 
-holiday_lst = ['20181225',
-               '20190101',
-               '20190815',
-               ]
+holiday_util = HoliDayUtil()
+holiday_lst = holiday_util.read_holiday_data()
 
 restart_option = False
 time_sleep_interval = 10
