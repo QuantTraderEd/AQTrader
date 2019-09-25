@@ -12,6 +12,14 @@ from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTi
 from PyKiwoom.pykiwoom.kiwoom_real_options_tradetick import KiwoomOptionsTradeTick
 
 
+class ConsoleObserver:
+    def update(self,subject):
+        print("===== console observer ====")
+        for key in subject.data:
+            print(key, subject.data[key],)
+        print()
+
+
 class MyWindow(QtGui.QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
@@ -31,6 +39,10 @@ class MyWindow(QtGui.QMainWindow):
         self.kiwoom_session = KiwoomSession()
         self.real_futures_tradetick = KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
         self.real_options_tradetick = KiwoomOptionsTradeTick(kiwoom_session=self.kiwoom_session)
+
+        console_obs = ConsoleObserver()
+        self.real_futures_tradetick.attach(console_obs)
+        self.real_options_tradetick.attach(console_obs)
 
         button1 = QtGui.QPushButton("Login", self)
         button1.move(20, 20)
@@ -150,7 +162,7 @@ class MyWindow(QtGui.QMainWindow):
         print(ret.toPyObject())
 
         screen_no = u"0003"
-        code_list = u"201P9257"
+        code_list = u"201PA277"
         fid_list = u"20;10;15;13"
         opt_type = u"0"
         ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
