@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import sys
+import zmq
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import QAxContainer
@@ -10,6 +11,7 @@ from PyQt4 import QAxContainer
 from PyKiwoom.pykiwoom.kiwoom_source import KiwoomSession
 from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
 from PyKiwoom.pykiwoom.kiwoom_real_options_tradetick import KiwoomOptionsTradeTick
+from DataFeeder.ZMQTickSender import ZMQTickSender_New
 
 
 class ConsoleObserver:
@@ -25,6 +27,9 @@ class MyWindow(QtGui.QMainWindow):
         super(MyWindow, self).__init__()
         self.setWindowTitle("KiwoomLoginTest")
         self.setGeometry(300, 300, 300, 150)
+
+        self.port = 5501
+        self.init_zmq()
         
         self.ocx = QAxContainer.QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
         self.ocx.OnEventConnect.connect(self.on_event_connect)
@@ -44,6 +49,11 @@ class MyWindow(QtGui.QMainWindow):
         self.real_futures_tradetick.attach(console_obs)
         self.real_options_tradetick.attach(console_obs)
 
+        self.ZMQFuturesTradeSender = ZMQTickSender_New(self.socket, 'kiwoom', 'T', 'futures')
+        self.ZMQOptionsTradeSender = ZMQTickSender_New(self.socket, 'kiwoom', 'T', 'options')
+        self.real_futures_tradetick.attach(self.ZMQFuturesTradeSender)
+        self.real_options_tradetick.attach(self.ZMQOptionsTradeSender)
+
         button1 = QtGui.QPushButton("Login", self)
         button1.move(20, 20)
         button1.clicked.connect(self.button1_clicked)
@@ -51,6 +61,12 @@ class MyWindow(QtGui.QMainWindow):
         button2 = QtGui.QPushButton("check state", self)
         button2.move(20, 70)
         button2.clicked.connect(self.button2_clicked)
+
+    def init_zmq(self):
+        context = zmq.Context()
+        self.socket = context.socket(zmq.PUB)
+        self.socket.bind("tcp://127.0.0.1:%d" % self.port)
+        # logger.info('zmq port: %d' % self.port)
         
     def button1_clicked(self):
         # ret = self.ocx.dynamicCall("CommConnect()")
