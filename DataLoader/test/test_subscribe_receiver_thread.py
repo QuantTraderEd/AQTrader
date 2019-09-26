@@ -6,8 +6,8 @@ from ..dataloader.SubscribeReceiverThread import SubscribeThread
 
 
 class TestThread(SubscribeThread):
-    def __init__(self, parent=None, subtype='BackTest'):
-        SubscribeThread.__init__(self, parent, subtype=subtype)
+    def __init__(self, parent=None):
+        SubscribeThread.__init__(self, parent)
         self.nowtime = dt.datetime.now()
         self.msg_dict = dict()
         self.msg_dict['TimeStamp'] = self.nowtime
@@ -26,7 +26,8 @@ class TestThread(SubscribeThread):
 
 
 class TestClass(object):
-    test_thread = TestThread(subtype='Real')
+    test_thread = TestThread()
+    test_thread.port = 5501
     test_thread.start()
 
     def test_thread_running(self):
