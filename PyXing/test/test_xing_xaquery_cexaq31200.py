@@ -7,7 +7,7 @@ import pythoncom
 from xing_login_dlg import ConsoleViewer
 from ..pyxing import XASession
 from ..pyxing import XASessionEvents
-from ..pyxing.xing_xaquery_cfoeq11100 import XAQuery_CFOEQ11100
+from ..pyxing.xing_xaquery_cexaq31200 import XAQuery_CEXAQ31200
 
 
 class TestClass(object):
@@ -33,7 +33,6 @@ class TestClass(object):
 
         now_dt = dt.datetime.now()
         str_nowdt = now_dt.strftime("%Y%m%d")
-        # str_nowdt = '20190722'
 
         user = 'usr_id'
         passwd = getpass.getpass('passwd:')
@@ -51,20 +50,17 @@ class TestClass(object):
         assert len(accountlist[1]) == 11
 
         console_viewer = ConsoleViewer()
-        xquery = XAQuery_CFOEQ11100()
+        xquery = XAQuery_CEXAQ31200()
         xquery.observer = console_viewer
-        xquery.SetFieldData('CFOEQ11100InBlock1', 'RecCnt', 0, 1)
-        xquery.SetFieldData('CFOEQ11100InBlock1', 'AcntNo', 0, accountlist[1])
-        xquery.SetFieldData('CFOEQ11100InBlock1', 'Pwd', 0, 0000)
-        xquery.SetFieldData('CFOEQ11100InBlock1', 'BnsDt', 0, str_nowdt)
+        xquery.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+        xquery.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, accountlist[1])
+        xquery.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, 0000)
+        xquery.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+        xquery.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
         xquery.flag = True
         res = xquery.Request(False)
         while xquery.flag:
             pythoncom.PumpWaitingMessages()
 
-        assert len(xquery.data) == 2
-        assert xquery.data[1]['RecCnt'] == '1'
-        assert xquery.data[0]['BnsDt'] == str_nowdt
-
-        for key in xquery.data[1]:
-            print key, xquery.data[1][key]
+        assert len(xquery.data) == 3
+        assert xquery.data[0]['AcntNo'] == accountlist[1]

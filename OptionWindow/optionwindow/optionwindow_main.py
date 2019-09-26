@@ -10,15 +10,15 @@ from PyQt4 import QtGui, QtCore
 from optionwindow_thread import OptionViewerThread
 from orderwidget import OptionViewerOrderWidget
 from ui.mainwindow_ui import Ui_MainWindow
-from AQTrader.CommUtil.FeedCodeList import FeedCodeList
-from AQTrader.CommUtil import ExpireDateUtil
+from commutil.FeedCodeList import FeedCodeList
+from commutil import ExpireDateUtil
 
 
 logger = logging.getLogger('OptionWindow')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('OptionWindow.log')
+# fh = logging.FileHandler('OptionWindow.log')
 fh = RotatingFileHandler('OptionWindow.log', maxBytes=5242, backupCount=3)
 fh.setLevel(logging.DEBUG)
 
@@ -43,6 +43,10 @@ def convert(strprice):
 class MainForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.set_auto = False
+        self.set_auto_config()
+
         self.initExpireDateUtil()
         self.initUI()
         sip.setdestroyonexit(False)
@@ -54,27 +58,42 @@ class MainForm(QtGui.QMainWindow):
         self.initData()
         self.onStart()
 
+    def set_auto_config(self):
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
+        self.set_auto = setting.value("setauto", type=bool)
+        if setting.value("port", type=int) != 0:
+            self.port = setting.value("port", type=int)
+        if self.set_auto:
+            logger.info("setauto: True")
+        else:
+            logger.info("setauto: False")
+        logger.info("zmq port: %d" % self.port)
+
     def closeEvent(self, event):
         self.mythread.stop()
-        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
         setting.setValue("geometry", self.saveGeometry())
+        setting.setValue("setauto", self.set_auto)
+        setting.setValue("port", self.port)
         
     def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.actionStart.triggered.connect(self.onStart)
         self.resize(800, 200)
+        QtGui.qApp.setStyle('Cleanlooks')
+
         self.myOrderWidget = OptionViewerOrderWidget(self)
         self.myOrderWidget.initZMQ()
 
-        setting = QtCore.QSettings("ZeroOptionViewer.ini", QtCore.QSettings.IniFormat)
+        setting = QtCore.QSettings("OptionWindow.ini", QtCore.QSettings.IniFormat)
         if setting.value("geometry"):
             self.restoreGeometry(setting.value("geometry").toByteArray())
             # self.restoreGeometry(setting.value("geometry"))
         pass
 
     def initTIMER(self):
-        self.ctimer =  QtCore.QTimer()
+        self.ctimer = QtCore.QTimer()
         self.ctimer.start(300000)
         self.ctimer.timeout.connect(self.ctimer_update)
 
@@ -126,10 +145,10 @@ class MainForm(QtGui.QMainWindow):
                 strikeprice = self.strikelst[i] + '.5'
             else:
                 strikeprice = self.strikelst[i] + '.0'             
-            self.ui.tableWidget.setItem(i,7,QtGui.QTableWidgetItem(strikeprice))                
+            self.ui.tableWidget.setItem(i, 7, QtGui.QTableWidgetItem(strikeprice))
 
     def initThread(self):
-        self.mythread = OptionViewerThread(None)
+        self.mythread = OptionViewerThread(port=self.port)
         self.mythread.receiveData[dict].connect(self.onReceiveData)
 
     def initExpireDateUtil(self):
@@ -183,20 +202,19 @@ class MainForm(QtGui.QMainWindow):
 
         pass
         
-        
     def onStart(self):
         if not self.mythread.isRunning():                        
             self.mythread.start()
-            #print "start"
         pass
     
     def ctimer_update(self):
         now_dt = dt.datetime.now()
         close_trigger = False
-        if now_dt.hour == 6 and  now_dt.min >= 15 and now_dt.min <= 30:
+        if now_dt.hour == 6 and  now_dt.minute >= 15 and now_dt.minute <= 30:
             close_trigger = True
 
         if close_trigger:
+            logger.info("close trigger")
             if self.mythread.isRunning():
                 self.mythread.stop()
             self.close()
@@ -208,7 +226,10 @@ class MainForm(QtGui.QMainWindow):
             if col in self.alignRightColumnList: NewItem.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
             self.ui.tableWidget.setItem(row,col,NewItem)
         else:
-            widgetItem.setText(text)
+            if isinstance(text, int):
+                widgetItem.setText(str(text))
+            elif isinstance(text, float):
+                widgetItem.setText("%.2f" % text)
         pass
     
     def onDoubleClicked(self, row, col):
@@ -398,6 +419,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = MainForm()
     myform.show()
+    if myform.set_auto:
+        myform.onStart()
     app.exec_()   
 
 

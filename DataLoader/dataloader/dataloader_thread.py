@@ -19,8 +19,8 @@ from sqlalchemy_tickdata_insert import insert_new_tickdata
 class DBLoaderThread(SubscribeThread):
     MsgNotify = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None, subtype='BackTest'):
-        SubscribeThread.__init__(self, parent, subtype=subtype)
+    def __init__(self, parent=None, port=5503):
+        SubscribeThread.__init__(self, parent, port)
         self.logger = logging.getLogger('DataLoader.DataLoaderThread')
         self.count = 0
         self.count_remain = 10
@@ -36,10 +36,10 @@ class DBLoaderThread(SubscribeThread):
     def initDB(self):
         now_dt = dt.datetime.now()
         strtime = now_dt.strftime('%Y%m%d')
-        if 7 <= now_dt.hour < 16:
+        if 7 <= now_dt.hour < 17:
             self.dbname = "TAQ_%s.db" % strtime
             self.night_chk = 0
-        elif now_dt.hour >= 16:
+        elif now_dt.hour >= 17:
             self.dbname = "TAQ_Night_%s.db" % strtime
             self.night_chk = 1
         elif now_dt.hour < 7:
@@ -101,7 +101,6 @@ class DBLoaderThread(SubscribeThread):
             self.redis_client.hset('ask1_dict', shortcd, ask1)
             self.redis_client.hset('bidqty1_dict', shortcd, bidqty1)
             self.redis_client.hset('askqty1_dict', shortcd, askqty1)
-            self.redis_client.hset('mid_dict', shortcd, (bid1 + ask1) * .5)
 
             msg_dict['TimeStamp'] = nowtime
             insert_new_tickdata(self.file_session, msg_dict)

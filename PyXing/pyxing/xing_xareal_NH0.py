@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 04 20:24:04 2013
-
-@author: Administrator
-"""
 
 from xing_source import SourceReal
 
+
 class XAReal_NH0(SourceReal):
     """
-    kospi200 night futures quote tick real time receive
+    kospi200 CME night futures quote tick real time receive
     """
-    def __init__(self,shcode=None,DataType='dictionary'):
-        super(XAReal_NH0,self).__init__("XA_DataSet.XAReal")
+    def __init__(self, shcode=None, datatype='dictionary'):
+        super(XAReal_NH0, self).__init__("XA_DataSet.XAReal")
         self.LoadFromResFile("Res\\NH0.res")
         self.shcode = shcode
-        self.DataType = DataType   
-        if shcode: self.SetFieldData('InBlock','futcode',shcode)
+        self.datatype = datatype
+        if shcode: self.SetFieldData('InBlock', 'futcode', shcode)
         pass
+
     def OnSignal(self):
-        if self.DataType == 'dictionary':
-            self.data = {}
+        if self.datatype == 'dictionary':
+            self.data = dict()
             self.data['hotime'] = self.GetFieldData('OutBlock','hotime')
             self.data['hotime1'] = self.GetFieldData('OutBlock','hotime1')
             self.data['offerho1'] = self.GetFieldData('OutBlock','offerho1')
@@ -59,22 +56,22 @@ class XAReal_NH0(SourceReal):
             self.data['totbidcnt'] = self.GetFieldData('OutBlock','totbidcnt')
             self.data['futcode'] = self.GetFieldData('OutBlock','futcode')    
             #==================================================================
-            for i in xrange(1,6):
-                self.data['Ask%d'%i] = self.GetFieldData('OutBlock','offerho%d'%i)
-                self.data['Bid%d'%i] = self.GetFieldData('OutBlock','bidho%d'%i)
-                self.data['AskQty%d'%i] = self.GetFieldData('OutBlock','offerrem%d'%i)
-                self.data['BidQty%d'%i] = self.GetFieldData('OutBlock','bidrem%d'%i)
-                self.data['AskCnt%d'%i] = self.GetFieldData('OutBlock','offercnt%d'%i)
-                self.data['BidCnt%d'%i] = self.GetFieldData('OutBlock','bidcnt%d'%i)
+            for i in xrange(1, 6):
+                self.data['Ask%d' % i] = self.GetFieldData('OutBlock', 'offerho%d' % i)
+                self.data['Bid%d' % i] = self.GetFieldData('OutBlock', 'bidho%d' % i)
+                self.data['AskQty%d' % i] = self.GetFieldData('OutBlock', 'offerrem%d' % i)
+                self.data['BidQty%d' % i] = self.GetFieldData('OutBlock', 'bidrem%d' % i)
+                self.data['AskCnt%d' % i] = self.GetFieldData('OutBlock', 'offercnt%d' % i)
+                self.data['BidCnt%d' % i] = self.GetFieldData('OutBlock', 'bidcnt%d' % i)
                 
-            self.data['TotalAskQty'] = self.GetFieldData('OutBlock','totofferrem')
-            self.data['TotalBidQty'] = self.GetFieldData('OutBlock','totbidrem')
-            self.data['TotalAskCnt'] = self.GetFieldData('OutBlock','totoffercnt')
-            self.data['TotalBidCnt'] = self.GetFieldData('OutBlock','totbidcnt')
-            self.data['ShortCD'] = self.GetFieldData('OutBlock','futcode')     
+            self.data['TotalAskQty'] = self.GetFieldData('OutBlock', 'totofferrem')
+            self.data['TotalBidQty'] = self.GetFieldData('OutBlock', 'totbidrem')
+            self.data['TotalAskCnt'] = self.GetFieldData('OutBlock', 'totoffercnt')
+            self.data['TotalBidCnt'] = self.GetFieldData('OutBlock', 'totbidcnt')
+            self.data['ShortCD'] = self.GetFieldData('OutBlock', 'futcode')
             self.Notify()
-        elif self.DataType == 'list':
-            self.data = []
+        elif self.datatype == 'list':
+            self.data = list()
             self.data.append(self.GetFieldData('OutBlock','hotime'))
             self.data.append(self.GetFieldData('OutBlock','hotime1'))
             self.data.append(self.GetFieldData('OutBlock','offerho1'))

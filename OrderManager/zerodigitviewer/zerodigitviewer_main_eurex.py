@@ -10,7 +10,7 @@ import sys
 import pythoncom
 import pyxing as px
 from PyQt4 import QtGui, QtCore
-from ui_zerodigitviewer import Ui_Form
+from zerodigitviewer_ui import Ui_Form
 from xinglogindlg import LoginForm
 from weakref import proxy
 
