@@ -54,6 +54,7 @@ class XAReal_NC0(SourceReal):
             self.data['BuySell'] = self.GetFieldData('OutBlock', 'cgubun')
             self.data['Ask1'] = self.GetFieldData('OutBlock', 'offerho1')
             self.data['Bid1'] = self.GetFieldData('OutBlock', 'bidho1')
+            self.data['OpenInterest'] = self.GetFieldData('OutBlock', 'openyak')
             self.data['ShortCD'] = self.GetFieldData('OutBlock', 'futcode')
             self.Notify()
         elif self.datatype == 'list':

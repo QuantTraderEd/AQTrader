@@ -18,6 +18,8 @@ class KiwoomFuturesTradeTick(KiwoomReal):
         self.fid_name_dict[15] = u"LastQty"
         self.fid_name_dict[13] = u"Volume"
         self.fid_name_dict[195] = u'OpenInterest'
+        self.fid_name_dict[27] = u"Ask1"
+        self.fid_name_dict[28] = u"Bid1"
         self.data = dict()
 
     def on_signal(self, realtype, shortcd):
@@ -28,9 +30,9 @@ class KiwoomFuturesTradeTick(KiwoomReal):
                 data = self.kiwoom_session.ocx.dynamicCall("GetCommRealData(QString, int)", shortcd, i)
                 # print(self.fid_name_dict[i], unicode(data.toPyObject()).strip(), )
                 self.data[self.fid_name_dict[i]] = unicode(data.toPyObject()).strip()
-            self.data['BuySell'] = ""
-            self.data['Bid1'] = "0"
-            self.data['Ask1'] = "0"
+                if i == 15:
+                    self.data['BuySell'] = self.data[self.fid_name_dict[i]][0]
+                    self.data['LastQty'] = self.data[self.fid_name_dict[i]][1:]
             self.notify()
             print(self.data)
             # self.receiveData.emit(self.data)

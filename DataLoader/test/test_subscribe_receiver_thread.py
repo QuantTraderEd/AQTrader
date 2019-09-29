@@ -33,4 +33,5 @@ class TestClass(object):
     def test_thread_running(self):
         assert self.test_thread.isRunning()
         self.test_thread.wait()
+        assert 'OpenInterest' in self.test_thread.msg_dict
         assert self.test_thread.msg_dict['TimeStamp'] == self.test_thread.nowtime

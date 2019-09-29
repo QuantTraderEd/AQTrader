@@ -39,7 +39,7 @@ class ZMQTickSender_New:
         self.securitiestype = securitiestype
         pass
     
-    def Update(self, subject):
+    def update(self, subject):
         if type(subject.data) != dict: return
         shortcd = subject.data['ShortCD']
         now_dt = datetime.now()
@@ -70,6 +70,7 @@ class ZMQTickSender_New:
                 msg_dict['BuySell'] = ''
             msg_dict['Ask1'] = float(subject.data['Ask1'])
             msg_dict['Bid1'] = float(subject.data['Bid1'])
+            msg_dict['OpenInterest'] = float(subject.data['OpenInterest'])
             
         elif self.taq == 'Q' and self.securitiestype in ['futures', 'options']:
             for i in xrange(1, 4):

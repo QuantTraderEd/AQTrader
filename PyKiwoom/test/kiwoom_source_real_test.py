@@ -172,14 +172,14 @@ class MyWindow(QtGui.QMainWindow):
 
         screen_no = u"0002"
         code_list = u"101P9000"
-        fid_list = u"20;10;15;13"
+        fid_list = u"20;10;15;13;27;28"
         opt_type = u"0"
         ret = self.real_futures_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
 
         screen_no = u"0003"
         code_list = u"201PA277"
-        fid_list = u"20;10;15;13"
+        fid_list = u"20;10;15;13;27;28"
         opt_type = u"0"
         ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
