@@ -11,7 +11,6 @@ class KiwoomOptionsTradeTick(KiwoomReal):
 
     def __init__(self, kiwoom_session=None):
         super(KiwoomOptionsTradeTick, self).__init__(kiwoom_session=kiwoom_session)
-        self.fidlist = [20, 10, 15, 13, 195]
         self.fid_name_dict = dict()
         self.fid_name_dict[20] = u"Timestamp"
         self.fid_name_dict[10] = u"LastPrice"
@@ -20,6 +19,7 @@ class KiwoomOptionsTradeTick(KiwoomReal):
         self.fid_name_dict[195] = u'OpenInterest'
         self.fid_name_dict[27] = u"Ask1"
         self.fid_name_dict[28] = u"Bid1"
+        self.fidlist = self.fid_name_dict.keys()
         self.data = dict()
 
     def on_signal(self, realtype, shortcd):
