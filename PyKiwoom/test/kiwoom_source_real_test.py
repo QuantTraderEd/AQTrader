@@ -11,6 +11,8 @@ from PyQt4 import QAxContainer
 from PyKiwoom.pykiwoom.kiwoom_source import KiwoomSession
 from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
 from PyKiwoom.pykiwoom.kiwoom_real_options_tradetick import KiwoomOptionsTradeTick
+from PyKiwoom.pykiwoom.kiwoom_real_futures_quotetick import KiwoomFuturesQuoteTick
+from PyKiwoom.pykiwoom.kiwoom_real_options_quotetick import KiwoomOptionsQuoteTick
 from DataFeeder.ZMQTickSender import ZMQTickSender_New
 
 
@@ -44,15 +46,24 @@ class MyWindow(QtGui.QMainWindow):
         self.kiwoom_session = KiwoomSession()
         self.real_futures_tradetick = KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
         self.real_options_tradetick = KiwoomOptionsTradeTick(kiwoom_session=self.kiwoom_session)
+        self.real_futures_quotetick = KiwoomFuturesQuoteTick(kiwoom_session=self.kiwoom_session)
+        self.real_options_quotetick = KiwoomOptionsQuoteTick(kiwoom_session=self.kiwoom_session)
 
         console_obs = ConsoleObserver()
         self.real_futures_tradetick.attach(console_obs)
         self.real_options_tradetick.attach(console_obs)
+        self.real_futures_quotetick.attach(console_obs)
+        self.real_options_quotetick.attach(console_obs)
 
         self.ZMQFuturesTradeSender = ZMQTickSender_New(self.socket, 'kiwoom', 'T', 'futures')
         self.ZMQOptionsTradeSender = ZMQTickSender_New(self.socket, 'kiwoom', 'T', 'options')
+        self.ZMQFuturesQuoteSender = ZMQTickSender_New(self.socket, 'kiwoom', 'Q', 'futures')
+        self.ZMQOptionsQuoteSender = ZMQTickSender_New(self.socket, 'kiwoom', 'Q', 'options')
+
         self.real_futures_tradetick.attach(self.ZMQFuturesTradeSender)
         self.real_options_tradetick.attach(self.ZMQOptionsTradeSender)
+        self.real_futures_quotetick.attach(self.ZMQFuturesQuoteSender)
+        self.real_options_quotetick.attach(self.ZMQOptionsQuoteSender)
 
         button1 = QtGui.QPushButton("Login", self)
         button1.move(20, 20)
@@ -182,6 +193,26 @@ class MyWindow(QtGui.QMainWindow):
         fid_list = u"20;10;15;13;27;28"
         opt_type = u"1"
         ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        print(ret.toPyObject())
+
+        screen_no = u"0004"
+        code_list = futures_list[0]
+        fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
+        fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
+        fid_list = fid_list + u"45;65;105;55;75;115;"
+        fid_list = fid_list + u"121;123;125;127"
+        opt_type = u"1"
+        ret = self.real_futures_quotetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        print(ret.toPyObject())
+
+        screen_no = u"0005"
+        code_list = u"201PA277"
+        fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
+        fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
+        fid_list = fid_list + u"45;65;105;55;75;115;"
+        fid_list = fid_list + u"121;123;125;127"
+        opt_type = u"1"
+        ret = self.real_options_quotetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
 
 
