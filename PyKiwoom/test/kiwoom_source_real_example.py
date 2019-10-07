@@ -123,7 +123,7 @@ class MyWindow(QtGui.QMainWindow):
         print(ret.toPyObject())
 
         screen_no = u"0005"
-        code_list = u"201PA277"
+        code_list = u"201PA267"
         fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
         fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
         fid_list = fid_list + u"45;65;105;55;75;115;"
