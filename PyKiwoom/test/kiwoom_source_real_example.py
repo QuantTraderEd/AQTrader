@@ -5,14 +5,13 @@ from __future__ import print_function
 import sys
 import zmq
 from PyQt4 import QtGui
-from PyQt4 import QtCore
 from PyQt4 import QAxContainer
 from PyKiwoom.pykiwoom.kiwoom_source import KiwoomSession
 from PyKiwoom.pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
 from PyKiwoom.pykiwoom.kiwoom_real_options_tradetick import KiwoomOptionsTradeTick
 from PyKiwoom.pykiwoom.kiwoom_real_futures_quotetick import KiwoomFuturesQuoteTick
 from PyKiwoom.pykiwoom.kiwoom_real_options_quotetick import KiwoomOptionsQuoteTick
-from DataFeeder.ZMQTickSender import ZMQTickSender_New
+from DataFeeder.datafeeder.ZMQTickSender import ZMQTickSender_New
 
 
 class ConsoleObserver:

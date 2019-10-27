@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os
 import time
 import zmq
-import json
 import logging
 import pythoncom
 
@@ -17,7 +15,7 @@ import pyxing as px
 import pycybos as pc
 from ui_zerofeeder import Ui_MainWindow
 from xinglogindlg import LoginForm
-from ZMQTickSender import ZMQTickSender_New
+from DataFeeder.datafeeder.ZMQTickSender import ZMQTickSender_New
 
 from weakref import proxy
 

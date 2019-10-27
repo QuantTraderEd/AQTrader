@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="earth">
+    <file>resource/earth_bw_ico.png</file>
+    <file>resource/earth_ico.png</file>
+  </qresource>
+</RCC>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>351</width>
-    <height>210</height>
+    <width>340</width>
+    <height>220</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,18 +18,24 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>351</width>
-    <height>192</height>
+    <width>340</width>
+    <height>220</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>DataFeeder</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="ZeroFeeder.qrc">
+   <iconset resource="datafeeder.qrc">
     <normaloff>:/earth/resource/earth_ico.png</normaloff>:/earth/resource/earth_ico.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTableWidget" name="tableWidget">
@@ -122,7 +128,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="ZeroFeeder.qrc">
+    <iconset resource="datafeeder.qrc">
      <normaloff>:/earth/resource/earth_bw_ico.png</normaloff>
      <normalon>:/earth/resource/earth_ico.png</normalon>:/earth/resource/earth_bw_ico.png</iconset>
    </property>
@@ -138,58 +144,9 @@
   </action>
  </widget>
  <resources>
-  <include location="ZeroFeeder.qrc"/>
+  <include location="datafeeder.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>actionFeed</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>slot_ToggleFeed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>253</x>
-     <y>147</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tableWidget</sender>
-   <signal>cellDoubleClicked(int,int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>slot_StartXingDlg()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>175</x>
-     <y>113</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>175</x>
-     <y>95</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tableWidget</sender>
-   <signal>cellDoubleClicked(int,int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>slot_CheckCybosStarter()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>175</x>
-     <y>113</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>175</x>
-     <y>95</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>slot_StartXingDlg()</slot>
   <slot>slot_CheckCybosStarter()</slot>
