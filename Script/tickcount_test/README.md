@@ -17,7 +17,7 @@ import pandas as pd
 
 
 ```python
-date_lst = ['20191011','20191014', '20191015', '20191016', '20191018']
+date_lst = ['20191011','20191014', '20191015', '20191016', '20191018', '20191021', '20191022', '20191023']
 df_test1_count = pd.DataFrame()
 df_test2_count = pd.DataFrame()
 ```
@@ -62,18 +62,6 @@ for str_date in date_lst:
     else:
         df_test1_count = df_test1_count.append(df_tmp)
 ```
-
-    C:\Anaconda2\lib\site-packages\bs4\__init__.py:166: UserWarning: No parser was explicitly specified, so I'm using the best available HTML parser for this system ("lxml"). This usually isn't a problem, but if you run this code on another system, or in a different virtual environment, it may use a different parser and behave differently.
-    
-    To get rid of this warning, change this:
-    
-     BeautifulSoup([your markup])
-    
-    to this:
-    
-     BeautifulSoup([your markup], "lxml")
-    
-      markup_type=markup_type))
     
 
     [58137, 44322]
@@ -81,6 +69,9 @@ for str_date in date_lst:
     [53261, 40361]
     [36950, 26616]
     [65450, 51065]
+    [54852, 42370]
+    [49128, 39404]
+    [57853, 44837]
     
 
 
@@ -106,6 +97,9 @@ for str_date in date_lst:
     [60846, 45695]
     [73436, 52450]
     [74093, 57553]
+    [58547, 45093]
+    [69399, 55512]
+    [64863, 50088]
     
 
 
@@ -156,6 +150,24 @@ df_test1_count
       <td>20191018</td>
       <td>65450</td>
       <td>51065</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191021</td>
+      <td>54852</td>
+      <td>42370</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191022</td>
+      <td>49128</td>
+      <td>39404</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191023</td>
+      <td>57853</td>
+      <td>44837</td>
     </tr>
   </tbody>
 </table>
@@ -211,6 +223,24 @@ df_test2_count
       <td>20191018</td>
       <td>74093</td>
       <td>57553</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191021</td>
+      <td>58547</td>
+      <td>45093</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191022</td>
+      <td>69399</td>
+      <td>55512</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>20191023</td>
+      <td>64863</td>
+      <td>50088</td>
     </tr>
   </tbody>
 </table>
