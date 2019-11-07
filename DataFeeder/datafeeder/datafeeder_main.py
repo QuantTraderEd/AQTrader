@@ -40,10 +40,10 @@ ch.setFormatter(formatter)
 
 # add the handler to logger
 logger.addHandler(fh)
-# logger.addHandler(ch)
+logger.addHandler(ch)
 
 
-class XingXASessionUpdate():
+class XingXASessionUpdate:
     def __init__(self, status_xi=None):
         self.status_xi = status_xi
 
@@ -56,29 +56,36 @@ class XingXASessionUpdate():
         pass
 
 
-class CpCybosNULL():
-    def IsConnect(self):
+class CpCybosNULL:
+    def is_connect(self):
         return False
+
+
+class ConsoleObserver:
+    def update(self, subject):
+        for i in xrange(len(subject.data)):
+            print(subject.data[i],)
+        print()
 
 
 class MainForm(QtGui.QMainWindow):
 
     def __init__(self):
         super(MainForm, self).__init__()
-        # self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
-        # self.set_auto = False
+        self.port = 5501  # Real: 5501, RealTest 5502, BackTest 5503
+        self.set_auto = False
         # self.auto_config = self.set_auto_config()
 
         self.init_ui()
         self.init_timer()
         self.init_api()
-        # self.init_feedcode()
-        # self.init_taq_feederlist()
-        # self.init_zmq()
-        #
-        # self.exchange_code = 'KRX'
+        self.init_feedcode()
+        self.init_taq_feederlist()
+        self.init_zmq()
+
+        self.exchange_code = 'KRX'
         # self.filename = 'prevclose.txt'
-        #
+
         # if self.set_auto:
         #     self.slot_CheckCybosStarter(0, 2)
         #     self.auto_start_xing(self.auto_config)
@@ -100,11 +107,7 @@ class MainForm(QtGui.QMainWindow):
         self.ui.tableWidget.setItem(1, 1, self.status_xi)
         self.ui.tableWidget.setItem(2, 1, self.status_ki)
         self.ui.tableWidget.cellDoubleClicked.connect(self.cell_was_dobuleclicked)
-        #
-        # setting = QtCore.QSettings("ZeroFeeder.ini", QtCore.QSettings.IniFormat)
-        # value = setting.value("geometry")
-        # if value:
-        #     self.restoreGeometry(setting.value("geometry").toByteArray())
+        self.ui.actionFeed.triggered.connect(self.slot_togglefeed)
         pass
 
     def init_timer(self):
@@ -133,6 +136,25 @@ class MainForm(QtGui.QMainWindow):
         self.ocx.OnEventConnect.connect(self.on_event_connect)
         self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
 
+    def init_feedcode(self):
+        self._feedcode_list = FeedCodeList()
+        self._feedcode_list.read_code_list()
+
+    def init_zmq(self):
+        context = zmq.Context()
+        self.socket = context.socket(zmq.PUB)
+        self.socket.bind("tcp://127.0.0.1:%d" % self.port)
+
+    def init_zmqsender(self):
+        self.ZMQFuturesExpectSender_xing = ZMQTickSender_New(self.socket, 'xing', 'E', 'futures')
+        self.ZMQOptionsExpectSender_xing = ZMQTickSender_New(self.socket, 'xing', 'E', 'options')
+        self.obs = ConsoleObserver()
+
+    def init_taq_feederlist(self):
+        self.FutureTAQFeederDict = dict()
+        self.OptionTAQFeederDict = dict()
+        self.EquityTAQFeederLst = list()
+
     def on_event_connect(self, errcode):
         print("ErrCode: %d" % errcode)
         pass
@@ -140,6 +162,214 @@ class MainForm(QtGui.QMainWindow):
     def on_receive_msg(self, scrno, rqname, trcode, msg):
         print(scrno, rqname, trcode, msg)
         pass
+
+    # ======= init futures =======
+
+    def initFC0(self):
+        newitemtrade_new = px.XAReal_FC0(datatype='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
+        newitemtrade_new.Attach(zmqsender)
+        self.FutureTAQFeederDict['FC0'] = newitemtrade_new
+
+    def initFH0(self):
+        newitemtrade_new = px.XAReal_FH0(datatype='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
+        newitemtrade_new.Attach(zmqsender)
+        self.FutureTAQFeederDict['FH0'] = newitemtrade_new
+
+    def initNC0(self):
+        newitemtrade_new = px.XAReal_NC0(datatype='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
+        newitemtrade_new.Attach(zmqsender)
+        self.FutureTAQFeederDict['NC0'] = newitemtrade_new
+
+    def initNH0(self):
+        newitemtrade_new = px.XAReal_NH0(datatype='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
+        newitemtrade_new.Attach(zmqsender)
+        self.FutureTAQFeederDict['NH0'] = newitemtrade_new
+
+    def initEC0_MINI(self):
+        newitemtrade_new = px.XAReal_EC0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'futures')
+        newitemtrade_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['EC0_MINI'] = newitemtrade_new
+
+    def initEH0_MINI(self):
+        newitemquote_new = px.XAReal_EH0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'futures')
+        newitemquote_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['EH0_MINI'] = newitemquote_new
+
+    def initYFC(self):
+        newitemfuture_aution_new = px.XAReal_YFC(DataType='dictionary')
+        newitemfuture_aution_new.Attach(self.ZMQFuturesExpectSender_xing)
+        self.FutureTAQFeederDict['YFC'] = newitemfuture_aution_new
+
+    # ======= init options =======
+
+    def initOptionCur(self):
+        newitem_trade = pc.OptionCurOnly()
+        self.OptionTAQFeederDict['OptionCur'] = newitem_trade
+
+    def initOptionJpBid(self):
+        newitemquote = pc.OptionJpBid()
+        # newitemquote.Attach(self.ZMQOptionsQuoteSender)
+        self.OptionTAQFeederDict['OptionJpBid'] = newitemquote
+
+    def initOC0(self):
+        newitemtrade_new = px.XAReal_OC0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'options')
+        newitemtrade_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['OC0_New'] = newitemtrade_new
+
+    def initOH0(self):
+        newitemquote_new = px.XAReal_OH0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'options')
+        newitemquote_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['OH0_New'] = newitemquote_new
+
+    def initEC0(self):
+        newitemtrade_new = px.XAReal_EC0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'T', 'options')
+        newitemtrade_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['EC0_New'] = newitemtrade_new
+
+    def initEH0(self):
+        newitemquote_new = px.XAReal_EH0(DataType='dictionary')
+        zmqsender = ZMQTickSender_New(self.socket, 'xing', 'Q', 'options')
+        newitemquote_new.Attach(zmqsender)
+        self.OptionTAQFeederDict['EH0_New'] = newitemquote_new
+
+    def initYOC(self):
+        newitemoption_aution_new = px.XAReal_YOC(DataType='dictionary')
+        newitemoption_aution_new.Attach(self.ZMQOptionsExpectSender_xing)
+        self.OptionTAQFeederDict['YOC'] = newitemoption_aution_new
+
+    def initFOExpect_Future(self):
+        newitemoption_futures_aution = pc.FOExpectCur()
+        zmq_sender = ZMQTickSender_New(self.socket, 'cybos', 'E', 'futures')
+        newitemoption_futures_aution.Attach(zmq_sender)
+        self.FutureTAQFeederDict['FutureExpect'] = newitemoption_futures_aution
+
+    def initFOExpect_Option(self):
+        newitemoption_options_aution = pc.FOExpectCur()
+        zmq_sender = ZMQTickSender_New(self.socket, 'cybos', 'E', 'options')
+        newitemoption_options_aution.Attach(zmq_sender)
+        self.OptionTAQFeederDict['OptionExpect'] = newitemoption_options_aution
+
+    # ======= regist futures =======
+
+    def regist_FeedItem_FutureJpBid(self, shortcd):
+        newitemquote = pc.FutureJpBid(shortcd[:-3])
+        # newitemquote.Attach(self.ZMQFuturesQuoteSender)
+        # newitemquote.Subscribe()
+        # self.FutureTAQFeederLst.append(newitemquote)
+
+    def regist_FeedItem_FC0(self, shortcd):
+        self.FutureTAQFeederDict['FC0'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['FC0'].AdviseRealData()
+
+    def regist_FeedItem_FH0(self, shortcd):
+        self.FutureTAQFeederDict['FH0'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['FH0'].AdviseRealData()
+
+    def regist_FeedItem_CMECurr(self, shortcd):
+        newitemquote = pc.CmeCurr(shortcd[:-3])
+        # newitemquote.Attach(self.ZMQFuturesQuoteSender)
+        # newitemquote.Subscribe()
+        # self.FutureTAQFeederLst.append(newitemquote)
+
+    def regist_FeedItem_NC0(self, shortcd):
+        self.FutureTAQFeederDict['NC0'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['NC0'].AdviseRealData()
+
+    def regist_FeedItem_NH0(self, shortcd):
+        self.FutureTAQFeederDict['NH0'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['NH0'].AdviseRealData()
+
+    def regist_FeedItem_YFC(self, shortcd):
+        self.FutureTAQFeederDict['YFC'].SetFieldData('InBlock', 'futcode', shortcd)
+        self.FutureTAQFeederDict['YFC'].AdviseRealData()
+
+    # ======= regist options =======
+    def regist_FeedItem_OptionCur(self, shortcd):
+        self.OptionTAQFeederDict['OptionCur'].Subscribe('0', shortcd)
+
+    def regist_FeedItem_OptionJpBid(self, shortcd):
+        self.OptionTAQFeederDict['OptionJpBid'].Subscribe('0', shortcd)
+
+    def regist_FeedItem_OC0(self, shortcd):
+        self.OptionTAQFeederDict['OC0_New'].SetFieldData('InBlock', 'optcode', shortcd)
+        self.OptionTAQFeederDict['OC0_New'].AdviseRealData()
+
+    def regist_FeedItem_OH0(self, shortcd):
+        self.OptionTAQFeederDict['OH0_New'].SetFieldData('InBlock', 'optcode', shortcd)
+        self.OptionTAQFeederDict['OH0_New'].AdviseRealData()
+
+    def regist_FeedItem_EC0(self, shortcd):
+        if shortcd[:3] == '105':
+            self.OptionTAQFeederDict['EC0_MINI'].SetFieldData('InBlock', 'optcode', shortcd)
+            self.OptionTAQFeederDict['EC0_MINI'].AdviseRealData()
+        else:
+            self.OptionTAQFeederDict['EC0_New'].SetFieldData('InBlock', 'optcode', shortcd)
+            self.OptionTAQFeederDict['EC0_New'].AdviseRealData()
+
+    def regist_FeedItem_EH0(self, shortcd):
+        if shortcd[:3] == '105':
+            self.OptionTAQFeederDict['EH0_MINI'].SetFieldData('InBlock', 'optcode', shortcd)
+            self.OptionTAQFeederDict['EH0_MINI'].AdviseRealData()
+        else:
+            self.OptionTAQFeederDict['EH0_New'].SetFieldData('InBlock', 'optcode', shortcd)
+            self.OptionTAQFeederDict['EH0_New'].AdviseRealData()
+
+    def regist_FeedItem_YOC(self, shortcd):
+        self.OptionTAQFeederDict['YOC'].SetFieldData('InBlock', 'optcode', shortcd)
+        self.OptionTAQFeederDict['YOC'].AdviseRealData()
+
+    def registerFeedItem_FOExpect(self, shortcd):
+        if shortcd[:3] in ['101', '105']:
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(0, shortcd[:-3])
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(1, 'F1')
+            self.FutureTAQFeederDict['FutureExpect'].SetInputValue(2, shortcd[3:-3])
+            self.FutureTAQFeederDict['FutureExpect'].Subscribe()
+        elif shortcd[:3] == '201' or shortcd[:3] == '301':
+            self.OptionTAQFeederDict['OptionExpect'].SetInputValue(0, shortcd)
+            self.OptionTAQFeederDict['OptionExpect'].SetInputValue(1, 'O1')
+            self.OptionTAQFeederDict['OptionExpect'].SetInputValue(2, shortcd[3:-3])
+            self.OptionTAQFeederDict['OptionExpect'].Subscribe()
+
+    # ======= regist stock =======
+
+    def registerFeedItem_StockJpBid(self, shortcd):
+        newitemquote = pc.StockJpBid('A' + shortcd)
+        # newitemquote.Attach(self.ZMQEquityQuoteSender)
+        # newitemquote.Subscribe()
+        # self.EquityTAQFeederLst.append(newitemquote)
+
+    def registerFeedItem_S3_(self, shortcd):
+        newitemtrade = px.XAReal_S3_(shortcd, 'list')
+        # newitemtrade.Attach(self.ZMQEquityTradeSender)
+        # newitemtrade.AdviseRealData()
+        # self.EquityTAQFeederLst.append(newitemtrade)
+
+    def registerFeedItem_YS3(self, shortcd):
+        newitem_aution = px.XAReal_YS3(shortcd, 'list')
+        # newitem_aution.Attach(self.ZMQEquityExpectSender)
+        # newitem_aution.AdviseRealData()
+        # self.EquityTAQFeederLst.append(newitem_aution)
+
+    def registerFeedItem_I5_(self, shortcd):
+        NewItemNAV = px.XAReal_I5_(shortcd, 'list')
+        # NewItemNAV.Attach(self.ZMQETFNAVSender)
+        # NewItemNAV.AdviseRealData()
+        # self.EquityTAQFeederLst.append(NewItemNAV)
+
+    def registerFeedItem_ExpectIndexS(self, shortcd):
+        newitem_index_expect = pc.ExpectIndexS(shortcd)
+        # newitem_index_expect.Attach(self.ZMQIndexExpectSender)
+        # newitem_index_expect.Subscribe()
+        # self.EquityTAQFeederLst.append(newitem_index_expect)
 
     def ctimer_update(self):
         now_time = time.localtime()
@@ -223,7 +453,6 @@ class MainForm(QtGui.QMainWindow):
     def auto_start_xinglogin(self, auto_config):
         server = 'hts.ebestsec.co.kr'
         port = 20001
-        servertype = 0
         showcerterror = 1
         user = str(auto_config['id'])
         password = str(auto_config['pwd'].decode('hex'))
@@ -261,6 +490,74 @@ class MainForm(QtGui.QMainWindow):
         else:
             self.status_ki.setText('disconnect')
         self.kiwoomtimer.start(1000)
+
+    def slot_togglefeed(self, bool_toggle):
+        if bool_toggle:
+            # self.slot_RequestPrevClosePrice()
+            pythoncom.CoInitialize()
+            self.init_feedcode()
+            self.init_zmqsender()
+            self.init_taq_feederlist()
+            logger.info('toggle on')
+            logger.info('set feed code & zmq')
+        else:
+            logger.info('toggle off')
+            logger.info('tick count: %d' % ZMQTickSender_New.count)
+            ZMQTickSender_New.count = 0
+            return
+
+        nowlocaltime = time.localtime()
+        if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+            self.exchange_code = 'KRX'
+        else:
+            self.exchange_code = 'EUREX'
+
+        if self.XASession.IsConnected() and bool_toggle:
+            logger.info('regist feed data @ xing')
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initFC0()
+                self.initFH0()
+                self.initYFC()
+                for shortcd in self._FeedCodeList.future_shortcd_list:
+                    self.regist_FeedItem_FC0(shortcd)
+                    self.regist_FeedItem_FH0(shortcd)
+                    self.regist_FeedItem_YFC(shortcd)
+            else:
+                self.initNC0()
+                self.initNH0()
+                self.initEC0_MINI()
+                self.initEH0_MINI()
+                for shortcd in self._FeedCodeList.future_shortcd_list:
+                    self.regist_FeedItem_NC0(shortcd)
+                    self.regist_FeedItem_NH0(shortcd)
+                    if shortcd[:3] == '105':
+                        self.regist_FeedItem_EC0(shortcd)
+                        self.regist_FeedItem_EH0(shortcd)
+
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initOC0()
+                self.initOH0()
+                self.initYOC()
+                for shortcd in self._FeedCodeList.option_shortcd_list:
+                    self.regist_FeedItem_OC0(shortcd)
+                    self.regist_FeedItem_OH0(shortcd)
+                    self.regist_FeedItem_YOC(shortcd)
+            else:
+                self.initEC0()
+                self.initEH0()
+                for shortcd in self._FeedCodeList.option_shortcd_list:
+                    self.regist_FeedItem_EC0(shortcd)
+                    self.regist_FeedItem_EH0(shortcd)
+
+            for shortcd in self._FeedCodeList.equity_shortcd_list:
+                self.registerFeedItem_S3_(shortcd)
+                self.registerFeedItem_YS3(shortcd)
+                self.registerFeedItem_I5_(shortcd)
+
+        if self.kiwoom_session.get_connect_state() != 0 and bool_toggle:
+            logger.info('regist feed data @ kiwoom')
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+
 
 
 if __name__ == '__main__':
