@@ -253,7 +253,7 @@ class MainForm(QtGui.QMainWindow):
             # print("Row %d and Column %d was doblueclicked" % (row,column))
             myform = LoginForm(self, proxy(self.XASession))
             myform.show()
-            # myform.exec_()
+            myform.exec_()
             self.start_xing_query()
         pass
             
@@ -406,10 +406,10 @@ class MainForm(QtGui.QMainWindow):
         
         
 class XingXASessionUpdate():
-    def __init__(self,status_xi=None):
+    def __init__(self, status_xi=None):
         self.status_xi = status_xi
 
-    def Update(self,subject):
+    def Update(self, subject):
         msg =''
         for item in subject.data:
             msg = msg + ' ' + item                        
@@ -419,13 +419,13 @@ class XingXASessionUpdate():
 
 
 class observer_cmd:
-    def Update(self,subject):
+    def Update(self, subject):
         subject.flag = False
         pass
 
 
 class observer_t0441:
-    def Update(self,subject):
+    def Update(self, subject):
         if len(subject.data) > 0:
             item = subject.data[0]
             if item['tsunik'] != '-':
