@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import pprint
+import time
 import datetime as dt
 import zmq
 import telegram
@@ -46,6 +47,7 @@ def main():
 
     while True:
         msg_dict = socket.recv_pyobj()
+        time.sleep(1)
         now_dt = dt.datetime.now()
         for shortcd in self.futures_shortcd_lst:
             qty = redis_client.hget(autotrader_id + '_position_dict', shortcd)
@@ -53,7 +55,6 @@ def main():
             avg_price = redis_client.hget(autotrader_id + '_tradeprice_dict', shortcd)
             # logger.info('%s tradeprice-> %s' % (shortcd, avg_price))
             position_dict[shortcd] = [int(qty or 0), "%.3f" % float(avg_price or 0)]
-
 
         msg = pprint.pformat(position_dict)
         bot.send_message(chat_id, msg)
