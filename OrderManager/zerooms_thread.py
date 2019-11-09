@@ -83,12 +83,12 @@ class OrderMachineThread(QtCore.QThread):
         nowtime = datetime.now()
         strtime = datetime.strftime(nowtime,'%Y%m%d')
         if nowtime.hour >= 6 and nowtime.hour < 16:
-            self.strdbname = "orderlist_%s.db" %(strtime)
+            self.strdbname = "orderlist_%s.db" % strtime
         elif nowtime.hour >= 16:
-            self.strdbname = "orderlist_night_%s.db" %(strtime)
+            self.strdbname = "orderlist_night_%s.db" % strtime
         else:
-            strtime = "%d%.2d%.2d" %(nowtime.year,nowtime.month,nowtime.day-1)
-            self.strdbname = "orderlist_night_%s.db" %(strtime)
+            strtime = "%d%.2d%.2d" %(nowtime.year, nowtime.month, nowtime.day-1)
+            self.strdbname = "orderlist_night_%s.db" % strtime
 
         self.strdbname = self.db_path + self.strdbname
 
@@ -108,16 +108,16 @@ class OrderMachineThread(QtCore.QThread):
         self.qtviewer11100.initDB()
         self.qtviewer11300.initDB()
 
-        self.qtviewer00600.receive.connect(self.UpdateDB)
-        self.qtviewer00800.receive.connect(self.UpdateDB)
-        self.qtviewer00100.receive.connect(self.UpdateDB)
-        self.qtviewer00300.receive.connect(self.UpdateDB)
-        self.qtviewer11100.receive.connect(self.UpdateDB)
-        self.qtviewer11300.receive.connect(self.UpdateDB)
-        self.qtviewerSC1.receive.connect(self.UpdateDB)
-        self.qtviewerC01.receive.connect(self.UpdateDB)
-        self.qtviewerCM1.receive.connect(self.UpdateDB)
-        self.qtviewerEU1.receive.connect(self.UpdateDB)
+        self.qtviewer00600.receive.connect(self.update_db)
+        self.qtviewer00800.receive.connect(self.update_db)
+        self.qtviewer00100.receive.connect(self.update_db)
+        self.qtviewer00300.receive.connect(self.update_db)
+        self.qtviewer11100.receive.connect(self.update_db)
+        self.qtviewer11300.receive.connect(self.update_db)
+        self.qtviewerSC1.receive.connect(self.update_db)
+        self.qtviewerC01.receive.connect(self.update_db)
+        self.qtviewerCM1.receive.connect(self.update_db)
+        self.qtviewerEU1.receive.connect(self.update_db)
 
     def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
@@ -144,22 +144,20 @@ class OrderMachineThread(QtCore.QThread):
         self.xareal_CM1.observer = self.qtviewerCM1
         self.xareal_EU1.observer = self.qtviewerEU1
 
-
     def run(self):
         self.mt_stop = False
         self.mt_pause = False
 
-        if len(self._accountlist) == 0 :
+        if len(self._accountlist) == 0:
             self.logger.info('fail: no account')
             return
 
         if self._servername[:3] == 'MIS':
-            accountpwd = ['0000','0000']
+            accountpwd = ['0000', '0000']
         elif self.servername in ['X', 'SERVER']:
-            accountpwd = ['0302','']
+            accountpwd = ['0302', '']
         else:
             self.logger.info('fail: not available servername')
-            accountpwd = []
             return
 
         nowtime = datetime.now()
@@ -170,9 +168,6 @@ class OrderMachineThread(QtCore.QThread):
         elif nowtime.hour >= 16 or nowtime.hour < 6:
             self.xareal_CM1.AdviseRealData()
             self.xareal_EU1.AdviseRealData()
-
-        #self.conn_db = lite.connect('orderlist.db')
-        #self.cursor_db = self.conn_db.cursor()
 
         self.logger.info('Ready')
 
@@ -197,7 +192,7 @@ class OrderMachineThread(QtCore.QThread):
             strnowtime = strnowtime[:-3]
             self.logger.info('receive_order')
 
-            newamendcancel = msg_dict.get('NewAmendCancel', ' ') # 'N' = New, 'A' = Amend, 'C' = Cancel
+            newamendcancel = msg_dict.get('NewAmendCancel', ' ')  # 'N' = New, 'A' = Amend, 'C' = Cancel
             buysell = msg_dict.get('BuySell', '')   # 'B' = Buy, 'S' = 'Sell'
             shortcd = msg_dict.get('ShortCD', '')
             orderprice = msg_dict.get('OrderPrice', 0)
@@ -233,16 +228,16 @@ class OrderMachineThread(QtCore.QThread):
 
             if newamendcancel == 'N' and shortcd[0] == 'A':
                 # equity new order
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','IsuNo',0,str(shortcd)) #demo
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdQty',0,int(orderqty))
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdPrc',0,str(orderprice))
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','BnsTpCode',0,buysell)
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdprcPtnCode',0,'00')
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','MgntrnCode',0,'000')
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','LoanDt',0,' ')
-                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1','OrdCndiTpCode',0,'0')
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'AcntNo', 0, self._accountlist[self.eq_account_index])
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'InptPwd', 0, accountpwd[self.eq_account_index])
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'IsuNo', 0, str(shortcd))  # demo
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'OrdQty', 0, int(orderqty))
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'OrdPrc', 0, str(orderprice))
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'BnsTpCode', 0, buysell)
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'OrdprcPtnCode', 0, '00')
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'MgntrnCode', 0, '000')
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'LoanDt', 0, ' ')
+                self.xaquery_CSPAT00600.SetFieldData('CSPAT00600InBlock1', 'OrdCndiTpCode', 0, '0')
                 ret = self.xaquery_CSPAT00600.Request(False)
                 if ret is None:
                     while self.xaquery_CSPAT00600.observer.flag:
@@ -258,11 +253,11 @@ class OrderMachineThread(QtCore.QThread):
 
             elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrgOrdNo',0,int(orgordno))
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','AcntNo',0,self._accountlist[self.eq_account_index])
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','InptPwd',0,accountpwd[self.eq_account_index])
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','IsuNo',0,str(shortcd)) #demo
-                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1','OrdQty',0,int(orderqty))
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'OrgOrdNo', 0, int(orgordno))
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'AcntNo', 0, self._accountlist[self.eq_account_index])
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'InptPwd', 0, accountpwd[self.eq_account_index])
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'IsuNo', 0, str(shortcd))  # demo
+                self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'OrdQty', 0, int(orderqty))
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
                     # self.ordno_dict[self.xaquery_CSPAT00800.data['OrdNo']] = autotrader_id
@@ -276,13 +271,13 @@ class OrderMachineThread(QtCore.QThread):
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options new order
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','Pwd',0,accountpwd[self.fo_account_index])
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoIsuNo',0,str(shortcd))
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','BnsTpCode',0,buysell)
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','FnoOrdprcPtnCode',0,'00')
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdPrc',0,str(orderprice))
-                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1','OrdQty',0,int(orderqty))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'AcntNo', 0, self._accountlist[self.fo_account_index])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'Pwd', 0, accountpwd[self.fo_account_index])
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'FnoIsuNo', 0, str(shortcd))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'BnsTpCode', 0, buysell)
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'FnoOrdprcPtnCode', 0, '00')
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'OrdPrc', 0, str(orderprice))
+                    self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'OrdQty', 0, int(orderqty))
                     self.xaquery_CFOAT00100.autotrader_id = autotrader_id
                     ret = self.xaquery_CFOAT00100.Request(False)
                     self.logger.info(str(ret))
@@ -304,13 +299,13 @@ class OrderMachineThread(QtCore.QThread):
                         continue
                     else:
                         # Eurex Options new order
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','Pwd',0,accountpwd[self.fo_account_index])
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','FnoIsuNo',0,str(shortcd))
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','BnsTpCode',0,buysell)
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','ErxPrcCndiTpCode',0,'2')
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdPrc',0,str(orderprice))
-                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1','OrdQty',0,int(orderqty))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'AcntNo', 0, self._accountlist[self.fo_account_index])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'Pwd', 0, accountpwd[self.fo_account_index])
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'FnoIsuNo', 0, str(shortcd))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'BnsTpCode', 0, buysell)
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'ErxPrcCndiTpCode', 0, '2')
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'OrdPrc', 0, str(orderprice))
+                        self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'OrdQty', 0, int(orderqty))
                         self.xaquery_CEXAT11100.autotrader_id = autotrader_id
                         self.xaquery_CEXAT11100.shortcd = str(shortcd)
                         ret = self.xaquery_CEXAT11100.Request(False)
@@ -336,11 +331,11 @@ class OrderMachineThread(QtCore.QThread):
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 6 and nowtime.hour < 16:
                     # KRX Futures, Options Cancel Order
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','Pwd',0,accountpwd[self.fo_account_index])
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','FnoIsuNo',0,shortcd)
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','OrgOrdNo',0,int(orgordno))
-                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1','CancQty',0,int(orderqty))
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'AcntNo', 0, self._accountlist[self.fo_account_index])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'Pwd', 0, accountpwd[self.fo_account_index])
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'FnoIsuNo', 0, shortcd)
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'OrgOrdNo', 0, int(orgordno))
+                    self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'CancQty', 0, int(orderqty))
                     self.xaquery_CFOAT00300.autotrader_id = autotrader_id
                     ret = self.xaquery_CFOAT00300.Request(False)
                     if ret is None:
@@ -358,10 +353,10 @@ class OrderMachineThread(QtCore.QThread):
                         continue
                     else:
                         # Eurex Options Cancel Order
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','OrgOrdNo',0,int(orgordno))
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','AcntNo',0,self._accountlist[self.fo_account_index])
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','Pwd',0,accountpwd[self.fo_account_index])
-                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1','FnoIsuNo',0,str(shortcd))
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1', 'OrgOrdNo', 0, int(orgordno))
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1', 'AcntNo', 0, self._accountlist[self.fo_account_index])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1', 'Pwd', 0, accountpwd[self.fo_account_index])
+                        self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1', 'FnoIsuNo', 0, str(shortcd))
                         self.xaquery_CEXAT11300.autotrader_id = autotrader_id
                         ret = self.xaquery_CEXAT11300.Request(False)
                         if ret is None:
@@ -381,8 +376,7 @@ class OrderMachineThread(QtCore.QThread):
         self.context.term()
         pass
 
-    def UpdateDB(self):
-        #print "receive update "
+    def update_db(self):
         self.logger.info('receive_update')
         self.threadUpdateDB.emit()
         pass
@@ -391,11 +385,12 @@ class OrderMachineThread(QtCore.QThread):
 class ConsoleViewer:
     def __init__(self):
         self.flag = True
+
     def Update(self, subject):
         print '-' * 20
         print subject.__class__
         for item in subject.data:            
-            if type(subject.data).__name__ == 'dict' : print item,subject.data[item]
+            if type(subject.data).__name__ == 'dict': print item, subject.data[item]
             else: print item
         self.flag = False
         pass
@@ -404,6 +399,7 @@ class ConsoleViewer:
 class ConsolViewerSC0:
     def __init__(self):
         self.flag = True
+
     def Update(self, subject):
         print '-' * 20
         if type(subject.data).__name__ == 'dict':     
@@ -501,15 +497,15 @@ class OrderWorkerThread(QtCore.QThread):
         self.qtviewer11100.initDB()
         self.qtviewer11300.initDB()
 
-        self.qtviewer00600.receive.connect(self.updateDB)
-        self.qtviewer00800.receive.connect(self.updateDB)
-        self.qtviewer00100.receive.connect(self.updateDB)
-        self.qtviewer00300.receive.connect(self.updateDB)
-        self.qtviewer00100_cme.receive.connect(self.updateDB)
-        self.qtviewer00300_cme.receive.connect(self.updateDB)
-        self.qtviewer11100.receive.connect(self.updateDB)
-        self.qtviewer11300.receive.connect(self.updateDB)
-        self.qtviewerSC1.receive.connect(self.updateDB)
+        self.qtviewer00600.receive.connect(self.update_db)
+        self.qtviewer00800.receive.connect(self.update_db)
+        self.qtviewer00100.receive.connect(self.update_db)
+        self.qtviewer00300.receive.connect(self.update_db)
+        self.qtviewer00100_cme.receive.connect(self.update_db)
+        self.qtviewer00300_cme.receive.connect(self.update_db)
+        self.qtviewer11100.receive.connect(self.update_db)
+        self.qtviewer11300.receive.connect(self.update_db)
+        self.qtviewerSC1.receive.connect(self.update_db)
 
     def initQuery(self):
         self.xaquery_CFOAT00100 = px.XAQuery_CFOAT00100()
@@ -542,7 +538,6 @@ class OrderWorkerThread(QtCore.QThread):
         else:
             self.logger.info('servername: ' + self._servername)
             self.logger.info('fail: not available servername')
-            accountpwd = []
             return
 
         while True:
@@ -813,7 +808,7 @@ class OrderWorkerThread(QtCore.QThread):
                 self.logger.info('not yet implement other case order')
                 self.socket.send('not yet implement other case order')
 
-    def updateDB(self):
+    def update_db(self):
         self.logger.info('receive_ack')
         self.workerthread_updateDB.emit()
         pass
@@ -854,7 +849,7 @@ class OrderMachineNewThread(OrderMachineThread):
             thread.eq_account_index = self.eq_account_index
             thread.initViewer()
             thread.initQuery()
-            thread.workerthread_updateDB.connect(self.UpdateDB)
+            thread.workerthread_updateDB.connect(self.update_db)
             thread.start()
             self.thread_lst.append(thread)
             # self.pool.start(thread)

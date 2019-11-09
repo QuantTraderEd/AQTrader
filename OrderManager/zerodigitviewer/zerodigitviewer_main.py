@@ -2,6 +2,7 @@
 
 import time
 import sys
+import logging
 import pythoncom
 import pyxing as px
 from os import path
@@ -60,6 +61,9 @@ class ZeroDigitViewer(QtGui.QWidget):
         self.XASession = None
         self.ctimer = QtCore.QTimer()
         self.display_name = 'pnl_day'
+        QtGui.qApp.setStyle('Cleanlooks')
+        self.logger = logging.getLogger('ZeroOMS.DigitViewer')
+        self.logger.info('Init DigitViewer')
 
     def closeEvent(self, event):
         self.ctimer.stop()
@@ -80,21 +84,19 @@ class ZeroDigitViewer(QtGui.QWidget):
         pnl_open_action.triggered.connect(self.select_pnl_open)
         
     def initXing(self, XASession=None):
-        if isinstance(XASession, px.XASession):
+        if not isinstance(XASession, px.XASession):
+            self.XASession = px.XASession()
+            myform = LoginForm(self, proxy(self.XASession))
+            myform.show()
+            myform.exec_()
+        else:
             self.XASession = XASession
-            if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
-                self.accountlist = self.XASession.GetAccountList()
-            return
-
-        self.XASession = px.XASession()
-
-        myform = LoginForm(self, proxy(self.XASession))
-        myform.show()
-        myform.exec_()
 
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount(): 
             self.accountlist = self.XASession.GetAccountList()
-            print self.accountlist
+            self.logger.info('XASession Connected')
+        else:
+            self.logger.info('XASession NoConnected')
         
     def initQuery(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():

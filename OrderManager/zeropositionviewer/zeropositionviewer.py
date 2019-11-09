@@ -96,9 +96,9 @@ class ZeroPositionViewer(QtGui.QWidget):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.accountlist = self.XASession.GetAccountList()
             self.servername = self.XASession.GetServerName()
-            print self.accountlist
+            self.logger.info('XASession Connected')
         else:
-            print 'Not IsConnected or No Account'
+            self.logger.info('XASession NoConnected')
 
     def initExpireDateUtil(self):
         self.expiredate_util = ExpireDateUtil.ExpireDateUtil()
@@ -349,8 +349,6 @@ class ZeroPositionViewer(QtGui.QWidget):
             total_theta = '%.4f' % total_theta
             total_vega = '%.4f' % total_vega
             total_pnl_open = "{:,}".format(total_pnl_open)
-
-            # print total_pnl
 
             self.updateTableWidgetItem(len(data)-2, 0, 'Total')
             self.updateTableWidgetItem(len(data)-2, 1, '')
