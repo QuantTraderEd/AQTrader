@@ -37,8 +37,7 @@ def main():
         # logger.info('%s positon-> %s' % (shortcd, qty))
         avg_price = redis_client.hget(autotrader_id + '_tradeprice_dict', shortcd)
         # logger.info('%s tradeprice-> %s' % (shortcd, avg_price))
-        position_dict[shortcd] = [int(qty or 0), int(avg_price or 0)]
-
+        position_dict[shortcd] = [int(qty or 0), "%.3f" % avg_price]
 
     bot.send_message(chat_id, "start position_report service")
     msg = pprint.pformat(position_dict)
