@@ -49,7 +49,7 @@ def main():
         msg_dict = socket.recv_pyobj()
         time.sleep(1)
         now_dt = dt.datetime.now()
-        for shortcd in self.futures_shortcd_lst:
+        for shortcd in futures_shortcd_lst:
             qty = redis_client.hget(autotrader_id + '_position_dict', shortcd)
             # logger.info('%s positon-> %s' % (shortcd, qty))
             avg_price = redis_client.hget(autotrader_id + '_tradeprice_dict', shortcd)
