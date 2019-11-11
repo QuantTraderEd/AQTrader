@@ -13,9 +13,9 @@ from commutil.comm_function import convert_price_to_str
 class QtViewerC01(QtCore.QObject):
     receive = QtCore.pyqtSignal()
 
-    def __init__(self, zmq_socket_exec_report=6000, parent=None):
+    def __init__(self, zmq_socket_exec_report, parent=None):
         super(QtViewerC01, self).__init__(parent)
-        self.zmq_socket_exec_report = zmq_socket_exec_report  # 6000: real 6001: test
+        self.zmq_socket_exec_report = zmq_socket_exec_report  # port 6000: real 6001: test
         self.dbname = None
         self.flag = True
         self.redis_client = redis.Redis()
@@ -56,17 +56,17 @@ class QtViewerC01(QtCore.QObject):
         else: buysell = ''
 
         msg_dict = dict()
-        msg_dict['AutoTraderID'] = autotrader_id
+        msg_dict['autotrader_id'] = autotrader_id
         msg_dict['new_amend_cancel'] = 'N'
-        msg_dict['OrderNo'] = ordno
-        msg_dict['ExecNo'] = execno
-        msg_dict['TimeStamp'] = nowtime
-        msg_dict['ShortCD'] = shortcd
-        msg_dict['OrderPrice'] = ordprice
-        msg_dict['OrderQty'] = ordqty
-        msg_dict['BuySell'] = buysell
-        msg_dict['ExecPrice'] = execprice
-        msg_dict['ExecQty'] = execqty
+        msg_dict['ordno'] = ordno
+        msg_dict['execno'] = execno
+        msg_dict['timestamp'] = nowtime
+        msg_dict['execno'] = c
+        msg_dict['execno'] = c
+        msg_dict['ordqty'] = ordqty
+        msg_dict['buysell'] = buysell
+        msg_dict['execprice'] = execprice
+        msg_dict['execqty'] = execqty
 
         self.zmq_socket_exec_report.send_pyobj(msg_dict)
 

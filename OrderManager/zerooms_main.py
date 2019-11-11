@@ -37,7 +37,9 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 
 # create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s %(message)s',
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s '
+                              '%(filename)s %(funcName)s() %(lineno)d:\t\t'
+                              '%(message)s',
                               datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
@@ -54,7 +56,7 @@ class MainForm(QtGui.QMainWindow):
         self.order_port = 6001   # real: 6001 test: 6002
         self.exec_port = 7001    # real: 7001 test: 7002
         self.accountindex = 1
-        self.db_path = './orderlist_db/'
+        self.db_path = path.dirname(__file__) + '/orderlist_db/'  # './orderlist_db/'
         self.set_auto = False
         self.auto_config = self.set_auto_config()
 
@@ -172,13 +174,13 @@ class MainForm(QtGui.QMainWindow):
 
     def initDB(self):
         nowtime = time.localtime()
-        strtime = time.strftime('%Y%m%d',nowtime)
+        strtime = time.strftime('%Y%m%d', nowtime)
         if nowtime.tm_hour >= 6 and nowtime.tm_hour < 17:
             strdbname = "orderlist_%s.db" % strtime
         elif nowtime.tm_hour >= 17:
             strdbname = "orderlist_night_%s.db" % strtime
         elif nowtime.tm_hour < 6:
-            strtime = "%d%.2d%.2d" %(nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
+            strtime = "%d%.2d%.2d" % (nowtime.tm_year, nowtime.tm_mon, nowtime.tm_mday-1)
             strdbname = "orderlist_night_%s.db" % strtime
 
         strdbname = self.db_path + strdbname
