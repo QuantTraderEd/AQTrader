@@ -106,12 +106,12 @@ class QtViewerCCEAT00300(QtCore.QObject):
             if len(rows_cancl) == 0 and unexecqty > 0:
                 self.conn.execute("""Update OrderList Set UnExecQty=?
                                                         WHERE OrdNo=? and (BuySell = 'buy' or BuySell = 'sell') """,
-                                  (str(unexecqty - int(canclqty)), orgordno))
+                                  ('0', orgordno))
             self.conn.commit()
             # conn_db.close()
             # self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'CSPAT00800')
             self.receive.emit()
-        elif type(self.conn) == lite.Connection and subject.data['szMessageCode'] != '00156':
+        elif type(self.conn) == lite.Connection and subject.data['szMessageCode'] != '02261':
             # conn_db = lite.connect(self.dbname)
             # cursor_db = conn_db.cursor()
             wildcard = '?,' * len(orderitem)
