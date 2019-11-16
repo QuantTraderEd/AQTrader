@@ -21,8 +21,8 @@ class TestClass(object):
     myform = MainForm()
     myform.show()
 
-    order_port = 6001
-    exec_report_port = 7001
+    order_port = 6002
+    exec_report_port = 7002
 
     feedcode_list = FeedCodeList()
     feedcode_list.read_code_list()
@@ -44,6 +44,9 @@ class TestClass(object):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:%d" % order_port)
+    socket_exec_report = context.socket(zmq.SUB)
+    socket_exec_report.connect("tcp://127.0.0.1:%d" % exec_report_port)
+    socket_exec_report.setsockopt(zmq.SUBSCRIBE, "")
 
     order_dict = dict()
 
@@ -86,3 +89,16 @@ class TestClass(object):
         msg_dict = self.socket.recv_pyobj()
         self.logger.info('Recv Ack->' + str(msg_dict))
         assert msg_dict == 'OK'
+
+    def test_recv_cancl_exec_report(self):
+        while True:
+            msg_dict = self.socket_exec_report.recv_pyobj()
+            self.logger.info('ExecReport->' + str(msg_dict))
+            assert isinstance(msg_dict, dict)
+            assert msg_dict['autotrader_id'] == self.autotrader_id
+            assert msg_dict['new_amend_cancel'] == 'C'
+            assert msg_dict['orgordno'] == self.orgordno
+            assert msg_dict['shortcd'] == self.shortcd
+            break
+
+
