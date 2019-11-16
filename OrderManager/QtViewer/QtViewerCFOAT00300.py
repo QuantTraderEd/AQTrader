@@ -59,6 +59,7 @@ class QtViewerCFOAT00300(QtCore.QObject):
         # msg_dict['BuySell'] = buysell
         msg_dict['canclqty'] = canclqty
 
+        self.logger.info('PUB-> %s' % str(msg_dict))
         self.zmq_socket_exec_report.send_pyobj(msg_dict)
 
         # -------------------------------

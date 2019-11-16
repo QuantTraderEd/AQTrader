@@ -61,13 +61,12 @@ class QtViewerC01(QtCore.QObject):
         msg_dict['ordno'] = ordno
         msg_dict['execno'] = execno
         msg_dict['timestamp'] = nowtime
-        msg_dict['execno'] = c
-        msg_dict['execno'] = c
         msg_dict['ordqty'] = ordqty
         msg_dict['buysell'] = buysell
         msg_dict['execprice'] = execprice
         msg_dict['execqty'] = execqty
 
+        self.logger.info('PUB-> %s' % str(msg_dict))
         self.zmq_socket_exec_report.send_pyobj(msg_dict)
 
         self.logger.info(str(orderitem))
