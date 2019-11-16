@@ -365,7 +365,7 @@ def main():
 
         # if nowtime.tm_hour == 13 and 0 <= nowtime.tm_min <= 58 and test_open_trigger:
         # if (nowtime.tm_hour in [7,] and nowtime.tm_min >= 15 and nowtime.tm_min <= 59 and not day_session_trigger) or \
-        if nowtime.tm_hour in [8,] and nowtime.tm_min >= 0 and nowtime.tm_min <= 10 and not day_session_trigger:
+        if nowtime.tm_hour in [8, ] and nowtime.tm_min >= 0 and nowtime.tm_min <= 10 and not day_session_trigger:
             if nowdatetime.weekday() >= 5:
                 logger.info('Stop@WeekEnd')
                 time_sleep_interval = 60 * 5
@@ -382,16 +382,6 @@ def main():
             day_session_starter()
             auto_test_trader_starter()
 
-            # logmsg = 'click DBLoader start button (%d, %d)' %(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)
-            # logger.info(logmsg)
-            # click(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)
-            # time.sleep(1.0)
-            # logger.info('click the feeder')
-            # click(feeder_toggle_pos_x, feeder_toggle_pos_y)
-            # time.sleep(2.0)
-            # logger.info('click the oms run (%d, %d)' %(oms_toggle_pos_x, oms_toggle_pos_y))
-            # click(oms_toggle_pos_x, oms_toggle_pos_y)
-
             day_session_trigger = True
             night_session_trigger = False
             
@@ -400,22 +390,7 @@ def main():
 
         elif nowtime.tm_hour == 17 and nowtime.tm_min >= 0 and nowtime.tm_min <= 35 and \
             not night_session_trigger and day_session_trigger:
-            nowdatetime = dt.datetime.now()        
-            # logger.info('click the feeder')
-            # click(feeder_toggle_pos_x, feeder_toggle_pos_y)
-            # time.sleep(0.5)
-            # logger.info('click the oms run')
-            # click(oms_toggle_pos_x, oms_toggle_pos_x)
-            # logger.info('click the oms close')
-            # click(oms_close_pos_x, oms_close_pos_y)
-            # time.sleep(3)
-            
-            # logger.info('click DBLoader stop button')
-            # click(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)
-            # time.sleep(0.5)
-            # logger.info('click DBLoader close button')
-            # click(dbloader_close_pos_x, dbloader_close_pos_y)
-            # time.sleep(3)
+            nowdatetime = dt.datetime.now()
             
             clear_ordno_dict()
             logger.info('End_day_session_trigger')
@@ -451,33 +426,7 @@ def main():
             
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
         elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
-            nowdatetime = dt.datetime.now()        
-            # logger.info('click the feeder run')
-            # click(feeder_toggle_pos_x, feeder_toggle_pos_y)
-            # time.sleep(1)
-            # logger.info('click the feeder close')
-            # click(feeder_close_pos_x, feeder_close_pos_y)
-            # time.sleep(1)
-            # logger.info('click the oms run')
-            # click(oms_toggle_pos_x, oms_toggle_pos_y)
-            # logger.info('click the oms close')
-            # click(oms_close_pos_x, oms_close_pos_y)
-            # time.sleep(3)
-            
-            # logger.info('click DBLoader stop button')
-            # click(dbloader_start_stop_pos_x, dbloader_start_stop_pos_y)     # click at switch1
-            # time.sleep(0.5)
-            # logger.info('click DBLoader close button')
-            # click(dbloader_close_pos_x, dbloader_close_pos_y)
-            # time.sleep(3)
-
-            # logger.info('click autootmtrader stop button')
-            # click(autootmtrader_start_stop_pos_x, autootmtrader_start_stop_pos_y)
-            # time.sleep(0.5)
-            # logger.info('click autootmtrader close button')
-            # click(autootmtrader_close_pos_x, autootmtrader_close_pos_y)
-            # time.sleep(0.5)
-            
+            nowdatetime = dt.datetime.now()
             pid_dict = {}
             
             for proc in psutil.process_iter():
