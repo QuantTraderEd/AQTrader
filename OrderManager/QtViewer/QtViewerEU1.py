@@ -56,17 +56,17 @@ class QtViewerEU1(QtCore.QObject):
             elif buysell == 'sell': buysell = 'S'
             else: buysell = ''
 
-            msg_dict = {}
-            msg_dict['AutoTraderID'] = autotrader_id
-            msg_dict['OrderNo'] = ordno
-            msg_dict['ExecNo'] = execno
-            msg_dict['TimeStamp'] = nowtime
-            msg_dict['ShortCD'] = shortcd
-            msg_dict['OrderPrice'] = ordprice
-            msg_dict['OrderQty'] = ordqty
-            msg_dict['BuySell'] = buysell
-            msg_dict['ExecPrice'] = execprice
-            msg_dict['ExecQty'] = execqty
+            msg_dict = dict()
+            msg_dict['autotrader_id'] = autotrader_id
+            msg_dict['ordno'] = ordno
+            msg_dict['execno'] = execno
+            msg_dict['timestamp'] = nowtime
+            msg_dict['shortcd'] = shortcd
+            msg_dict['ordprice'] = ordprice
+            msg_dict['ordqty'] = ordqty
+            msg_dict['buysell'] = buysell
+            msg_dict['execprice'] = execprice
+            msg_dict['execqty'] = execqty
 
             self.zmq_socket.send_pyobj(msg_dict)
 
@@ -106,7 +106,6 @@ class QtViewerEU1(QtCore.QObject):
                     avgExecQty =  avgExecQty + int(execqty)
                     avgExecPrice = convert(avgExecPrice)
 
-
                 if unexecqty > 0:
                     cursor_db.execute("""Update OrderList Set ExecPrice=?, ExecQty=?, UnExecQty=?
                                         WHERE OrdNo=? and ShortCD = ? and (BuySell = 'buy' or BuySell = 'sell')
@@ -115,7 +114,7 @@ class QtViewerEU1(QtCore.QObject):
                                         (str(avgExecPrice), str(avgExecQty),str(unexecqty - int(execqty)),str(ordno),str(shortcd),))
                 conn_db.commit()
                 conn_db.close()
-                #self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')
+                # self.emit(QtCore.SIGNAL("OnReceiveData (QString)"),'SC1')
                 self.receive.emit()
 
         self.flag = False
