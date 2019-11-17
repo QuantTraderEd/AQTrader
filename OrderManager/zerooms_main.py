@@ -130,7 +130,7 @@ class MainForm(QtGui.QMainWindow):
         setting.setValue("PositionViewer_Show", self.myPositionViewer.isVisible())
         setting.setValue("DigitViewer_Show", self.myDigitViewer.isVisible())
         setting.setValue("setauto", self.set_auto)
-        setting.setValue("order_prot", self.order_port)
+        setting.setValue("order_port", self.order_port)
         setting.setValue("exec_port", self.exec_port)
         self.myOrdListDlg.close()
         self.myPositionViewer.close()

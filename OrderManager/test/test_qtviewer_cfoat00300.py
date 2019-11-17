@@ -49,6 +49,7 @@ class TestClass(object):
     socket_exec_report.setsockopt(zmq.SUBSCRIBE, "")
 
     order_dict = dict()
+    msg_dict = dict()
 
     def test_auto_config(self):
         assert self.myform.set_auto
@@ -88,9 +89,12 @@ class TestClass(object):
         self.socket.send_pyobj(self.order_dict)
         msg_dict = self.socket.recv_pyobj()
         self.logger.info('Recv Ack->' + str(msg_dict))
-        assert msg_dict == 'OK'
+        assert self.msg_dict == 'OK'
 
     def test_recv_cancl_exec_report(self):
+
+        assert self.msg_dict == 'OK'
+
         while True:
             msg_dict = self.socket_exec_report.recv_pyobj()
             self.logger.info('ExecReport->' + str(msg_dict))
