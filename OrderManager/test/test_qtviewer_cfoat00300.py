@@ -35,7 +35,8 @@ class TestClass(object):
 
     autotrader_id = 'test01'
     shortcd = mini_shortcd
-    orderprice = float(redis_client.hget('bid1_dict', shortcd)) - 3.00
+    # orderprice = float(redis_client.hget('bid1_dict', shortcd)) - 3.00
+    orderprice = 275.00
     orderqty = 1
     buysell = 'B'
 
@@ -71,6 +72,7 @@ class TestClass(object):
         self.order_dict['OrderType'] = 2  # market = 1 limit = 2
         self.order_dict['TimeInForce'] = 'GFD'
 
+        # new order
         self.logger.info('Send Order->' + str(self.order_dict))
         self.socket.send_pyobj(self.order_dict)
         msg_dict = self.socket.recv_pyobj()
@@ -85,6 +87,7 @@ class TestClass(object):
         self.order_dict['OrderQty'] = self.orderqty
         self.order_dict['OrgOrderNo'] = self.orgordno
 
+        # cancel order
         self.logger.info('Send Order->' + str(self.order_dict))
         self.socket.send_pyobj(self.order_dict)
         msg_dict = self.socket.recv_pyobj()
