@@ -470,6 +470,7 @@ def main():
             # click(autootmtrader_close_pos_x, autootmtrader_close_pos_y)
             # time.sleep(0.5)
 
+            cp_kill()
             clear_ordno_dict()
 
             night_session_close_trigger = True
