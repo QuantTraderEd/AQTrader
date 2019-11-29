@@ -10,7 +10,7 @@ class TestClass(object):
     pid_dict = dict()
 
     def test_cp_start(self):
-        is_start_cp = cp_start('h6626075')
+        is_start_cp = cp_start('')
         assert is_start_cp
         total_run.close_notice_window()
 
@@ -21,4 +21,4 @@ class TestClass(object):
 
         proc_list = [proc.name() for proc in psutil.process_iter()]
         assert not ("DibServer.exe" in proc_list)
-        assert not ('CpStart.exe' in proc_list)
+        # assert not ('CpStart.exe' in proc_list)
