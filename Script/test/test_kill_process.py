@@ -9,6 +9,10 @@ class TestClass(object):
 
     pid_dict = dict()
 
+    def test_python_app_kill(self):
+        total_run.show_task_list()
+        total_run.python_app_kill()
+
     def test_cp_start(self):
         is_start_cp = cp_start('')
         assert is_start_cp

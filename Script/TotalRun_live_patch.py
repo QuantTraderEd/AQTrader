@@ -172,24 +172,35 @@ def cp_start(input_text=''):
     pass
 
 
-def cp_kill():
-
+def python_app_kill():
     for proc in psutil.process_iter():
         if proc.name() in ["pythonw.exe"]:
-            logger.info('proc name: %s' % proc.name())
-            os.system('TASKKILL /f /im pythonw.exe')
-        elif proc.name() in ["DibServer.exe"]:
-            psinfo = proc.as_dict(attrs=['name'])
-            logger.info("pid:%d %s" % (proc.pid, psinfo['name']))
+            output = psutil.Process(pid=proc.pid).cmdline()
+            script_name = output[1].split("\\")[-1]
+            logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
             logger.info('kill pid: %s proc name: %s' % (proc.name(), proc.pid))
-            ret = os.system('TASKKILL /f /im %s' % proc.name())
+            os.system('TASKKILL /f /im pythonw.exe')
+        elif proc.name() in ["python.exe"]:
+            output = psutil.Process(pid=proc.pid).cmdline()
+            script_name = output[1].split("\\")[-1]
+            logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
+            if script_name == 'zerooms_main.py':
+                logger.info('kill pid: %s proc name: %s script: %s' % (proc.name(), proc.pid, script_name))
+                os.system('TASKKILL /F /PID %d' % proc.pid)
+
+
+def cp_kill():
+    for proc in psutil.process_iter():
+        if proc.name() in ["DibServer.exe"]:
+            logger.info("pid:%d %s" % (proc.pid, proc.name()))
+            logger.info('kill pid: %s proc name: %s' % (proc.name(), proc.pid))
+            ret = os.system('TASKKILL /F /IM %s /T' % proc.name())
             logger.info("ret-> %d" % ret)
         elif proc.name() in ["CpStart.exe"]:
-            psinfo = proc.as_dict(attrs=['name'])
-            logger.info("pid:%d %s" % (proc.pid, psinfo['name']))
+            logger.info("pid:%d %s" % (proc.pid, proc.name()))
             logger.info('kill pid: %s proc name: %s' % (proc.name(), proc.pid))
             taskkillexe = "c:/windows/system32/taskkill.exe"
-            taskkillparam = (taskkillexe, '/F', '/IM', proc.name())
+            taskkillparam = (taskkillexe, '/F', '/IM', proc.name(), '/T')
             ret = call(taskkillparam)
             logger.info("ret-> %d" % ret)
 
@@ -199,9 +210,8 @@ def cp_kill():
 def show_task_list():
     for proc in psutil.process_iter():
         if proc.name() in ["python.exe"]:
-            logger.info("pid:%d %s" % (proc.pid, proc.name()))
             output = psutil.Process(proc.pid).cmdline()
-            logger.info("scrpt: %s" % output[1])
+            logger.info("pid:%d %s %s" % (proc.pid, proc.name(), output[1]))
 
 
 def oms_starter():
@@ -443,6 +453,7 @@ def main():
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
         elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
 
+            python_app_kill
             cp_kill()
             clear_ordno_dict()
 
