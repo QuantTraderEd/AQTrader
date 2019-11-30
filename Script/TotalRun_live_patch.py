@@ -453,7 +453,7 @@ def main():
         # elif nowtime.tm_hour == 23 and nowtime.tm_min >= 0:
         elif nowtime.tm_hour == 6 and nowtime.tm_min >= 15 and not night_session_close_trigger:
 
-            python_app_kill
+            python_app_kill()
             cp_kill()
             clear_ordno_dict()
 
