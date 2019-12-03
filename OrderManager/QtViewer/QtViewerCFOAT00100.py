@@ -11,9 +11,9 @@ from datetime import datetime
 class QtViewerCFOAT00100(QtCore.QObject):
     receive = QtCore.pyqtSignal()
 
-    def __init__(self, zmq_socket=None, parent=None):
+    def __init__(self, zmq_socket_order=None, parent=None):
         super(QtViewerCFOAT00100, self).__init__(parent)
-        self.zmq_socket = zmq_socket
+        self.zmq_socket_order = zmq_socket_order
         self.dbname = None
         self.flag = True
         self.conn = None
@@ -83,7 +83,7 @@ class QtViewerCFOAT00100(QtCore.QObject):
         msg_dict['BuySell'] = buysell
         msg_dict['MsgCode'] = msgcode
 
-        self.zmq_socket.send_pyobj(msg_dict)
+        self.zmq_socket_order.send_pyobj(msg_dict)
 
         # print orderitem
         self.logger.info('%s' % str(orderitem))

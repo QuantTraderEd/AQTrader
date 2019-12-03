@@ -3,6 +3,7 @@
 import time
 import threading
 import logging
+import pprint
 import zmq
 import redis
 import pyxing as px
@@ -324,15 +325,7 @@ class OrderWorkerThread(QtCore.QThread):
                 self.socket_order.send_pyobj('fail: orderprice not float')
                 continue
 
-            logmsg = '%s, %s, %s, %f, %d, %s, %s' % (
-                autotrader_id,
-                newamendcancel,
-                shortcd,
-                orderprice,
-                int(orderqty),
-                buysell,
-                orgordno,)
-
+            logmsg = pprint.pformat(msg_dict)
             self.logger.info(logmsg)
 
             if newamendcancel == 'N' and buysell == 'B':
@@ -362,12 +355,7 @@ class OrderWorkerThread(QtCore.QThread):
                     while self.xaquery_CSPAT00600.observer.flag:
                         PumpWaitingMessages()
                     self.xaquery_CSPAT00600.observer.flag = True
-                    # szMsgCode = self.xaquery_CSPAT00600.data['szMessageCode']
-                    # if szMsgCode != '00039' and szMsgCode != '00040':
-                    #     self.socket_order.send(str(szMsgCode))
-                    # else:
-                    #     self.socket_order.send(str(szMsgCode))
-                    self.socket_order.send(str(szMsgCode))
+                    # self.socket_order.send_pyobj(str(szMsgCode))
 
             elif newamendcancel == 'C' and shortcd[0] == 'A':
                 # equity cancel order
@@ -380,17 +368,16 @@ class OrderWorkerThread(QtCore.QThread):
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'OrdQty', 0, int(orderqty))
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
-                    # self.ordno_dict[self.xaquery_CSPAT00800.data['OrdNo']] = autotrader_id
-                    # self.redis_client.hset('ordno_dict', self.xaquery_CSPAT00800.data['OrdNo'], autotrader_id)
-                    self.socket_order.send('OK')
+                    self.socket_order.send_pyobj('OK')
                     self.logger.info('OK')
                 else:
-                    self.socket_order.send('Reject')
+                    self.socket_order.send_pyobj('Reject')
                     self.logger.info('Reject')
 
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
-                if nowtime.hour >= 6 and nowtime.hour < 16:
+                if nowtime.hour >= 7 and nowtime.hour <= 16:
                     # KRX Futures, Options new order
+                    # FnoOrdprcPtnCode, 00@Limit 03@Market 05@조건부지정가 06@최유리지정가
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'AcntNo', 0,
                                                          self._accountlist[self.fo_account_index])
                     self.xaquery_CFOAT00100.SetFieldData('CFOAT00100InBlock1', 'Pwd', 0,
@@ -410,11 +397,6 @@ class OrderWorkerThread(QtCore.QThread):
                         szMsg = self.xaquery_CFOAT00100.data['szMessage']
                         szMsgCode = self.xaquery_CFOAT00100.data['szMessageCode']
                         self.logger.info(szMsg.strip() + szMsgCode)
-                        # if szMsgCode in ['00030', '00040']:
-                        # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
-                        # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
-
-                        # self.socket_order.send(str(szMsgCode))
                     else:
                         self.logger.info('async_ret_error %s' % str(ret))
                         self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
@@ -444,11 +426,6 @@ class OrderWorkerThread(QtCore.QThread):
                             szMsg = self.xaquery_CCEAT00100.data['szMessage']
                             szMsgCode = self.xaquery_CCEAT00100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
-                            # if szMsgCode in ['00030', '00040']:
-                            # self.ordno_dict[int(self.xaquery_CFOAT00100.data['OrdNo'])] = autotrader_id
-                            # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00100.data['OrdNo'], autotrader_id)
-
-                            # self.socket_order.send(str(szMsgCode))
                         else:
                             self.logger.info('async_ret_error %s' % str(ret))
                             self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
@@ -471,23 +448,15 @@ class OrderWorkerThread(QtCore.QThread):
                             while self.xaquery_CEXAT11100.observer.flag:
                                 PumpWaitingMessages()
                             self.xaquery_CEXAT11100.observer.flag = True
-
                             szMsg = self.xaquery_CEXAT11100.data['szMessage']
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
-                            # if szMsgCode in['00030', '00040']:
-                            # self.ordno_dict[int(self.xaquery_CEXAT11100.data['OrdNo'])] = autotrader_id
-                            # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11100.data['OrdNo'], autotrader_id)
-
-                            # self.socket_order.send(str(szMsgCode))
-
-                            # self.socket.send('async_ret_ok')
                         else:
                             self.logger.info('async_ret_error %s' % str(ret))
                             self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
-                if nowtime.hour >= 6 and nowtime.hour < 16:
+                if nowtime.hour >= 7 and nowtime.hour <= 16:
                     # KRX Futures, Options Cancel Order
                     self.xaquery_CFOAT00300.SetFieldData('CFOAT00300InBlock1', 'AcntNo', 0,
                                                          self._accountlist[self.fo_account_index])
@@ -509,7 +478,7 @@ class OrderWorkerThread(QtCore.QThread):
                 else:
                     if shortcd[:3] in ['105']:
                         self.logger.info('not yet implement... 105')
-                        self.socket.send('not yet implement...')
+                        self.socket_order.send_pyobj('not yet implement...105')
                         continue
                     elif shortcd[:3] in ['101']:
                         # KOSPI200 CME Futures, Options Cancel Order
@@ -522,12 +491,10 @@ class OrderWorkerThread(QtCore.QThread):
                         self.xaquery_CCEAT00300.autotrader_id = autotrader_id
                         ret = self.xaquery_CCEAT00300.Request(False)
                         if ret is None:
-                            # self.ordno_dict[self.xaquery_CFOAT00300.data['OrdNo']] = autotrader_id
-                            # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00300.data['OrdNo'], autotrader_id)
-                            self.socket_order.send('OK')
+                            self.socket_order.send_pyobj('OK')
                             self.logger.info('OK')
                         else:
-                            self.socket_order.send('Reject')
+                            self.socket_order.send_pyobj('Reject')
                             self.logger.info('Reject')
                     else:
                         # KOSPI200 Eurex Options Cancel Order
@@ -549,7 +516,7 @@ class OrderWorkerThread(QtCore.QThread):
                             self.logger.info('Reject')
             else:
                 self.logger.info('not yet implement other case order')
-                self.socket.send('not yet implement other case order')
+                self.socket_order.send_pyobj('not yet implement other case order')
 
     def update_db(self):
         self.logger.info('receive_ack')
@@ -601,11 +568,11 @@ class OrderMachineNewThread(OrderMachineThread):
     def run(self):
         try:
             nowtime = datetime.now()
-            if nowtime.hour >= 6 and nowtime.hour < 16:
+            if nowtime.hour >= 7 and nowtime.hour <= 16:
                 self.xareal_SC0.AdviseRealData()
                 self.xareal_SC1.AdviseRealData()
                 self.xareal_C01.AdviseRealData()
-            elif nowtime.hour >= 16 or nowtime.hour < 6:
+            elif nowtime.hour >= 17 or nowtime.hour < 6:
                 self.xareal_CM1.AdviseRealData()
                 self.xareal_EU1.AdviseRealData()
 
