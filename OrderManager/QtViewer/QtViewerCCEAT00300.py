@@ -38,8 +38,8 @@ class QtViewerCCEAT00300(QtCore.QObject):
         szMsgCode = subject.data['szMessageCode']
         self.logger.info(szMsg.strip() + szMsgCode)
 
-        msg = pprint.pformat(subject.data)
-        self.logger.info(msg)
+        # msg = pprint.pformat(subject.data)
+        # self.logger.info(msg)
 
         buysell = 'cancl'
         orgordno = subject.data['OrgOrdNo']

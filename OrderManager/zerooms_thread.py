@@ -209,7 +209,7 @@ class OrderWorkerThread(QtCore.QThread):
         self.qtviewer00100_cme = QtViewerCFOAT00100(self.socket_order)
         self.qtviewer00300_cme = QtViewerCCEAT00300(self.socket_execution_report)
         self.qtviewer11100 = QtViewerCEXAT11100(self.socket_order)
-        self.qtviewer11300 = QtViewerCEXAT11300()
+        self.qtviewer11300 = QtViewerCEXAT11300(self.socket_execution_report)
         self.qtviewerSC1 = QtViewerSC1()
 
         nowtime = datetime.now()
@@ -509,10 +509,10 @@ class OrderWorkerThread(QtCore.QThread):
                         if ret is None:
                             # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
                             # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11300.data['OrdNo'], autotrader_id)
-                            self.socket_order.send('OK')
+                            self.socket_order.send_pyobj('OK')
                             self.logger.info('OK')
                         else:
-                            self.socket_order.send('Reject')
+                            self.socket_order.send_pyobj('Reject')
                             self.logger.info('Reject')
             else:
                 self.logger.info('not yet implement other case order')

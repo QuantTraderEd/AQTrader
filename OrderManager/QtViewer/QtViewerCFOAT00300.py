@@ -8,6 +8,9 @@ from datetime import datetime
 
 
 class QtViewerCFOAT00300(QtCore.QObject):
+    """
+    kospi200 futures option cancel order
+    """
     receive = QtCore.pyqtSignal()
 
     def __init__(self, zmq_socket_exec_report):
@@ -34,12 +37,12 @@ class QtViewerCFOAT00300(QtCore.QObject):
 
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
-        szMsg = self.xaquery_CCEAT00100.data['szMessage']
-        szMsgCode = self.xaquery_CCEAT00100.data['szMessageCode']
+        szMsg = subject.data['szMessage']
+        szMsgCode = subject.data['szMessageCode']
         self.logger.info(szMsg.strip() + szMsgCode)
 
-        msg = pprint.pformat(subject.data)
-        self.logger.info(msg)
+        # msg = pprint.pformat(subject.data)
+        # self.logger.info(msg)
 
         buysell = 'cancl'
         orgordno = subject.data['OrgOrdNo']
@@ -58,6 +61,7 @@ class QtViewerCFOAT00300(QtCore.QObject):
         # msg_dict['OrderQty'] = ordqty
         # msg_dict['BuySell'] = buysell
         msg_dict['canclqty'] = canclqty
+        msg_dict['msg_code'] = szMsgCode
 
         self.logger.info('PUB-> %s' % str(msg_dict))
         self.zmq_socket_exec_report.send_pyobj(msg_dict)
