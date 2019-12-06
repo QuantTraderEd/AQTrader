@@ -34,9 +34,9 @@ class QtViewerCCEAT00300(QtCore.QObject):
 
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
-        szMsg = subject.data['szMessage']
-        szMsgCode = subject.data['szMessageCode']
-        self.logger.info(szMsg.strip() + szMsgCode)
+        sz_msg = subject.data['szMessage']
+        msg_code = subject.data['szMessageCode']
+        self.logger.info(sz_msg.strip() + msg_code)
 
         # msg = pprint.pformat(subject.data)
         # self.logger.info(msg)
@@ -58,6 +58,7 @@ class QtViewerCCEAT00300(QtCore.QObject):
         # msg_dict['OrderQty'] = ordqty
         # msg_dict['BuySell'] = buysell
         msg_dict['canclqty'] = canclqty
+        msg_dict['msg_code'] = msg_code
 
         self.zmq_socket_exec_report.send_pyobj(msg_dict)
 

@@ -13,7 +13,10 @@ from commutil.FeedCodeList import FeedCodeList
 
 
 class TestClass(object):
-    logger = logging.getLogger('ZeroOMS.QtViewer_CFOAT00300')
+    """
+        KOSPI200 Options Cancel Order Test (EUREX)
+        """
+    logger = logging.getLogger('ZeroOMS.QtViewer_CEXAT11300')
 
     redis_client = redis.Redis()
 
@@ -98,6 +101,7 @@ class TestClass(object):
             assert msg_dict['new_amend_cancel'] == 'C'
             assert msg_dict['shortcd'] == self.shortcd
             assert msg_dict['orgordno'] == self.order_dict['OrgOrderNo']
+            assert msg_dict['msg_code'] in ['00000', '00156']
             break
 
 
