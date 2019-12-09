@@ -11,7 +11,9 @@ from ..pyxing.xing_xaquery_cfoeq11100 import XAQuery_CFOEQ11100
 
 
 class TestClass(object):
-
+    """
+    잔고 & 평가금액 조회 (KRX)
+    """
     servertype = 1
     showcerterror = 1
     server_text = 'demo server'
