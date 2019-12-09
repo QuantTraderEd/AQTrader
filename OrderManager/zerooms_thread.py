@@ -470,10 +470,10 @@ class OrderWorkerThread(QtCore.QThread):
                     if ret is None:
                         # self.ordno_dict[self.xaquery_CFOAT00300.data['OrdNo']] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00300.data['OrdNo'], autotrader_id)
-                        self.socket_order.send('OK')
+                        self.socket_order.send_pyobj('OK')
                         self.logger.info('OK')
                     else:
-                        self.socket_order.send('Reject')
+                        self.socket_order.send_pyobj('Reject')
                         self.logger.info('Reject')
                 else:
                     if shortcd[:3] in ['105']:

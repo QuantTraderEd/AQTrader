@@ -112,7 +112,7 @@ class OrderListDialog(QtGui.QWidget):
                     msg_dict['NewAmendCancel'] = 'C'                    
                     msg_dict['OrgOrderNo'] = orgordno
                     self.socket.send_pyobj(msg_dict)
-                    msg_in = self.socket.recv()
+                    msg_in = self.socket.recv_pyobj()
                     print msg_in
             else:
                 print 'rows > 1 @ orderlistdlgCanclOrder'
