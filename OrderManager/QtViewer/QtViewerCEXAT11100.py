@@ -8,11 +8,14 @@ from datetime import datetime
 
 
 class QtViewerCEXAT11100(QtCore.QObject):
+    """
+    kospi200 eurex option new normal order
+    """
     receive = QtCore.pyqtSignal()
 
-    def __init__(self, zmq_socket=None, parent=None):
-        super(QtViewerCEXAT11100,self).__init__(parent)
-        self.zmq_socket = zmq_socket
+    def __init__(self, zmq_socket_order=None, parent=None):
+        super(QtViewerCEXAT11100, self).__init__(parent)
+        self.zmq_socket_order = zmq_socket_order
         self.dbname = None
         self.flag = True
         self.redis_client = redis.Redis()
@@ -26,15 +29,14 @@ class QtViewerCEXAT11100(QtCore.QObject):
         pass
 
     def Update(self, subject):
-        # print '-' * 20
         if type(subject.data) != dict:
             self.flag = False
             return
 
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
-        # print 'szMessage',  subject.data['szMessage']
-        # print 'szMessageCode', subject.data['szMessageCode'],
+        sz_msg = subject.data['szMessage']
+        msgcode = subject.data['szMessageCode']
 
         autotrader_id = subject.autotrader_id
         ordno = subject.data['OrdNo']
@@ -60,8 +62,6 @@ class QtViewerCEXAT11100(QtCore.QObject):
                 type1 = 'limit'
                 type2 = 'GFD'
 
-        msgcode = subject.data['szMessageCode']
-
         orderitem = (autotrader_id, ordno, strnowtime, buysell, shortcd, ordprice, ordqty,
                      type1, type2, unexecqty, msgcode)
 
@@ -79,7 +79,7 @@ class QtViewerCEXAT11100(QtCore.QObject):
         msg_dict['BuySell'] = buysell
         msg_dict['MsgCode'] = msgcode
 
-        self.zmq_socket.send_pyobj(msg_dict)
+        self.zmq_socket_order.send_pyobj(msg_dict)
 
         # print orderitem
         self.logger.info('%s' % str(orderitem))

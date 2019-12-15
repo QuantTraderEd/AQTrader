@@ -57,17 +57,17 @@ class QtViewerCM1(QtCore.QObject):
             elif buysell == 'sell': buysell = 'S'
             else: buysell = ''
 
-            msg_dict = {}
-            msg_dict['AutoTraderID'] = autotrader_id
-            msg_dict['OrderNo'] = ordno
-            msg_dict['ExecNo'] = execno
-            msg_dict['TimeStamp'] = nowtime
-            msg_dict['ShortCD'] = shortcd
-            msg_dict['OrderPrice'] = ordprice
-            msg_dict['OrderQty'] = ordqty
-            msg_dict['BuySell'] = buysell
-            msg_dict['ExecPrice'] = execprice
-            msg_dict['ExecQty'] = execqty
+            msg_dict = dict()
+            msg_dict['autotrader_id'] = autotrader_id
+            msg_dict['ordno'] = ordno
+            msg_dict['execno'] = execno
+            msg_dict['timestamp'] = nowtime
+            msg_dict['shortcd'] = shortcd
+            msg_dict['ordprice'] = ordprice
+            msg_dict['ordqty'] = ordqty
+            msg_dict['buysell'] = buysell
+            msg_dict['execprice'] = execprice
+            msg_dict['execqty'] = execqty
 
             self.zmq_socket.send_pyobj(msg_dict)
 

@@ -9,11 +9,14 @@ from datetime import datetime
 
 
 class QtViewerCFOAT00100(QtCore.QObject):
+    """
+    kospi200 futures & options normal order
+    """
     receive = QtCore.pyqtSignal()
 
-    def __init__(self, zmq_socket=None, parent=None):
+    def __init__(self, zmq_socket_order=None, parent=None):
         super(QtViewerCFOAT00100, self).__init__(parent)
-        self.zmq_socket = zmq_socket
+        self.zmq_socket_order = zmq_socket_order
         self.dbname = None
         self.flag = True
         self.conn = None
@@ -27,15 +30,15 @@ class QtViewerCFOAT00100(QtCore.QObject):
         pass
         
     def Update(self, subject):
-        # print '-' * 20
         if type(subject.data) != dict:
             self.flag = False
             return
 
         nowtime = datetime.now()
         strnowtime = datetime.strftime(nowtime, '%H:%M:%S.%f')[:-3]
-        # print 'szMessage',  subject.data['szMessage']
-        # print 'szMessageCode', subject.data['szMessageCode'],
+        sz_msg = subject.data['szMessage']
+        msgcode = subject.data['szMessageCode']
+        self.logger.info(sz_msg.strip() + msgcode)
 
         autotrader_id = subject.autotrader_id
         ordno = subject.data['OrdNo']
@@ -62,8 +65,6 @@ class QtViewerCFOAT00100(QtCore.QObject):
             elif subject.data['FnoOrdPtnCode'][0] == '1': type2 = 'IOC'
             elif subject.data['FnoOrdPtnCode'][0] == '2': type2 = 'FOK'
 
-        msgcode = subject.data['szMessageCode']
-
         orderitem = (autotrader_id, ordno, strnowtime, buysell, shortcd, ordprice, ordqty,
                      type1, type2, unexecqty, msgcode)
         wildcard = "?," * len(orderitem)
@@ -83,7 +84,7 @@ class QtViewerCFOAT00100(QtCore.QObject):
         msg_dict['BuySell'] = buysell
         msg_dict['MsgCode'] = msgcode
 
-        self.zmq_socket.send_pyobj(msg_dict)
+        self.zmq_socket_order.send_pyobj(msg_dict)
 
         # print orderitem
         self.logger.info('%s' % str(orderitem))
