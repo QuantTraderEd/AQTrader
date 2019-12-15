@@ -15,7 +15,6 @@ bot.
 
 from __future__ import print_function
 
-import datetime as dt
 import logging
 import pprint
 import redis
@@ -24,10 +23,29 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from commutil.FeedCodeList import FeedCodeList
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logger = logging.getLogger('report_bot')
+logger.setLevel(logging.INFO)
 
-logger = logging.getLogger(__name__)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('report_bot.log')
+# fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+fh.setLevel(logging.DEBUG)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] '                              
+                              '%(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+
 
 redis_client = redis.Redis()
 feedcode_list = FeedCodeList()
@@ -49,14 +67,14 @@ def echo(bot, update):
 
 
 def report_liveqty(bot, update):
-    now_dt = dt.datetime.now()
     for shortcd in futures_shortcd_lst:
         qty = redis_client.hget(autotrader_id + '_liveqty_dict', shortcd)
         liveqty_dict[shortcd] = int(qty or 0)
 
     msg = pprint.pformat(liveqty_dict)
+    msg = 'liveqty: ' + msg
     bot.send_message(update.message.chat_id, msg)
-    print(now_dt, msg)
+    logger.info(msg)
 
 
 def error(bot, update, error):
@@ -64,6 +82,7 @@ def error(bot, update, error):
 
 
 def main():
+    chat_id = '49417214'
     # Create the EventHandler and pass it your bot's token.
     updater = Updater("253529538:AAEJ3rKLtNRfkCVfphh_4XEPvb1z5G5qbO4")
 
@@ -82,6 +101,8 @@ def main():
 
     # Start the Bot
     updater.start_polling()
+    logger.info('start report_bot service')
+    updater.bot.send_message(chat_id, 'start report_bot service')
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
