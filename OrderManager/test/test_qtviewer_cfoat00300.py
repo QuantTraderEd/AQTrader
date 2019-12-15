@@ -10,6 +10,7 @@ from PyQt4 import QtGui
 
 from OrderManager.zerooms_main import MainForm
 from commutil.FeedCodeList import FeedCodeList
+from Script.TotalRun_live_patch import get_process_list
 
 
 class TestClass(object):
@@ -65,6 +66,9 @@ class TestClass(object):
 
     def test_send_neworder_cancelorder(self):
 
+        prcslst = get_process_list()
+        assert ("redis-server.exe" in prcslst)
+
         self.order_dict.clear()
         self.order_dict['AutoTraderID'] = self.autotrader_id
         self.order_dict['ShortCD'] = self.shortcd
@@ -98,7 +102,6 @@ class TestClass(object):
         self.logger.info('Recv Ack->' + str(msg_dict))
         assert msg_dict == 'OK'
 
-    def test_recv_cancl_exec_report(self):
         while True:
             msg_dict = self.socket_exec_report.recv_pyobj()
             self.logger.info('ExecReport->' + str(msg_dict))
