@@ -290,6 +290,20 @@ def clear_ordno_dict():
     pass
 
 
+def clear_liveqty_dict():
+    try:
+        redis_client = redis.Redis()
+        autotrader_id = 'MiniArb001'
+        liveqty_dict = redis_client.hgetall(autotrader_id+'_liveqty_dict')
+        redis_client.delete(autotrader_id+'_liveqty_dict')
+        logger.info(str(liveqty_dict))
+        logger.info('clear ordno_dict')
+    except BaseException as e:
+        logger.error('Fail to clear ordno_dict: ' + str(e))
+        return
+    pass
+
+
 def make_miniarb_research_report():
     time.sleep(3)
     os.chdir(pjt_path + '/Script')
@@ -419,6 +433,7 @@ def main():
                 not night_session_trigger and day_session_trigger:
 
             clear_ordno_dict()
+            clear_liveqty_dict()
             logger.info('End_day_session_trigger')
             day_session_trigger = False
             night_session_trigger = False
@@ -456,6 +471,7 @@ def main():
             python_app_kill()
             cp_kill()
             clear_ordno_dict()
+            clear_liveqty_dict()
 
             night_session_close_trigger = True
             day_session_trigger = False
