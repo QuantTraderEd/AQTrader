@@ -297,7 +297,7 @@ def clear_liveqty_dict():
         liveqty_dict = redis_client.hgetall(autotrader_id+'_liveqty_dict')
         redis_client.delete(autotrader_id+'_liveqty_dict')
         logger.info(str(liveqty_dict))
-        logger.info('clear ordno_dict')
+        logger.info('clear liveqty_dict: %s' % autotrader_id)
     except BaseException as e:
         logger.error('Fail to clear ordno_dict: ' + str(e))
         return
