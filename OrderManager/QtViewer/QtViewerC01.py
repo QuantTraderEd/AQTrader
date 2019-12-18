@@ -11,6 +11,9 @@ from commutil.comm_function import convert_price_to_str
 
 
 class QtViewerC01(QtCore.QObject):
+    """
+    KOSPI200 Futures & Options KRX ExecReport
+    """
     receive = QtCore.pyqtSignal()
 
     def __init__(self, zmq_socket_exec_report, parent=None):
