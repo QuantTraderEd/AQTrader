@@ -40,13 +40,18 @@ class observer_CFOEQ11100(object):
         subject.pnl_open = 0
         if len(subject.data) == 2:
             item = subject.data[1]
+            # 익일예탁총액 - 개장시예탁금총액
             pnl_day_test = (int(item['NtdayTotAmt'] or 0) - int(item['OpnmkDpsamtTotamt'] or 0)) * 0.001
             futures_adj_dt_amnt = (int(item['FutsAdjstDfamt'] or 0)) * 0.001
             # print "P/L Day Test: %d FutsAdjstDfamt: %d" % (pnl_day_test, futures_adj_dt_amnt)
             pnl_day = pnl_day_test
+            # 선물매매손익금액 + 옵션매매손익금액 - 수수료
+            pnl_trade = (int(item['FutsBnsplAmt'] or 0) + int(item['OptBnsplAmt'] or 0) - int(item['CmsnAmt'] or 0)) * 0.001
+            # 선물평가손익금액 + 옵션평가손익금액
             pnl_open = (int(item['FutsEvalPnlAmt'] or 0) + int(item['OptEvalPnlAmt'] or 0)) * 0.001
-            subject.pnl_day = pnl_day + pnl_open  # P/L Day
+            subject.pnl_day = pnl_day  # P/L Day
             subject.pnl_open = pnl_open
+            subject.pnl_trade = pnl_trade
         subject.flag = False
     pass
 
@@ -77,10 +82,13 @@ class ZeroDigitViewer(QtGui.QWidget):
         QtGui.qApp.setStyle('Cleanlooks')
         self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         pnl_day_action = QtGui.QAction("P/L Day", self)
+        pnl_trade_action = QtGui.QAction("P/L Trade", self)
         pnl_open_action = QtGui.QAction("P/L Open", self)
         self.addAction(pnl_day_action)
+        self.addAction(pnl_trade_action)
         self.addAction(pnl_open_action)
         pnl_day_action.triggered.connect(self.select_pnl_day)
+        pnl_trade_action.triggered.connect(self.select_pnl_trade)
         pnl_open_action.triggered.connect(self.select_pnl_open)
         
     def initXing(self, XASession=None):
@@ -136,6 +144,8 @@ class ZeroDigitViewer(QtGui.QWidget):
 
             if self.display_name == 'pnl_day':
                 self.ui.lcdNumber.display(self.xquery.pnl_day)
+            elif self.display_name == 'pnl_trade':
+                self.ui.lcdNumber.display(self.xquery.pnl_trade)
             elif self.display_name == 'pnl_open':
                 self.ui.lcdNumber.display(self.xquery.pnl_open)
 
@@ -143,6 +153,12 @@ class ZeroDigitViewer(QtGui.QWidget):
     def select_pnl_day(self):
         self.display_name = 'pnl_day'
         self.setWindowTitle("P/L Day")
+        pass
+
+    @pyqtSlot()
+    def select_pnl_trade(self):
+        self.display_name = 'pnl_trade'
+        self.setWindowTitle("P/L Trade")
         pass
 
     @pyqtSlot()
