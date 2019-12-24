@@ -30,7 +30,7 @@ logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
 fh = logging.FileHandler('ZeroOMS.log')
 # fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
-fh.setLevel(logging.DEBUG)
+fh.setLevel(logging.INFO)
 
 # create console handler with a higher log level
 ch = logging.StreamHandler()
@@ -287,8 +287,8 @@ class MainForm(QtGui.QMainWindow):
     def start_xing_query(self):
         self.xingTimer.start(1000)
         self.myDigitViewer.initXing(self.XASession)
-        self.myDigitViewer.initQuery()
-        self.myDigitViewer.initTIMER()
+        self.myDigitViewer.init_query()
+        self.myDigitViewer.init_timer()
         self.myPositionViewer.initXing(self.XASession)
         self.myPositionViewer.initQuery()
         self.myPositionViewer.initTIMER()

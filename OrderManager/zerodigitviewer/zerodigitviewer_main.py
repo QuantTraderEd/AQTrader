@@ -116,7 +116,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         else:
             self.logger.info('XASession NoConnected')
         
-    def initQuery(self):
+    def init_query(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             nowtime = time.localtime()
             if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
@@ -147,28 +147,29 @@ class ZeroDigitViewer(QtGui.QWidget):
                 self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
                 self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
 
-    def initTIMER(self):
+    def init_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             self.ctimer = QtCore.QTimer()
-            self.ctimer.timeout.connect(self.onTimer)
+            self.ctimer.timeout.connect(self.on_timer)
             self.ctimer.start(5000)
         
-    def onTimer(self):
+    def on_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.xquery.flag = True
             ret = self.xquery.Request(False)
+            self.logger.debug('on_timer')
             while self.xquery.flag:
                 pythoncom.PumpWaitingMessages()
 
             if self.display_name == 'pnl_day':
                 self.ui.lcdNumber.display(self.xquery.pnl_day)
-                self.logger.info('P/L Day-> %d' % self.xquery.pnl_day)
+                self.logger.debug('P/L Day-> %d' % self.xquery.pnl_day)
             elif self.display_name == 'pnl_trade':
                 self.ui.lcdNumber.display(self.xquery.pnl_trade)
-                self.logger.info('P/L Trade-> %d' % self.xquery.pnl_trade)
+                self.logger.debug('P/L Trade-> %d' % self.xquery.pnl_trade)
             elif self.display_name == 'pnl_open':
                 self.ui.lcdNumber.display(self.xquery.pnl_open)
-                self.logger.info('P/L Open-> %d' % self.xquery.pnl_open)
+                self.logger.debug('P/L Open-> %d' % self.xquery.pnl_open)
 
     @pyqtSlot()
     def select_pnl_day(self):
@@ -193,8 +194,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
     myform.initXing()
-    myform.initQuery()
-    myform.initTIMER()
+    myform.init_query()
+    myform.init_timer()
     myform.show()
     app.exec_()
 
