@@ -8,7 +8,7 @@ from commutil.FeedCodeList import FeedCodeList
 class OptionPrice(object):
     def __init__(self):
         super(OptionPrice, self).__init__()
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.ask1_dict = dict()
         self.bid1_dict = dict()
         self._FeedCodeList = FeedCodeList()

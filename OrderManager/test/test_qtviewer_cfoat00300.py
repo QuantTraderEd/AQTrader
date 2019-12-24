@@ -19,7 +19,7 @@ class TestClass(object):
     """
     logger = logging.getLogger('ZeroOMS.QtViewer_CFOAT00300')
 
-    redis_client = redis.Redis()
+    redis_client = redis.Redis(port=6479)
 
     # app = QtGui.QApplication(sys.argv)
     # myform = MainForm()

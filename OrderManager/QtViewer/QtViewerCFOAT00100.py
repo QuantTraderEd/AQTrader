@@ -20,7 +20,7 @@ class QtViewerCFOAT00100(QtCore.QObject):
         self.dbname = None
         self.flag = True
         self.conn = None
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.logger = logging.getLogger('ZeroOMS.Thread.CFOAT00100')
         self.logger.info('init QtViewerCFOAT00100')
 

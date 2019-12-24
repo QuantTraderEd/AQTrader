@@ -70,7 +70,7 @@ class OrderMachineThread(QtCore.QThread):
         self.initVar()
         self.order_port = order_port
         self.exec_report_port = exec_report_port
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.logger = logging.getLogger('ZeroOMS.Thread')
         self.logger.info('Init Thread')
 

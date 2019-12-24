@@ -50,7 +50,7 @@ class MainForm(QtGui.QMainWindow):
         self.set_auto_config()
 
         self.initUI()
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.position_entity_dict = {}
         self.position_dict = {}
         self.avgexecprice_dict = {}

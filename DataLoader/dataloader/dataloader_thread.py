@@ -27,7 +27,7 @@ class DBLoaderThread(SubscribeThread):
         self.count_fo = 0
         self.count_eq = 0
         self.night_chk = 1
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.dbname = ''
         self.filepath = path.dirname(__file__)
         # self.initDB()

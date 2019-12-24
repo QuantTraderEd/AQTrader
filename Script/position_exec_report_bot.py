@@ -22,7 +22,7 @@ chat_id = '49417214'
 
 bot = telegram.Bot('253529538:AAEJ3rKLtNRfkCVfphh_4XEPvb1z5G5qbO4')
 
-redis_client = redis.Redis()
+redis_client = redis.Redis(port=6479)
 feedcode_list = FeedCodeList()
 feedcode_list.read_code_list()
 futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],

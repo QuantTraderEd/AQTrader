@@ -18,7 +18,7 @@ class QtViewerCEXAT11100(QtCore.QObject):
         self.zmq_socket_order = zmq_socket_order
         self.dbname = None
         self.flag = True
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.conn = None
         self.logger = logging.getLogger('ZeroOMS.Thread.CEXAT11100')
         self.logger.info('init QtViewerCEXAT11100')

@@ -164,7 +164,7 @@ class MainForm(QtGui.QMainWindow):
         logger.info('ExpireMonthCode: %s' % self.expireMonthCode)
 
     def initData(self):
-        redis_client = redis.Redis()
+        redis_client = redis.Redis(port=6479)
         bidqty1_dict = redis_client.hgetall('bidqty1_dict')
         bid1_dict = redis_client.hgetall('bid1_dict')
         ask1_dict = redis_client.hgetall('ask1_dict')

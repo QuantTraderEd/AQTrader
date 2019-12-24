@@ -22,7 +22,7 @@ class QtViewerCM1(QtCore.QObject):
         self.zmq_socket = zmq_socket
         self.dbname = None
         self.flag = True
-        self.redis_client = redis.Redis()
+        self.redis_client = redis.Redis(port=6479)
         self.logger = logging.getLogger('ZeroOMS.Thread.CM1')
         self.logger.info('init QtViewerEU1')
 

@@ -47,7 +47,7 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 
-redis_client = redis.Redis()
+redis_client = redis.Redis(port=6479)
 feedcode_list = FeedCodeList()
 feedcode_list.read_code_list()
 futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],

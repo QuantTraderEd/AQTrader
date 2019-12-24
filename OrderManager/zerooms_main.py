@@ -10,6 +10,7 @@ import datetime as dt
 import pyxing as px
 import sqlite3 as lite
 import pandas as pd
+import redis
 
 from os import path
 from PyQt4 import QtCore, QtGui
@@ -59,6 +60,7 @@ class MainForm(QtGui.QMainWindow):
         self.db_path = path.dirname(__file__) + '/orderlist_db/'  # './orderlist_db/'
         self.set_auto = False
         self.auto_config = self.set_auto_config()
+        self.redis_client = redis.Redis(port=6479)
 
         self.initUI()
 
