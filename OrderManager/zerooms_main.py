@@ -159,6 +159,9 @@ class MainForm(QtGui.QMainWindow):
         self.myPositionViewer = ZeroPositionViewer()
         self.myDigitViewer = ZeroDigitViewer()
 
+        if self.check_redis_connection():
+            self.myDigitViewer.redis_client = self.redis_client
+
         self.ui.actionDigitView.triggered.connect(self.triggeredDigitViewer)
         self.ui.actionPositionView.triggered.connect(self.trigeredPositionViewer)
 
@@ -173,6 +176,15 @@ class MainForm(QtGui.QMainWindow):
             self.myPositionViewer.show()
         if setting.value("DigitViewer_Show").toBool():
             self.myDigitViewer.show()
+
+    def check_redis_connection(self):
+        try:
+            ret = self.redis_client.ping()
+            logger.info("redis_ping-> %s" % ret)
+            return True
+        except Exception as ex:
+            logger.warning("redis_ping-> %s" % ex)
+            return False
 
     def initDB(self):
         nowtime = time.localtime()

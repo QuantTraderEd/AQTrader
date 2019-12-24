@@ -4,6 +4,7 @@ import time
 import sys
 import logging
 import pprint
+import redis
 import pythoncom
 import pyxing as px
 from os import path
@@ -19,6 +20,7 @@ from xinglogindlg import LoginForm
 
 
 class observer_CEXAQ31100(object):
+    # ToDo: Dulicated Query with position_viewer > reduce query_point
     @classmethod
     def Update(cls, subject):
         subject.pnl_open = 0
@@ -36,6 +38,7 @@ class observer_CEXAQ31100(object):
 
 
 class observer_CEXAQ31200(object):
+    # ToDo: Dulicated Query with position_viewer > reduce query_point
     @classmethod
     def Update(cls, subject):
         msg = pprint.pformat(subject.data[1])
@@ -79,6 +82,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         QtGui.qApp.setStyle('Cleanlooks')
         self.logger = logging.getLogger('ZeroOMS.DigitViewer')
         self.logger.info('Init DigitViewer')
+        self.redis_client = None
 
     def closeEvent(self, event):
         self.ctimer.stop()
@@ -170,6 +174,13 @@ class ZeroDigitViewer(QtGui.QWidget):
             elif self.display_name == 'pnl_open':
                 self.ui.lcdNumber.display(self.xquery.pnl_open)
                 self.logger.debug('P/L Open-> %d' % self.xquery.pnl_open)
+
+            if isinstance(self.redis_client, redis.Redis):
+                nowtime = time.localtime()
+                if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
+                    self.redis_client.hset('pnl_dict', 'pnl_day', self.xquery.pnl_day)
+                    self.redis_client.hset('pnl_dict', 'pnl_trade', self.xquery.pnl_trade)
+                    self.redis_client.hset('pnl_dict', 'pnl_open', self.xquery.pnl_open)
 
     @pyqtSlot()
     def select_pnl_day(self):

@@ -77,8 +77,15 @@ def report_liveqty(bot, update):
     logger.info(msg)
 
 
-def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+def report_pnl(bot, update):
+    pnl_dict = redis_client.hgetall('pnl_dict')
+    msg = pprint.pformat(pnl_dict)
+    bot.send_message(update.message.chat_id, msg)
+    logger.info(msg)
+
+
+def error(bot, update, error_msg):
+    logger.warn('Update "%s" caused error "%s"' % (update, error_msg))
 
 
 def main():
@@ -92,6 +99,7 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("liveqty", report_liveqty))
+    dp.add_handler(CommandHandler("pnl", report_pnl))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler([Filters.text], echo))
