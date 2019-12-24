@@ -28,7 +28,7 @@ class observer_CEXAQ31100(object):
         subject.pnl_day = 0
         item = subject.data[1]
         if item['TotPnlAmt'] != '':
-            subject.pnl_day = long(item['TotPnlAmt']) * 0.001
+            subject.pnl_day = 0
         if item['BnsplAmt'] != '':
             subject.pnl_trade = long(item['BnsplAmt']) * 0.001
         if item['TotPnlAmt'] != '':
@@ -158,16 +158,22 @@ class ZeroDigitViewer(QtGui.QWidget):
             self.ctimer.start(5000)
 
     def update_cash_data(self, data):
-        if not isinstance(data, list) and len(data) >= 2:
+        if not isinstance(data, list) and len(data) == 3:
             return
         data_cash = data[1]
-        self.xquery.pnl_day = self.xquery.pnl_day + (long(data_cash['EvalDpsamtTotamt']) - long(data_cash['DpsamtTotamt'])) * 0.001
+        data_pnl_open = data[2]
+        self.xquery.pnl_day = (long(data_cash['EvalDpsamtTotamt']) - long(data_cash['DpsamtTotamt'])) * 0.001
+        self.xquery.pnl_open = long(data_pnl_open) * 0.001
         if self.display_name == 'pnl_day':
             self.ui.lcdNumber.display(self.xquery.pnl_day)
             self.logger.debug('P/L Day-> %d' % self.xquery.pnl_day)
+        elif self.display_name == 'pnl_open':
+            self.ui.lcdNumber.display(self.xquery.pnl_open)
+            self.logger.debug('P/L Open-> %d' % self.xquery.pnl_open)
 
         if isinstance(self.redis_client, redis.Redis):
             self.redis_client.hset('pnl_dict', 'pnl_day', self.xquery.pnl_day)
+            self.redis_client.hset('pnl_dict', 'pnl_open', self.xquery.pnl_open)
 
     def on_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():

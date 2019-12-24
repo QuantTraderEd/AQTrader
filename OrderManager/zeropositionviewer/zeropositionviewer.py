@@ -163,8 +163,6 @@ class ZeroPositionViewer(QtGui.QWidget):
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
-            elif self.servername[0] == 'M':
-                self.update_CEXAQ31200.emit(self.xquery.data)
 
             self.onReceiveData(self.exchange, self.xquery.data, self.option_greeks_query.block_data)
         pass
@@ -361,6 +359,10 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.updateTableWidgetItem(len(data)-2, 7, total_vega)
             self.updateTableWidgetItem(len(data)-2, 8, total_pnl_day)
             self.updateTableWidgetItem(len(data)-2, 9, total_pnl_open)
+
+            data = data[:2]
+            data.append(total_pnl_open)
+            self.update_CEXAQ31200.emit(data)
             
     def updateTableWidgetItem(self, row, col, text):
         widget_item = self.ui.tableWidget.item(row, col)
