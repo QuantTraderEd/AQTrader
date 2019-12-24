@@ -3,6 +3,7 @@
 import time
 import sys
 import logging
+import pprint
 import pythoncom
 import pyxing as px
 from os import path
@@ -21,16 +22,25 @@ class observer_CEXAQ31100(object):
     @classmethod
     def Update(cls, subject):
         subject.pnl_open = 0
+        subject_pnl_trade = 0
         subject.pnl_day = 0
         item = subject.data[1]
         if item['TotEvalAmt'] != '':
-            subject.pnl_open = int(item['TotEvalAmt'])
+            subject.pnl_day = int(item['TotEvalAmt'])
         if item['BnsplAmt'] != '':
-            subject.pnl_day = subject.pnl_open + int(item['BnsplAmt'])
-        else:
-            subject.pnl_day = subject.pnl_open
+            subject.pnl_trade = int(item['BnsplAmt'])
+        if item['TotPnlAmt'] != '':
+            subject.pnl_open = int(item['TotPnlAmt'])
         subject.flag = False
         pass
+
+
+class observer_CEXAQ31200(object):
+    @classmethod
+    def Update(cls, subject):
+        msg = pprint.pformat(subject.data[1])
+        print msg
+        subject.flag = False
 
 
 class observer_CFOEQ11100(object):
@@ -111,7 +121,6 @@ class ZeroDigitViewer(QtGui.QWidget):
             nowtime = time.localtime()
             if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
                 str_nowdt = time.strftime("%Y%m%d", nowtime)
-                print str_nowdt
                 self.xquery = px.XAQuery_CFOEQ11100()
                 obs = observer_CFOEQ11100()
                 self.xquery.observer = obs
@@ -129,6 +138,15 @@ class ZeroDigitViewer(QtGui.QWidget):
                 self.xquery.SetFieldData('CEXAQ31100InBlock1', 'BalEvalTp', 0, '1')
                 self.xquery.SetFieldData('CEXAQ31100InBlock1', 'FutsPrcEvalTp', 0, '1')
 
+                self.xquery_cash = px.XAQuery_CEXAQ31200()
+                obs = observer_CEXAQ31200()
+                self.xquery_cash.observer = obs
+                self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'RecCnt', 0, 1)
+                self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'AcntNo', 0, self.accountlist[1])
+                self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'InptPwd', 0, '0000')
+                self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'BalEvalTp', 0, '1')
+                self.xquery_cash.SetFieldData('CEXAQ31200InBlock1', 'FutsPrcEvalTp', 0, '1')
+
     def initTIMER(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             self.ctimer = QtCore.QTimer()
@@ -144,10 +162,13 @@ class ZeroDigitViewer(QtGui.QWidget):
 
             if self.display_name == 'pnl_day':
                 self.ui.lcdNumber.display(self.xquery.pnl_day)
+                self.logger.info('P/L Day-> %d' % self.xquery.pnl_day)
             elif self.display_name == 'pnl_trade':
                 self.ui.lcdNumber.display(self.xquery.pnl_trade)
+                self.logger.info('P/L Trade-> %d' % self.xquery.pnl_trade)
             elif self.display_name == 'pnl_open':
                 self.ui.lcdNumber.display(self.xquery.pnl_open)
+                self.logger.info('P/L Open-> %d' % self.xquery.pnl_open)
 
     @pyqtSlot()
     def select_pnl_day(self):
