@@ -152,12 +152,13 @@ class MainForm(QtGui.QMainWindow):
 
         self.conn_xi = QtGui.QTableWidgetItem("conn xi")
         self.status_xi = QtGui.QTableWidgetItem("ready")
-        self.ui.tableWidget.setItem(0,2,self.conn_xi)
-        self.ui.tableWidget.setItem(0,1,self.status_xi)
+        self.ui.tableWidget.setItem(0, 2, self.conn_xi)
+        self.ui.tableWidget.setItem(0, 1, self.status_xi)
 
         self.myOrdListDlg = OrderListDialog(order_port=self.order_port)
         self.myPositionViewer = ZeroPositionViewer()
         self.myDigitViewer = ZeroDigitViewer()
+        self.myPositionViewer.update_CEXAQ31200.connect(self.myDigitViewer.update_cash_data)
 
         if self.check_redis_connection():
             self.myDigitViewer.redis_client = self.redis_client
@@ -304,8 +305,8 @@ class MainForm(QtGui.QMainWindow):
         self.myDigitViewer.init_query()
         self.myDigitViewer.init_timer()
         self.myPositionViewer.initXing(self.XASession)
-        self.myPositionViewer.initQuery()
-        self.myPositionViewer.initTIMER()
+        self.myPositionViewer.init_query()
+        self.myPositionViewer.init_timer()
 
     def xingTimerUpdate(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():

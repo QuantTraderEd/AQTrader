@@ -48,7 +48,7 @@ class Observer_CEXAQ31200(object):
 
 
 class ZeroPositionViewer(QtGui.QWidget):
-    update_CEXAQ31200 = QtCore.pyqtSignal()
+    update_CEXAQ31200 = QtCore.pyqtSignal(list)
 
     def __init__(self, parent=None):
         super(ZeroPositionViewer, self).__init__(parent)
@@ -109,7 +109,7 @@ class ZeroPositionViewer(QtGui.QWidget):
         expire_date_lst = self.expiredate_util.make_expire_date(today)
         # logger.info('%s' % ','.join(expire_date_lst))
 
-    def initQuery(self):
+    def init_query(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():            
             nowtime = time.localtime()
             if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
@@ -135,14 +135,14 @@ class ZeroPositionViewer(QtGui.QWidget):
             self.option_greeks_query.observer = obs
         pass
         
-    def initTIMER(self):
+    def init_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.ctimer = QtCore.QTimer()
-            self.ctimer.timeout.connect(self.onTimer)
+            self.ctimer.timeout.connect(self.on_timer)
             self.ctimer.start(5000)
         pass
         
-    def onTimer(self):
+    def on_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             self.xquery.flag = True
             ret = self.xquery.Request(False)
@@ -163,8 +163,9 @@ class ZeroPositionViewer(QtGui.QWidget):
                 ret = self.option_greeks_query.Request(False)
                 while self.option_greeks_query.flag:
                     pythoncom.PumpWaitingMessages()
+            elif self.servername[0] == 'M':
+                self.update_CEXAQ31200.emit(self.xquery.data)
 
-            self.update_CEXAQ31200.emit()
             self.onReceiveData(self.exchange, self.xquery.data, self.option_greeks_query.block_data)
         pass
 
@@ -379,8 +380,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     myform = ZeroPositionViewer()
     myform.initXing()
-    myform.initQuery()
-    myform.initTIMER()
+    myform.init_query()
+    myform.init_timer()
     myform.show()
     app.exec_()
 
