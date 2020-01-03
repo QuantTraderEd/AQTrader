@@ -163,7 +163,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         data_cash = data[1]
         data_pnl_open = data[2]
         self.xquery.pnl_day = (long(data_cash['EvalDpsamtTotamt']) - long(data_cash['DpsamtTotamt'])) * 0.001
-        self.xquery.pnl_open = long(data_pnl_open) * 0.001
+        self.xquery.pnl_open = long(data_pnl_open.replace(',', '')) * 0.001
         if self.display_name == 'pnl_day':
             self.ui.lcdNumber.display(self.xquery.pnl_day)
             self.logger.debug('P/L Day-> %d' % self.xquery.pnl_day)
