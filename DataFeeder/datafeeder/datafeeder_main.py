@@ -8,6 +8,7 @@ import logging
 import pythoncom
 
 from weakref import proxy
+from logging.handlers import RotatingFileHandler
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -26,8 +27,8 @@ logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('DataFeeder.log')
-fh = logging.Handlers.RotatingFileHandler('DataFeeder.log',maxBytes=104857,backupCount=3)
-fh.setLevel(logging.DEBUG)
+fh = RotatingFileHandler('DataFeeder.log', maxBytes=104857, backupCount=3)
+fh.setLevel(logging.INFO)
 
 # create console handler with a higher log level
 ch = logging.StreamHandler()
