@@ -62,7 +62,7 @@ class CpCybosNULL:
 
 
 class ConsoleObserver:
-    def update(self, subject):
+    def Update(self, subject):
         for i in xrange(len(subject.data)):
             print(subject.data[i],)
         print()

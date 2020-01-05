@@ -114,9 +114,9 @@ class XASession(object):
             pass
         pass          
     def Notify(self):
-        if self.observer != None: self.observer.update(proxy(self))
+        if self.observer != None: self.observer.Update(proxy(self))
         for observer in self.observers:
-            observer.update(proxy(self))
+            observer.Update(proxy(self))
         pass
     def OnSignal(self):
         raise NotImplementedError
@@ -173,9 +173,9 @@ class SourceQuery(object):
             pass
         pass        
     def Notify(self):        
-        if self.observer != None: self.observer.update(proxy(self))
+        if self.observer != None: self.observer.Update(proxy(self))
         for observer in self.observers:
-            observer.update(proxy(self))
+            observer.Update(proxy(self))
         pass
     def OnSignal(self):        
         raise NotImplementedError
@@ -230,9 +230,9 @@ class SourceReal(object):
         pass
         
     def Notify(self):
-        if self.observer != None: self.observer.update(proxy(self))
+        if self.observer != None: self.observer.Update(proxy(self))
         for observer in self.observers:
-            observer.update(proxy(self))
+            observer.Update(proxy(self))
         pass
     def OnSignal(self):
         raise NotImplementedError

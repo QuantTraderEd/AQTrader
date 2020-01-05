@@ -64,7 +64,7 @@ class Source(object):
         pass
     def Notify(self):
         for obs in self.observers:
-            obs.update(proxy(self))
+            obs.Update(proxy(self))
             pass
         pass
     def OnSignal(self):
