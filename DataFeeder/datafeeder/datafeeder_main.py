@@ -19,7 +19,7 @@ import pycybos as pc
 import pykiwoom as pk
 from commutil.FeedCodeList import FeedCodeList
 from datafeeder_ui import Ui_MainWindow
-from DataFeeder.xinglogindlg.xinglogindlg import LoginForm
+from DataFeeder.xinglogindlg.xinglogindlg import LoginForm  # FIXME: package path issue
 from ZMQTickSender import ZMQTickSender_New
 
 logger = logging.getLogger('DataFeeder')
