@@ -17,21 +17,21 @@ class LoginForm(QtGui.QDialog):
         QtGui.qApp.setStyle('Cleanlooks')
         self._XASession = XASession
         self.ui.lineEditEtradeServerName.setEchoMode(QtGui.QLineEdit.Password)
-        self.ui.comboBoxServerType.activated[str].connect(self.onActivated)
+        self.ui.comboBoxServerType.activated[str].connect(self.on_activated)
         self.server = 'hts.etrade.co.kr'
         self.servertype = 0
         
     def __del__(self):        
         self._XASession.observer = None
     
-    def update(self, subject):
+    def Update(self, subject):
         msg = ''
         for item in subject.data:
             msg = msg + ' ' + item                
         self.ui.lineEditMessage.setText(msg)
         pass
 
-    def onActivated(self, text):
+    def on_activated(self, text):
         if text == 'real server':
             self.server = 'hts.ebestsec.co.kr'
             self.servertype = 0
@@ -50,28 +50,33 @@ class LoginForm(QtGui.QDialog):
         certpw = str(self.ui.lineEditEtradeServerName.text())
         
         if user == '':
+            msg = 'no user'
+            self.ui.lineEditMessage.setText(msg)
             return
         if not isinstance(self._XASession, px.XASession):
             self._XASession = px.XASession()
         self._XASession.observer = proxy(self)
-        self._XASession.ConnectServer(server,port)
-        # print 'connect server'
-        ret = self._XASession.Login(user,password,certpw,servertype,showcerterror)
+        self._XASession.ConnectServer(server, port)
+        ret = self._XASession.Login(user, password, certpw, servertype, showcerterror)
 
         px.XASessionEvents.session = self._XASession
         self._XASession.flag = True
         while self._XASession.flag:
             pythoncom.PumpWaitingMessages()
-        # self.ui.lineEditMessage.setText("Log")
 
     def slot_test(self):
-        if isinstance(self._XASession, px.XASession):
+        if not isinstance(self._XASession, px.XASession): return
+
+        if self._XASession.IsConnected():
             accountlist = self._XASession.GetAccountList()
             msg = ''
             for item in accountlist:                
                 msg = msg + ' ' + item
             self.ui.lineEditMessage.setText(msg)
             print msg
+        else:
+            msg = 'not connected'
+            self.ui.lineEditMessage.setText(msg)
             
 
 if __name__ == "__main__":

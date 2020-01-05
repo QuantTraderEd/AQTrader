@@ -58,7 +58,7 @@ class XingXASessionUpdate:
 
 
 class CpCybosNULL:
-    def is_connect(self):
+    def IsConnect(self):
         return False
 
 
