@@ -314,7 +314,10 @@ class MainForm(QtGui.QMainWindow):
     def regist_feeditem_kiwoom_futuresquotetick(self, shortcd):
         screen_no = u"0002"
         code_list = shortcd
-        fid_list = u"9001;20;10;15;13;195"  # quote 항목에 맞게 수정 필
+        fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
+        fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
+        fid_list = fid_list + u"45;65;105;55;75;115;"
+        fid_list = fid_list + u"121;123;125;127"
         opt_type = u"1"
         self.FutureTAQFeederDict['real_futuresquotetick'].set_real_reg(screen_no, code_list, fid_list, opt_type)
 
