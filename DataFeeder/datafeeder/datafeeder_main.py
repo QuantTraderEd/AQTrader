@@ -21,12 +21,12 @@ from datafeeder_ui import Ui_MainWindow
 from DataFeeder.xinglogindlg.xinglogindlg import LoginForm
 from ZMQTickSender import ZMQTickSender_New
 
-logger = logging.getLogger('ZeroFeeder')
+logger = logging.getLogger('DataFeeder')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('ZeroFeeder.log')
-# fh = logging.Handlers.RotatingFileHandler('ZeroOMS.log',maxBytes=104857,backupCount=3)
+fh = logging.FileHandler('DataFeeder.log')
+fh = logging.Handlers.RotatingFileHandler('DataFeeder.log',maxBytes=104857,backupCount=3)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -84,7 +84,6 @@ class MainForm(QtGui.QMainWindow):
         self.init_zmq()
 
         self.exchange_code = 'KRX'
-        # self.filename = 'prevclose.txt'
 
         # if self.set_auto:
         #     self.slot_CheckCybosStarter(0, 2)
@@ -137,8 +136,8 @@ class MainForm(QtGui.QMainWindow):
         self.ocx.OnReceiveMsg.connect(self.on_receive_msg)
 
     def init_feedcode(self):
-        self._feedcode_list = FeedCodeList()
-        self._feedcode_list.read_code_list()
+        self.feedcode_list = FeedCodeList()
+        self.feedcode_list.read_code_list()
 
     def init_zmq(self):
         context = zmq.Context()
@@ -205,6 +204,18 @@ class MainForm(QtGui.QMainWindow):
         newitemfuture_aution_new = px.XAReal_YFC(DataType='dictionary')
         newitemfuture_aution_new.Attach(self.ZMQFuturesExpectSender_xing)
         self.FutureTAQFeederDict['YFC'] = newitemfuture_aution_new
+
+    def init_kiwoom_futures_tradetick(self):
+        real_futurestradetick = pk.KiwoomFuturesTradeTick(kiwoom_session=self.kiwoom_session)
+        zmqsender = ZMQTickSender_New(self.socket, 'kiwoom', 'T', 'futures')
+        real_futurestradetick.attach(zmqsender)
+        self.FutureTAQFeederDict['real_futurestradetick'] = real_futurestradetick
+
+    def init_kiwoom_futures_quotetick(self):
+        real_futuresquotetick = pk.KiwoomFuturesQuoteTick(kiwoom_session=self.kiwoom_session)
+        zmqsender = ZMQTickSender_New(self.socket, 'kiwoom', 'Q', 'futures')
+        real_futuresquotetick.attach(zmqsender)
+        self.FutureTAQFeederDict['real_futuresquotetick'] = real_futuresquotetick
 
     # ======= init options =======
 
@@ -292,6 +303,20 @@ class MainForm(QtGui.QMainWindow):
         self.FutureTAQFeederDict['YFC'].SetFieldData('InBlock', 'futcode', shortcd)
         self.FutureTAQFeederDict['YFC'].AdviseRealData()
 
+    def regist_feeditem_kiwoom_futurestradetick(self, shortcd):
+        screen_no = u"0001"
+        code_list = shortcd
+        fid_list = u"9001;20;10;15;13;195"
+        opt_type = u"1"
+        self.FutureTAQFeederDict['real_futurestradetick'].set_real_reg(screen_no, code_list, fid_list, opt_type)
+
+    def regist_feeditem_kiwoom_futuresquotetick(self, shortcd):
+        screen_no = u"0002"
+        code_list = shortcd
+        fid_list = u"9001;20;10;15;13;195"  # quote 항목에 맞게 수정 필
+        opt_type = u"1"
+        self.FutureTAQFeederDict['real_futuresquotetick'].set_real_reg(screen_no, code_list, fid_list, opt_type)
+
     # ======= regist options =======
     def regist_FeedItem_OptionCur(self, shortcd):
         self.OptionTAQFeederDict['OptionCur'].Subscribe('0', shortcd)
@@ -327,7 +352,7 @@ class MainForm(QtGui.QMainWindow):
         self.OptionTAQFeederDict['YOC'].SetFieldData('InBlock', 'optcode', shortcd)
         self.OptionTAQFeederDict['YOC'].AdviseRealData()
 
-    def registerFeedItem_FOExpect(self, shortcd):
+    def regist_FeedItem_FOExpect(self, shortcd):
         if shortcd[:3] in ['101', '105']:
             self.FutureTAQFeederDict['FutureExpect'].SetInputValue(0, shortcd[:-3])
             self.FutureTAQFeederDict['FutureExpect'].SetInputValue(1, 'F1')
@@ -554,10 +579,38 @@ class MainForm(QtGui.QMainWindow):
                 self.registerFeedItem_YS3(shortcd)
                 self.registerFeedItem_I5_(shortcd)
 
+        if self.cpcybos.IsConnect() and bool_toggle:
+            logger.info('regist feed data @ cybos')
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initFOExpect_Future()
+                for shortcd in self.feedcode_list.future_shortcd_list:
+                    self.regist_FeedItem_FutureJpBid(shortcd)
+                    self.regist_FeedItem_FOExpect(shortcd)
+            else:
+                for shortcd in self.feedcode_list.future_shortcd_list:
+                    self.regist_FeedItem_CMECurr(shortcd)
+
+            if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.initOptionCur()
+                self.initOptionJpBid()
+                self.initFOExpect_Option()
+                for shortcd in self.feedcode_list.option_shortcd_list:
+                    self.regist_FeedItem_OptionJpBid(shortcd)
+                    self.regist_FeedItem_FOExpect(shortcd)
+
         if self.kiwoom_session.get_connect_state() != 0 and bool_toggle:
             logger.info('regist feed data @ kiwoom')
             if nowlocaltime.tm_hour >= 7 and nowlocaltime.tm_hour < 17:
+                self.init_kiwoom_futures_tradetick()
+                self.init_kiwoom_futures_quotetick()
+                for shortcd in self.feedcode_list.future_shortcd_list:
+                    self.regist_feeditem_kiwoom_futurestradetick(shortcd)
+                    self.regist_feeditem_kiwoom_futuresquotetick(shortcd)
 
+        if bool_toggle:
+            logger.info('start pumping msg')
+            pythoncom.PumpWaitingMessages()
+        pass
 
 
 if __name__ == '__main__':

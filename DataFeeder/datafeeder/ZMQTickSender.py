@@ -51,12 +51,6 @@ class ZMQTickSender_New:
         msg_dict['FeedSource'] = self.feedsource
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
-        # if shortcd[:3] in ['101', '105']:
-        #     self.securitiestype = 'futures'
-        #     msg_dict['SecuritiesType'] = self.securitiestype
-        # else:
-        #     self.securitiestype = 'options'
-        #     msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = now_dt
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
@@ -104,4 +98,8 @@ class ZMQTickSender_New:
         self.zmq_socket.send_pyobj(msg_dict)
         if self.securitiestype in ['futures', 'options']:
             ZMQTickSender_New.count += 1
+        pass
+
+    def Update(self, subject):
+        self.update(subject)
         pass
