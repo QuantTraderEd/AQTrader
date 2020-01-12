@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+import logging
+import datetime as dt
 
 
 # class ZMQTickSender:
@@ -37,13 +38,14 @@ class ZMQTickSender_New:
         self.feedsource = feedsource
         self.taq = taq
         self.securitiestype = securitiestype
+        self.logger = logging.getLogger('DataFeeder.ZMQTickSender')
         pass
     
     def update(self, subject):
         if type(subject.data) != dict: return
         shortcd = subject.data['ShortCD']
-        now_dt = datetime.now()
-        # timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
+        now_dt = dt.datetime.now()
+        # timestamp = dt.datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
         
         msg_dict = dict()
         
@@ -52,6 +54,7 @@ class ZMQTickSender_New:
         msg_dict['TAQ'] = self.taq
         msg_dict['SecuritiesType'] = self.securitiestype
         msg_dict['TimeStamp'] = now_dt
+        self.logger.debug("%s" % str(msg_dict))
         
         if self.taq == 'T' and self.securitiestype in ['futures', 'options']:
             msg_dict['LastPrice'] = float(subject.data['LastPrice'])

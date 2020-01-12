@@ -156,11 +156,11 @@ class MainForm(QtGui.QMainWindow):
         self.EquityTAQFeederLst = list()
 
     def on_event_connect(self, errcode):
-        print("ErrCode: %d" % errcode)
+        logger.warning("ErrCode: %d" % errcode)
         pass
 
     def on_receive_msg(self, scrno, rqname, trcode, msg):
-        print(scrno, rqname, trcode, msg)
+        logger.info(scrno, rqname, trcode, msg)
         pass
 
     # ======= init futures =======
@@ -314,7 +314,10 @@ class MainForm(QtGui.QMainWindow):
     def regist_feeditem_kiwoom_futuresquotetick(self, shortcd):
         screen_no = u"0002"
         code_list = shortcd
-        fid_list = u"9001;20;10;15;13;195"  # quote 항목에 맞게 수정 필
+        fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
+        fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
+        fid_list = fid_list + u"45;65;105;55;75;115;"
+        fid_list = fid_list + u"121;123;125;127"
         opt_type = u"1"
         self.FutureTAQFeederDict['real_futuresquotetick'].set_real_reg(screen_no, code_list, fid_list, opt_type)
 
@@ -490,7 +493,6 @@ class MainForm(QtGui.QMainWindow):
             server = 'hts.ebestsec.co.kr'
 
         self.XASession.ConnectServer(server, port)
-        # print 'connect server'
         ret = self.XASession.Login(user, password, certpw, servertype, showcerterror)
 
         px.XASessionEvents.session = proxy(self.XASession)
@@ -513,6 +515,8 @@ class MainForm(QtGui.QMainWindow):
         self.kiwoom_session.comm_connect()
         if self.kiwoom_session.get_connect_state() != 0:
             self.status_ki.setText('connect')
+            futures_list = self.kiwoom_session.get_futures_list()
+            logger.info("%s" % str(futures_list[:3]))
         else:
             self.status_ki.setText('disconnect')
         self.kiwoomtimer.start(1000)
