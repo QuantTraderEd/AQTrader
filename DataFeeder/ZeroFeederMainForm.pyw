@@ -14,7 +14,7 @@ from commutil.FeedCodeList import FeedCodeList
 import pyxing as px
 import pycybos as pc
 from ui_zerofeeder import Ui_MainWindow
-from xinglogindlg import LoginForm
+from commutil.xinglogindlg.xinglogindlg_main import LoginForm
 from DataFeeder.datafeeder.ZMQTickSender import ZMQTickSender_New
 
 from weakref import proxy

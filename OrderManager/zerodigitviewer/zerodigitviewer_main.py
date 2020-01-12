@@ -13,7 +13,7 @@ from weakref import proxy
 xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
 
-from xinglogindlg import LoginForm
+from commutil.xinglogindlg.xinglogindlg_main import LoginForm
 
 
 class observer_CEXAQ31100(object):

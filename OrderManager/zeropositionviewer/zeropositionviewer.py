@@ -17,7 +17,7 @@ import commutil.ExpireDateUtil as ExpireDateUtil
 xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
 sys.path.append(xinglogindlg_dir)
 
-from xinglogindlg import LoginForm
+from commutil.xinglogindlg.xinglogindlg_main import LoginForm
 
 
 class Observer_cmd(object):
