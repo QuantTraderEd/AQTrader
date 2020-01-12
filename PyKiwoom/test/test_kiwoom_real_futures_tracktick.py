@@ -1,12 +1,36 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import logging
+from logging.handlers import RotatingFileHandler
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
 from ..pykiwoom.kiwoom_source import KiwoomSession
 from ..pykiwoom.kiwoom_real_futures_tradetick import KiwoomFuturesTradeTick
+
+
+logger = logging.getLogger('PyKiwoom.Test')
+logger.setLevel(logging.DEBUG)
+
+# create file handler which logs even debug messages
+fh = logging.FileHandler('PyKiwoom.log')
+fh = RotatingFileHandler('PyKiwoom.log', maxBytes=104857, backupCount=3)
+fh.setLevel(logging.INFO)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 
 class TestThread(QtCore.QThread):
@@ -38,7 +62,7 @@ class TestThread(QtCore.QThread):
         self.real_futures_tradetick.event.exec_()
 
     def onReceiveData(self, data_dict):
-        print(data_dict)
+        logger.info(data_dict)
         self.terminate()
         pass
 
@@ -55,7 +79,7 @@ class TestClass(object):
     def test_futurestradetick(self):
         futures_list = self.kiwoom_session.get_futures_list()
         assert futures_list[0][:3] == u'101'
-        print(futures_list)
+        logger.info(futures_list)
 
         assert self.real_futurestradetick.kiwoom_session.get_connect_state() != 0
 

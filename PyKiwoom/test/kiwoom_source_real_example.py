@@ -21,6 +21,9 @@ class ConsoleObserver:
             print(key, subject.data[key], )
         print()
 
+    def Update(self, subject):
+        self.update(subject)
+
 
 class MyWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -100,16 +103,16 @@ class MyWindow(QtGui.QMainWindow):
         screen_no = u"0002"
         code_list = futures_list[0]
         fid_list = u"20;10;15;13;27;28"
-        opt_type = u"0"
+        opt_type = u"1"
         ret = self.real_futures_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
 
-        screen_no = u"0003"
-        code_list = u"201PA277"
-        fid_list = u"20;10;15;13;27;28"
-        opt_type = u"1"
-        ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
-        print(ret.toPyObject())
+        # screen_no = u"0003"
+        # code_list = u"201PA277"
+        # fid_list = u"20;10;15;13;27;28"
+        # opt_type = u"1"
+        # ret = self.real_options_tradetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        # print(ret.toPyObject())
 
         screen_no = u"0004"
         code_list = futures_list[0]
@@ -121,15 +124,15 @@ class MyWindow(QtGui.QMainWindow):
         ret = self.real_futures_quotetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
         print(ret.toPyObject())
 
-        screen_no = u"0005"
-        code_list = u"201PA267"
-        fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
-        fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
-        fid_list = fid_list + u"45;65;105;55;75;115;"
-        fid_list = fid_list + u"121;123;125;127"
-        opt_type = u"1"
-        ret = self.real_options_quotetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
-        print(ret.toPyObject())
+        # screen_no = u"0005"
+        # code_list = u"201PA267"
+        # fid_list = u"21;41;61;101;51;71;111;42;62;102;52;72;112;"
+        # fid_list = fid_list + u"43;63;103;53;73;113;44;64;104;54;74;114;"
+        # fid_list = fid_list + u"45;65;105;55;75;115;"
+        # fid_list = fid_list + u"121;123;125;127"
+        # opt_type = u"1"
+        # ret = self.real_options_quotetick.set_real_reg(screen_no, code_list, fid_list, opt_type)
+        # print(ret.toPyObject())
 
 
 if __name__ == "__main__":
