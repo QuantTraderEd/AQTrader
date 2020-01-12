@@ -307,7 +307,7 @@ class MainForm(QtGui.QMainWindow):
     def regist_feeditem_kiwoom_futurestradetick(self, shortcd):
         screen_no = u"0001"
         code_list = shortcd
-        fid_list = u"9001;20;10;15;13;195"
+        fid_list = u"20;10;15;13;195;27;28"
         opt_type = u"1"
         self.FutureTAQFeederDict['real_futurestradetick'].set_real_reg(screen_no, code_list, fid_list, opt_type)
 
