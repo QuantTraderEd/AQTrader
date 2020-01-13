@@ -15,11 +15,11 @@ class OrderListDialog(QtGui.QWidget):
     def __init__(self, order_port=6001):
         super(OrderListDialog, self).__init__()
         self.ui = Ui_Dialog()
-        self.ui.setupUi(self)        
+        self.ui.setupUi(self)
         self.ui.pushButton.clicked.connect(self.on_update_list)
         self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.tableWidget.resizeRowsToContents()
-        for i in range(self.ui.tableWidget.columnCount()):        
+        for i in range(self.ui.tableWidget.columnCount()):
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
         self.ui.tableWidget.setColumnWidth(5, 80)
         self.ui.tableWidget.cellDoubleClicked.connect(self.on_cell_double_clicked)
@@ -44,7 +44,7 @@ class OrderListDialog(QtGui.QWidget):
         #     self.strdbname = "orderlist_night_%s.db" %(strtime)
         #
         # self.strdbname = 'C:/Python/' + self.strdbname
-        
+
     def __del__(self):
         if not self.socket.closed:
             self.socket.close()
@@ -85,35 +85,35 @@ class OrderListDialog(QtGui.QWidget):
 
         self.adjust_transaction_reversion()
         pass
-    
+
     def on_cell_double_clicked(self, row, col):
-        type1 = self.ui.tableWidget.item(row,8).text()
+        type1 = self.ui.tableWidget.item(row, 8).text()
         if col == 0 and (type1 == 'limit'):
-            orgordno = self.ui.tableWidget.item(row,col).text()
-            
+            orgordno = self.ui.tableWidget.item(row, col).text()
+
             # conn_db = lite.connect(self.strdbname)
             self.cursor_db = self.conn_db.cursor()
             self.cursor_db.execute("""Select ShortCD,UnExecQty From OrderList
                                     WHERE OrdNo = ? and Type1 = ? """, (str(orgordno), str(type1),))
             rows = self.cursor_db.fetchall()
             # cursor_db.close()
-            
+
             if len(rows) == 1:
                 row = rows[0]
                 shortcd = row[0]
                 unexecqty = row[1]
-                
+
                 if unexecqty > 0:
                     # msg = str('cancl') + ',' + str(shcode) + ',' + str(price) + ',' + str(unexecqty) + ',' + str(ordno)
                     # self.socket.send(msg)
-                    msg_dict = {}
+                    msg_dict = dict()
                     msg_dict['ShortCD'] = shortcd
-                    msg_dict['OrderQty'] = unexecqty                    
-                    msg_dict['NewAmendCancel'] = 'C'                    
+                    msg_dict['OrderQty'] = unexecqty
+                    msg_dict['NewAmendCancel'] = 'C'
                     msg_dict['OrgOrderNo'] = orgordno
                     self.socket.send_pyobj(msg_dict)
-                    msg_in = self.socket.recv_pyobj()
-                    print msg_in
+                    recv_dict = self.socket.recv_pyobj()
+                    self.logger.info('cancelorder-> orgordno: %s msgcode: %s' % (orgordno, recv_dict['MsgCode']))
             else:
                 print 'rows > 1 @ orderlistdlgCanclOrder'
         pass
@@ -170,13 +170,13 @@ class OrderListDialog(QtGui.QWidget):
                                    """, (str(avg_exec_price), str(exec_qty_sum), str(unexecqty), orgordno))
         self.conn_db.commit()
         pass
-        
+
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
     # mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
-    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_night_20170419.db')
+    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200113.db')
     mydlg.adjust_transaction_reversion()
     mydlg.show()
-    app.exec_()   
+    app.exec_()

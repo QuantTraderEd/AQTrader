@@ -294,20 +294,23 @@ class OrderWorkerThread(QtCore.QThread):
             # self.socket.send(b"World")
 
             msg_dict = self.socket_order.recv_pyobj()
+            send_dict = dict()
             if not self._XASession.IsConnected():
+                send_dict['MsgCode'] = 'DisConnectXSession'
                 self.logger.info('fail: disconnect xsession')
-                self.socket_order.send_pyobj('fail: disconnect xsession')
+                self.socket_order.send_pyobj(send_dict)
                 continue
 
             if type(msg_dict) != dict:
+                send_dict['MsgCode'] = 'NotMsgDict'
                 self.logger.info(str(msg_dict) + 'is not dict')
-                self.socket_order.send_pyobj('fail: msg_dict is not dict')
+                self.socket_order.send_pyobj(send_dict)
                 continue
 
             nowtime = datetime.now()
             strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
             strnowtime = strnowtime[:-3]
-            self.logger.info('-------' * 4)
+            self.logger.info('===================' * 4)
             self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ')  # 'N' = New, 'A' = Amend, 'C' = Cancel
@@ -321,8 +324,9 @@ class OrderWorkerThread(QtCore.QThread):
             orgordno = msg_dict.get('OrgOrderNo', -1)
 
             if not isinstance(orderprice, float) and newamendcancel in ['N', 'A']:
+                send_dict['MsgCode'] = 'Not OrderPrice Float'
                 self.logger.info('fail: ' + str(msg_dict) + ' orderprice not float')
-                self.socket_order.send_pyobj('fail: orderprice not float')
+                self.socket_order.send_pyobj(send_dict)
                 continue
 
             logmsg = pprint.pformat(msg_dict)
@@ -368,11 +372,13 @@ class OrderWorkerThread(QtCore.QThread):
                 self.xaquery_CSPAT00800.SetFieldData('CSPAT00800InBlock1', 'OrdQty', 0, int(orderqty))
                 ret = self.xaquery_CSPAT00800.Request(False)
                 if ret is None:
-                    self.socket_order.send_pyobj('OK')
+                    send_dict['MsgCode'] = 'OK'
                     self.logger.info('OK')
+                    self.socket_order.send_pyobj(send_dict['MsgCode'])
                 else:
-                    self.socket_order.send_pyobj('Reject')
+                    send_dict['MsgCode'] = 'Reject'
                     self.logger.info('Reject')
+                    self.socket_order.send_pyobj(send_dict['MsgCode'])
 
             elif newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 7 and nowtime.hour <= 16:
@@ -402,8 +408,9 @@ class OrderWorkerThread(QtCore.QThread):
                         self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
                 else:
                     if shortcd[:3] in ['105']:
-                        self.logger.info('not yet implement... 101, 105')
-                        self.socket_order.send_pyobj('not yet implement...')
+                        send_dict['MsgCode'] = 'NotYet:105'
+                        self.logger.info('not yet implement... 105')
+                        self.socket_order.send_pyobj(send_dict)
                         continue
                     elif shortcd[:3] in ['101']:
                         # KRX CME Futures new order
@@ -427,8 +434,9 @@ class OrderWorkerThread(QtCore.QThread):
                             szMsgCode = self.xaquery_CCEAT00100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
                         else:
+                            send_dict['MsgCode'] = 'async_ret_error %s' % str(ret)
                             self.logger.info('async_ret_error %s' % str(ret))
-                            self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
+                            self.socket_order.send_pyobj(send_dict)
                     else:
                         # Eurex Options new order
                         self.xaquery_CEXAT11100.SetFieldData('CEXAT11100InBlock1', 'AcntNo', 0,
@@ -452,8 +460,9 @@ class OrderWorkerThread(QtCore.QThread):
                             szMsgCode = self.xaquery_CEXAT11100.data['szMessageCode']
                             self.logger.info(szMsg.strip() + szMsgCode)
                         else:
+                            send_dict['MsgCode'] = 'async_ret_error %s' % str(ret)
                             self.logger.info('async_ret_error %s' % str(ret))
-                            self.socket_order.send_pyobj('async_ret_error %s' % str(ret))
+                            self.socket_order.send_pyobj(send_dict)
 
             elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
                 if nowtime.hour >= 7 and nowtime.hour <= 16:
@@ -470,15 +479,18 @@ class OrderWorkerThread(QtCore.QThread):
                     if ret is None:
                         # self.ordno_dict[self.xaquery_CFOAT00300.data['OrdNo']] = autotrader_id
                         # self.redis_client.hset('ordno_dict', self.xaquery_CFOAT00300.data['OrdNo'], autotrader_id)
-                        self.socket_order.send_pyobj('OK')
+                        send_dict['MsgCode'] = 'OK'
                         self.logger.info('OK')
+                        self.socket_order.send_pyobj(send_dict)
                     else:
-                        self.socket_order.send_pyobj('Reject')
+                        send_dict['MsgCode'] = 'Reject'
                         self.logger.info('Reject')
+                        self.socket_order.send_pyobj(send_dict)
                 else:
                     if shortcd[:3] in ['105']:
                         self.logger.info('not yet implement... 105')
-                        self.socket_order.send_pyobj('not yet implement...105')
+                        send_dict['MsgCode'] = 'NotYet:105'
+                        self.socket_order.send_pyobj(send_dict)
                         continue
                     elif shortcd[:3] in ['101']:
                         # KOSPI200 CME Futures, Options Cancel Order
@@ -491,11 +503,13 @@ class OrderWorkerThread(QtCore.QThread):
                         self.xaquery_CCEAT00300.autotrader_id = autotrader_id
                         ret = self.xaquery_CCEAT00300.Request(False)
                         if ret is None:
-                            self.socket_order.send_pyobj('OK')
+                            send_dict['MsgCode'] = 'OK'
                             self.logger.info('OK')
+                            self.socket_order.send_pyobj(send_dict)
                         else:
-                            self.socket_order.send_pyobj('Reject')
+                            send_dict['MsgCode'] = 'Reject'
                             self.logger.info('Reject')
+                            self.socket_order.send_pyobj(send_dict)
                     else:
                         # KOSPI200 Eurex Options Cancel Order
                         self.xaquery_CEXAT11300.SetFieldData('CEXAT11300InBlock1', 'OrgOrdNo', 0, int(orgordno))
@@ -509,14 +523,17 @@ class OrderWorkerThread(QtCore.QThread):
                         if ret is None:
                             # self.ordno_dict[autotrader_id] = self.xaquery_CEXAT11300.data['OrdNo']
                             # self.redis_client.hset('ordno_dict', self.xaquery_CEXAT11300.data['OrdNo'], autotrader_id)
-                            self.socket_order.send_pyobj('OK')
+                            send_dict['MsgCode'] = 'OK'
                             self.logger.info('OK')
+                            self.socket_order.send_pyobj(send_dict)
                         else:
-                            self.socket_order.send_pyobj('Reject')
+                            send_dict['MsgCode'] = 'Reject'
                             self.logger.info('Reject')
+                            self.socket_order.send_pyobj(send_dict)
             else:
+                send_dict['MsgCode'] = 'NotYet:Amend'
                 self.logger.info('not yet implement other case order')
-                self.socket_order.send_pyobj('not yet implement other case order')
+                self.socket_order.send_pyobj(send_dict)
 
     def update_db(self):
         self.logger.info('receive_ack')
