@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import zmq
 import logging
 from PyQt4 import QtCore
@@ -73,8 +72,8 @@ class ExecutionReportThread(QtCore.QThread):
             self.mutex.unlock()
 
             data_dict = self.socket.recv_pyobj()
-            self.receiveData.emit(data_dict)
             self.onReceiveData(data_dict)
+            self.receiveData.emit(data_dict)
 
         pass
 
@@ -112,25 +111,30 @@ class OrderThread(QtCore.QThread):
         try:
             self.socket.send_pyobj(self.order_dict)
             msg_dict = self.socket.recv_pyobj()
+            msg_dict['NewAmendCancel'] = self.order_dict['NewAmendCancel']
+            self.logger.info('Recv Ack Msg->' + str(msg_dict))
             self.receiveData.emit(msg_dict)
-        except:
-            e = sys.exc_info()[0]
-            self.logger.info("zmq send_pyobj error: %s" % e)
+        except Exception as ex:
+            self.logger.info("zmq send/recv error: %s" % str(ex))
             msg_dict = dict()
             msg_dict['MsgCode'] = 'ERROR'
+            msg_dict['NewAmendCancel'] = self.order_dict['NewAmendCancel']
             self.receiveData.emit(msg_dict)
             raise
-        self.logger.info('Recv Ack Msg->' + str(msg_dict))
         pass
 
-    def initZMQ(self):
+    def init_zmq(self):
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
-        # self.socket.setsockopt(zmq.RCVTIMEO, 2000)
+        # self.socket.setsockopt(zmq.REQ_CORRELATE, 1)
+        # self.socket.setsockopt(zmq.REQ_RELAXED, 1)
+        self.socket.setsockopt(zmq.LINGER, 0)
+        self.socket.setsockopt(zmq.SNDTIMEO, 3000)
+        self.socket.setsockopt(zmq.RCVTIMEO, 3000)
         self.socket.connect("tcp://127.0.0.1:%d" % self.port)
         pass
 
-    def setNewOrder(self, autotrader_id, shortcd, orderprice, orderqty, buysell):
+    def set_neworder(self, autotrader_id, shortcd, orderprice, orderqty, buysell):
         self.order_dict.clear()
         self.order_dict['AutoTraderID'] = autotrader_id
         self.order_dict['ShortCD'] = shortcd
@@ -142,6 +146,18 @@ class OrderThread(QtCore.QThread):
         self.order_dict['TimeInForce'] = 'GFD'
         pass
 
-    def sendNewOrder(self):
+    def send_neworder(self):
         self.run()
         pass
+
+    def set_canclorder(self, autotrader_id, org_order_no, shortcd, orderqty):
+        self.order_dict.clear()
+        self.order_dict['AutoTraderID'] = autotrader_id
+        self.order_dict['ShortCD'] = shortcd
+        self.order_dict['OrgOrderNo'] = org_order_no
+        self.order_dict['OrderQty'] = orderqty
+        self.order_dict['NewAmendCancel'] = 'C'
+        pass
+
+    def send_canclorder(self):
+        self.run()

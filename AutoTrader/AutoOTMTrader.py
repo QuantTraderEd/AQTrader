@@ -151,7 +151,7 @@ class MainForm(QtGui.QMainWindow):
         self._tickreceiverthread.port = 5501
         self._executionreportthread.port = self.exec_port
         self._orderthread.port = self.order_port
-        self._orderthread.initZMQ()
+        self._orderthread.init_zmq()
         self._tickreceiverthread.receiveData[dict].connect(self.onReceiveData)
         # self._thread.receiveData[str].connect(self.onReceiveData_Old)
         self._orderthread.receiveData[dict].connect(self.onReceiveOrderAck)
@@ -397,15 +397,15 @@ class MainForm(QtGui.QMainWindow):
 
                 # self.sendOrder(order_dict['shortcd'], order_dict['orderprice'],
                 #                order_dict['orderqty'], buysell)
-                self._orderthread.setNewOrder(self.autotrader_id,
-                                              order_dict['shortcd'],
-                                              order_dict['orderprice'],
-                                              order_dict['orderqty'],
-                                              order_dict['buysell']
-                                              )
+                self._orderthread.set_neworder(self.autotrader_id,
+                                               order_dict['shortcd'],
+                                               order_dict['orderprice'],
+                                               order_dict['orderqty'],
+                                               order_dict['buysell']
+                                               )
                 self.order_qu.append(order_dict)
                 self.order_cnt += 1
-                self._orderthread.sendNewOrder()
+                self._orderthread.send_neworder()
                 #####################
                 ## this part is needed to refactory to onReceiveAck @function
                 # pos = self.position_shortcd_lst.index(order_dict['shortcd'])
