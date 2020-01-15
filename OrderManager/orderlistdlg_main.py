@@ -22,6 +22,9 @@ class OrderListDialog(QtGui.QWidget):
         for i in range(self.ui.tableWidget.columnCount()):
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
         self.ui.tableWidget.setColumnWidth(5, 80)
+        self.ui.tableWidget.setAlternatingRowColors(True)
+        self.ui.tableWidget.setSortingEnabled(True)
+        self.ui.tableWidget.setVerticalHeaderLabels(['2', '1'])
         self.ui.tableWidget.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
         self.logger = logging.getLogger('ZeroOMS.OrderListDlg')
@@ -75,13 +78,18 @@ class OrderListDialog(QtGui.QWidget):
         #     print "%s %2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
 
         rownum = 0
+        vertical_num = len(rows)
+        vertical_header_list = list()
         for row in rows:
             for j in range(2, len(row)):
                 if row[j]:
                     self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(row[j]))
                 elif not row[j]:
                     self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(''))
-            rownum = rownum + 1
+            rownum += 1
+            vertical_header_list.append("%d" % vertical_num)
+            vertical_num -= 1
+        self.ui.tableWidget.setVerticalHeaderLabels(vertical_header_list)
 
         self.adjust_transaction_reversion()
         pass
@@ -176,7 +184,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
     # mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
-    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200113.db')
+    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200115.db')
     mydlg.adjust_transaction_reversion()
     mydlg.show()
     app.exec_()
