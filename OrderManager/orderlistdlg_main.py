@@ -8,6 +8,7 @@ import zmq
 import sqlite3 as lite
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import pyqtSlot
 from ui_orderlistdlg import Ui_Dialog
 
 
@@ -26,6 +27,17 @@ class OrderListDialog(QtGui.QWidget):
         self.ui.tableWidget.setSortingEnabled(True)
         self.ui.tableWidget.setVerticalHeaderLabels(['2', '1'])
         self.ui.tableWidget.cellDoubleClicked.connect(self.on_cell_double_clicked)
+        self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        action_all = QtGui.QAction("All", self)
+        action_order = QtGui.QAction("Order", self)
+        action_exec = QtGui.QAction("Exec", self)
+        self.addAction(action_all)
+        self.addAction(action_order)
+        self.addAction(action_exec)
+        action_all.triggered.connect(self.select_all)
+        action_order.triggered.connect(self.select_order)
+        action_exec.triggered.connect(self.select_exec)
+        self.sqltext = 'SELECT * FROM OrderList ORDER BY ID DESC'
 
         self.logger = logging.getLogger('ZeroOMS.OrderListDlg')
         self.logger.info('Init OrderListDlg')
@@ -67,7 +79,7 @@ class OrderListDialog(QtGui.QWidget):
         if not os.path.isfile(self.strdbname):
             return
 
-        self.cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
+        self.cursor_db.execute(self.sqltext)
         # col_names = [cn[0] for cn in self.cursor_db.description]
         rows = self.cursor_db.fetchall()
         self.ui.tableWidget.setRowCount(len(rows))
@@ -93,6 +105,21 @@ class OrderListDialog(QtGui.QWidget):
 
         self.adjust_transaction_reversion()
         pass
+
+    @pyqtSlot()
+    def select_all(self):
+        self.sqltext = "SELECT * FROM OrderList ORDER BY ID DESC"
+        self.on_update_list()
+
+    @pyqtSlot()
+    def select_order(self):
+        self.sqltext = "SELECT * FROM OrderList WHERE Type1 IN ('limit', 'cancel')  ORDER BY ID DESC"
+        self.on_update_list()
+
+    @pyqtSlot()
+    def select_exec(self):
+        self.sqltext = "SELECT * FROM OrderList WHERE ExecQty > 0 and OrgOrdNo > 0 ORDER BY ID DESC"
+        self.on_update_list()
 
     def on_cell_double_clicked(self, row, col):
         type1 = self.ui.tableWidget.item(row, 8).text()
