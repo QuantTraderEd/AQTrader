@@ -8,6 +8,7 @@ import zmq
 import sqlite3 as lite
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import pyqtSlot
 from ui_orderlistdlg import Ui_Dialog
 
 
@@ -22,7 +23,21 @@ class OrderListDialog(QtGui.QWidget):
         for i in range(self.ui.tableWidget.columnCount()):
             if i != 3: self.ui.tableWidget.resizeColumnToContents(i)
         self.ui.tableWidget.setColumnWidth(5, 80)
+        self.ui.tableWidget.setAlternatingRowColors(True)
+        self.ui.tableWidget.setSortingEnabled(True)
+        self.ui.tableWidget.setVerticalHeaderLabels(['2', '1'])
         self.ui.tableWidget.cellDoubleClicked.connect(self.on_cell_double_clicked)
+        self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        action_all = QtGui.QAction("All", self)
+        action_order = QtGui.QAction("Order", self)
+        action_exec = QtGui.QAction("Exec", self)
+        self.addAction(action_all)
+        self.addAction(action_order)
+        self.addAction(action_exec)
+        action_all.triggered.connect(self.select_all)
+        action_order.triggered.connect(self.select_order)
+        action_exec.triggered.connect(self.select_exec)
+        self.sqltext = 'SELECT * FROM OrderList ORDER BY ID DESC'
 
         self.logger = logging.getLogger('ZeroOMS.OrderListDlg')
         self.logger.info('Init OrderListDlg')
@@ -64,7 +79,7 @@ class OrderListDialog(QtGui.QWidget):
         if not os.path.isfile(self.strdbname):
             return
 
-        self.cursor_db.execute('SELECT * FROM OrderList Order by ID DESC')
+        self.cursor_db.execute(self.sqltext)
         # col_names = [cn[0] for cn in self.cursor_db.description]
         rows = self.cursor_db.fetchall()
         self.ui.tableWidget.setRowCount(len(rows))
@@ -75,16 +90,36 @@ class OrderListDialog(QtGui.QWidget):
         #     print "%s %2s %5s %-25s %-7s %-8s %-9s %-4s %-5s %-5s %-12s %-5s" % row
 
         rownum = 0
+        vertical_num = len(rows)
+        vertical_header_list = list()
         for row in rows:
             for j in range(2, len(row)):
                 if row[j]:
                     self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(row[j]))
                 elif not row[j]:
                     self.ui.tableWidget.setItem(rownum, j-2, QtGui.QTableWidgetItem(''))
-            rownum = rownum + 1
+            rownum += 1
+            vertical_header_list.append("%d" % vertical_num)
+            vertical_num -= 1
+        self.ui.tableWidget.setVerticalHeaderLabels(vertical_header_list)
 
         self.adjust_transaction_reversion()
         pass
+
+    @pyqtSlot()
+    def select_all(self):
+        self.sqltext = "SELECT * FROM OrderList ORDER BY ID DESC"
+        self.on_update_list()
+
+    @pyqtSlot()
+    def select_order(self):
+        self.sqltext = "SELECT * FROM OrderList WHERE Type1 = 'limit' OR BuySell = 'cancl' ORDER BY ID DESC"
+        self.on_update_list()
+
+    @pyqtSlot()
+    def select_exec(self):
+        self.sqltext = "SELECT * FROM OrderList WHERE ExecQty > 0 AND OrgOrdNo > 0 ORDER BY ID DESC"
+        self.on_update_list()
 
     def on_cell_double_clicked(self, row, col):
         type1 = self.ui.tableWidget.item(row, 8).text()
@@ -176,7 +211,7 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
     # mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
-    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200113.db')
+    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200115.db')
     mydlg.adjust_transaction_reversion()
     mydlg.show()
     app.exec_()
