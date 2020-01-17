@@ -17,6 +17,7 @@ class OrderListDialog(QtGui.QWidget):
         super(OrderListDialog, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.setWindowTitle('OrderListDlg-All')
         self.ui.pushButton.clicked.connect(self.on_update_list)
         self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.tableWidget.resizeRowsToContents()
@@ -109,16 +110,19 @@ class OrderListDialog(QtGui.QWidget):
     @pyqtSlot()
     def select_all(self):
         self.sqltext = "SELECT * FROM OrderList ORDER BY ID DESC"
+        self.setWindowTitle('OrderListDlg-All')
         self.on_update_list()
 
     @pyqtSlot()
     def select_order(self):
         self.sqltext = "SELECT * FROM OrderList WHERE Type1 = 'limit' OR BuySell = 'cancl' ORDER BY ID DESC"
+        self.setWindowTitle('OrderListDlg-Order')
         self.on_update_list()
 
     @pyqtSlot()
     def select_exec(self):
         self.sqltext = "SELECT * FROM OrderList WHERE ExecQty > 0 AND OrgOrdNo > 0 ORDER BY ID DESC"
+        self.setWindowTitle('OrderListDlg-Exec')
         self.on_update_list()
 
     def on_cell_double_clicked(self, row, col):
