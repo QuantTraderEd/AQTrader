@@ -113,12 +113,12 @@ class OrderListDialog(QtGui.QWidget):
 
     @pyqtSlot()
     def select_order(self):
-        self.sqltext = "SELECT * FROM OrderList WHERE Type1 IN ('limit', 'cancel')  ORDER BY ID DESC"
+        self.sqltext = "SELECT * FROM OrderList WHERE Type1 = 'limit' OR BuySell = 'cancl' ORDER BY ID DESC"
         self.on_update_list()
 
     @pyqtSlot()
     def select_exec(self):
-        self.sqltext = "SELECT * FROM OrderList WHERE ExecQty > 0 and OrgOrdNo > 0 ORDER BY ID DESC"
+        self.sqltext = "SELECT * FROM OrderList WHERE ExecQty > 0 AND OrgOrdNo > 0 ORDER BY ID DESC"
         self.on_update_list()
 
     def on_cell_double_clicked(self, row, col):
