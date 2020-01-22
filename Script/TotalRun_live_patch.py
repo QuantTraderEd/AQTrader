@@ -296,12 +296,15 @@ def clear_liveqty_dict():
         redis_client = redis.Redis(port=6479)
         autotrader_id = 'MiniArb001'
         liveqty_dict = redis_client.hgetall(autotrader_id+'_liveqty_dict')
+        str_dict = redis_client.get(autotrader_id+'_live_orderbook_dict')
         redis_client.delete(autotrader_id+'_liveqty_dict')
+        redis_client.delete(autotrader_id+'_live_orderbook_dict')
         logger.info(str(liveqty_dict))
+        logger.info(str_dict)
         logger.info('clear liveqty_dict: %s' % autotrader_id)
         redis_client.connection_pool.disconnect()
     except BaseException as e:
-        logger.error('Fail to clear ordno_dict: ' + str(e))
+        logger.error('Fail to clear ordno_dict/live_orderbook_dict: ' + str(e))
         return
     pass
 
