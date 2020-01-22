@@ -212,10 +212,26 @@ class OrderListDialog(QtGui.QWidget):
 
 
 if __name__ == "__main__":
+    import argparse
+    import datetime as dt
+
+    now_dt = dt.datetime.now()
+    strdate = now_dt.strftime("%Y%m%d")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('date',
+                        type=lambda s: dt.datetime.strptime(s, "%Y%m%d").strftime("%Y%m%d"),
+                        default=strdate,
+                        help="Target Date",
+                        nargs='?'
+                        )
+
+    args = parser.parse_args()
     app = QtGui.QApplication(sys.argv)
     mydlg = OrderListDialog()
+    mydlg.logger.info("Target Date: %s" % args.date)
     # mydlg.init_dbname('C:/Python/ZeroTrader_Test/ZeroOMS/orderlist_db/orderlist_20170329.db')
-    mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_20200115.db')
+    # mydlg.init_dbname('C:/Python/ZeroTrader/ZeroOMS/orderlist_db/orderlist_%s.db' % args.date)
+    mydlg.init_dbname('./orderlist_db/orderlist_%s.db' % args.date)
     mydlg.adjust_transaction_reversion()
     mydlg.show()
     app.exec_()
