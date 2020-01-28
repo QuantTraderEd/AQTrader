@@ -84,6 +84,21 @@ def report_pnl(bot, update):
     logger.info(msg)
 
 
+def report_position(bot, update):
+    position_dict = redis_client.hgetall(autotrader_id + '_position_dict')
+    msg = pprint.pformat(position_dict)
+    bot.send_message(update.message.chat_id, msg)
+    logger.info(msg)
+
+
+def report_live_orderbook_dict(bot, update):
+    str_dict = redis_client.get(autotrader_id + '_live_orderbook_dict')
+    live_orderbook_dict = eval(str_dict)
+    msg = pprint.pformat(live_orderbook_dict)
+    bot.send_message(update.message.chat_id, msg)
+    logger.info(msg)
+
+
 def error(bot, update, error_msg):
     logger.warn('Update "%s" caused error "%s"' % (update, error_msg))
 
@@ -100,6 +115,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("liveqty", report_liveqty))
     dp.add_handler(CommandHandler("pnl", report_pnl))
+    dp.add_handler(CommandHandler("position", report_position))
+    dp.add_handler(CommandHandler("live_orderbook", report_live_orderbook_dict))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler([Filters.text], echo))
