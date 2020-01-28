@@ -93,7 +93,10 @@ def report_position(bot, update):
 
 def report_live_orderbook_dict(bot, update):
     str_dict = redis_client.get(autotrader_id + '_live_orderbook_dict')
-    live_orderbook_dict = eval(str_dict)
+    if str_dict is not None:
+        live_orderbook_dict = eval(str_dict)
+    else:
+        live_orderbook_dict = dict()
     msg = pprint.pformat(live_orderbook_dict)
     bot.send_message(update.message.chat_id, msg)
     logger.info(msg)
