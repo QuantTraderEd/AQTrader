@@ -50,9 +50,7 @@ logger.addHandler(ch)
 
 redis_client = redis.Redis(port=6479)
 feedcode_list = FeedCodeList()
-feedcode_list.read_code_list()
-futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],
-                       feedcode_list.future_shortcd_list[2]]
+
 liveqty_dict = dict()
 autotrader_id = 'MiniArb001'
 
@@ -68,6 +66,9 @@ def echo(bot, update):
 
 
 def report_liveqty(bot, update):
+    feedcode_list.read_code_list()
+    futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],
+                           feedcode_list.future_shortcd_list[2]]
     for shortcd in futures_shortcd_lst:
         qty = redis_client.hget(autotrader_id + '_liveqty_dict', shortcd)
         liveqty_dict[shortcd] = int(qty or 0)
@@ -86,8 +87,23 @@ def report_pnl(bot, update):
 
 
 def report_position(bot, update):
-    position_dict = redis_client.hgetall(autotrader_id + '_position_dict')
+    feedcode_list.read_code_list()
+    futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],
+                           feedcode_list.future_shortcd_list[2]]
+    position_dict = dict()
+    for shortcd in futures_shortcd_lst:
+        qty = int(redis_client.hget(autotrader_id + '_position_dict', shortcd) or 0)
+        # logger.info('%s positon-> %s' % (shortcd, qty))
+        avg_price = float(redis_client.hget(autotrader_id + '_tradeprice_dict', shortcd) or 0)
+        # logger.info('%s tradeprice-> %s' % (shortcd, avg_price))
+        mid_price = (float(redis_client.hget('bid1_dict', shortcd)) + float(redis_client.hget('ask1_dict', shortcd)))
+        mid_price = mid_price * 0.5
+        pnl_open = (mid_price - avg_price) * qty
+        position_dict[shortcd] = ["%+d" % qty, "%.3f" % avg_price,
+                                  "%.3f" % mid_price, "%+.3f" % pnl_open]
+
     msg = pprint.pformat(position_dict)
+    msg = '\n' + msg
     bot.send_message(update.message.chat_id, msg)
     logger.info(msg)
 
@@ -99,6 +115,7 @@ def report_live_orderbook_dict(bot, update):
     else:
         live_orderbook_dict = dict()
     msg = pprint.pformat(live_orderbook_dict)
+    msg = '\n' + msg
     bot.send_message(update.message.chat_id, msg)
     logger.info(msg)
 
