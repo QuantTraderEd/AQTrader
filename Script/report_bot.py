@@ -99,6 +99,7 @@ def report_position(bot, update):
         mid_price = (float(redis_client.hget('bid1_dict', shortcd)) + float(redis_client.hget('ask1_dict', shortcd)))
         mid_price = mid_price * 0.5
         pnl_open = (mid_price - avg_price) * qty
+        if shortcd[:3] == '105': pnl_open = pnl_open * 0.2
         position_dict[shortcd] = ["%+d" % qty, "%.3f" % avg_price,
                                   "%.3f" % mid_price, "%+.3f" % pnl_open]
 
