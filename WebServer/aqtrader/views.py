@@ -24,6 +24,8 @@ def index(request):
         qty = int(position_dict[key])
         tradeprice = float(tradeprice_dict.get(key, 0.0))
         pnl_open = (mid_price - tradeprice) * qty
+        if key[:3] in ['105']:
+            pnl_open = pnl_open * 0.2
         print('mid: ', key, mid_price)
         if len(positions) == 0:
             position = Positions()

@@ -14,5 +14,6 @@ miniarb_research/
 auto_config
 *.db
 *.db-journal
+*.sqlite3
 UTCk.conf
 UTCk.sche
