@@ -112,6 +112,7 @@ class MainForm(QtGui.QMainWindow):
         auto_config['pwd'] = str(setting.value("pwd", type=str))
         auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
         auto_config['servertype'] = setting.value("servertype", type=int)
+        auto_config['principal_amt'] = setting.value("principal_amt", type=int)
         if self.set_auto:
             logger.info("setauto: True")
         else:
@@ -158,6 +159,7 @@ class MainForm(QtGui.QMainWindow):
         self.myOrdListDlg = OrderListDialog(order_port=self.order_port)
         self.myPositionViewer = ZeroPositionViewer()
         self.myDigitViewer = ZeroDigitViewer()
+        self.myDigitViewer.principal_amt = self.auto_config['principal_amt']
         self.myPositionViewer.update_CEXAQ31200.connect(self.myDigitViewer.update_cash_data)
 
         if self.check_redis_connection():

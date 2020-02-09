@@ -47,10 +47,14 @@ class observer_CCEAQ50600(object):
 
 
 class observer_CFOEQ11100(object):
-    @classmethod
-    def Update(cls, subject):
+    def __init__(self, principal_amt):
+        self.principal_amt = principal_amt
+
+    def Update(self, subject):
         subject.pnl_day = 0
         subject.pnl_open = 0
+        subject.pnl_trade = 0
+        subject.pnl_total = 0
         if len(subject.data) == 2:
             item = subject.data[1]
             # 익일예탁총액 - 개장시예탁금총액
@@ -62,9 +66,13 @@ class observer_CFOEQ11100(object):
             pnl_trade = (long(item['FutsBnsplAmt'] or 0) + long(item['OptBnsplAmt'] or 0) - long(item['CmsnAmt'] or 0)) * 0.001
             # 선물평가손익금액 + 옵션평가손익금액
             pnl_open = (long(item['FutsEvalPnlAmt'] or 0) + long(item['OptEvalPnlAmt'] or 0)) * 0.001
+            # 누적 손익
+            pnl_total = (long(item['EvalDpsamtTotamt']) - self.principal_amt) * 0.001
             subject.pnl_day = pnl_day  # P/L Day
             subject.pnl_open = pnl_open
             subject.pnl_trade = pnl_trade
+            subject.pnl_total = pnl_total
+
         subject.flag = False
     pass
 
@@ -83,6 +91,7 @@ class ZeroDigitViewer(QtGui.QWidget):
         self.logger = logging.getLogger('ZeroOMS.DigitViewer')
         self.logger.info('Init DigitViewer')
         self.redis_client = None
+        self.principal_amt = 0
 
     def closeEvent(self, event):
         self.ctimer.stop()
@@ -98,12 +107,15 @@ class ZeroDigitViewer(QtGui.QWidget):
         pnl_day_action = QtGui.QAction("P/L Day", self)
         pnl_trade_action = QtGui.QAction("P/L Trade", self)
         pnl_open_action = QtGui.QAction("P/L Open", self)
+        pnl_total_action = QtGui.QAction("P/L Total", self)
         self.addAction(pnl_day_action)
         self.addAction(pnl_trade_action)
         self.addAction(pnl_open_action)
+        self.addAction(pnl_total_action)
         pnl_day_action.triggered.connect(self.select_pnl_day)
         pnl_trade_action.triggered.connect(self.select_pnl_trade)
         pnl_open_action.triggered.connect(self.select_pnl_open)
+        pnl_total_action.triggered.connect(self.select_pnl_total)
         
     def initXing(self, XASession=None):
         if not isinstance(XASession, px.XASession):
@@ -123,10 +135,10 @@ class ZeroDigitViewer(QtGui.QWidget):
     def init_query(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
             nowtime = time.localtime()
-            if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
+            if nowtime.tm_hour >= 7 and nowtime.tm_hour < 18:
                 str_nowdt = time.strftime("%Y%m%d", nowtime)
                 self.xquery = px.XAQuery_CFOEQ11100()
-                obs = observer_CFOEQ11100()
+                obs = observer_CFOEQ11100(self.principal_amt)
                 self.xquery.observer = obs
                 self.xquery.SetFieldData('CFOEQ11100InBlock1', 'RecCnt', 0, 1)
                 self.xquery.SetFieldData('CFOEQ11100InBlock1', 'AcntNo', 0, self.accountlist[1])
@@ -164,16 +176,21 @@ class ZeroDigitViewer(QtGui.QWidget):
         data_pnl_open = data[2]        
         self.xquery.pnl_open = long(data_pnl_open.replace(',', '')) * 0.001
         self.xquery.pnl_day = (long(data_cash['EvalDpsamtTotamt']) - long(data_cash['DpsamtTotamt'])) * 0.001 + self.xquery.pnl_open
+        self.xquery.pnl_total = (long(data_cash['EvalDpsamtTotamt']) - self.principal_amt) * 0.001
         if self.display_name == 'pnl_day':
             self.ui.lcdNumber.display(self.xquery.pnl_day)
             self.logger.debug('P/L Day-> %d' % self.xquery.pnl_day)
         elif self.display_name == 'pnl_open':
             self.ui.lcdNumber.display(self.xquery.pnl_open)
             self.logger.debug('P/L Open-> %d' % self.xquery.pnl_open)
+        elif self.display_name == 'pnl_total':
+            self.ui.lcdNumber.display(self.xquery.pnl_total)
+            self.logger.debug('P/L Total-> %d' % self.xquery.pnl_total)
 
         if isinstance(self.redis_client, redis.Redis):
             self.redis_client.hset('pnl_dict', 'pnl_day', self.xquery.pnl_day)
             self.redis_client.hset('pnl_dict', 'pnl_open', self.xquery.pnl_open)
+            self.redis_client.hset('pnl_dict', 'pnl_total', self.xquery.pnl_total)
 
     def on_timer(self):
         if self.XASession.IsConnected() and self.XASession.GetAccountListCount():
@@ -184,7 +201,7 @@ class ZeroDigitViewer(QtGui.QWidget):
                 pythoncom.PumpWaitingMessages()
 
             nowtime = time.localtime()
-            if self.display_name == 'pnl_day' and nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
+            if self.display_name == 'pnl_day':
                 self.ui.lcdNumber.display(self.xquery.pnl_day)
                 self.logger.debug('P/L Day-> %d' % self.xquery.pnl_day)
             elif self.display_name == 'pnl_trade':
@@ -193,12 +210,16 @@ class ZeroDigitViewer(QtGui.QWidget):
             elif self.display_name == 'pnl_open':
                 self.ui.lcdNumber.display(self.xquery.pnl_open)
                 self.logger.debug('P/L Open-> %d' % self.xquery.pnl_open)
+            elif self.display_name == 'pnl_total':
+                self.ui.lcdNumber.display(self.xquery.pnl_total)
+                self.logger.debug('P/L Total-> %d' % self.xquery.pnl_total)
 
             if isinstance(self.redis_client, redis.Redis):
-                if nowtime.tm_hour >= 7 and nowtime.tm_hour < 17:
+                if nowtime.tm_hour >= 7 and nowtime.tm_hour < 18:
                     self.redis_client.hset('pnl_dict', 'pnl_day', self.xquery.pnl_day)
                     self.redis_client.hset('pnl_dict', 'pnl_trade', self.xquery.pnl_trade)
                     self.redis_client.hset('pnl_dict', 'pnl_open', self.xquery.pnl_open)
+                    self.redis_client.hset('pnl_dict', 'pnl_total', self.xquery.pnl_total)
 
     @pyqtSlot()
     def select_pnl_day(self):
@@ -218,10 +239,16 @@ class ZeroDigitViewer(QtGui.QWidget):
         self.setWindowTitle("P/L Open")
         pass
 
+    @pyqtSlot()
+    def select_pnl_total(self):
+        self.display_name = 'pnl_total'
+        self.setWindowTitle("P/L Total")
+
 
 if __name__ == '__main__':    
     app = QtGui.QApplication(sys.argv)
     myform = ZeroDigitViewer()
+    myform.principal_amt = 100000000
     myform.initXing()
     myform.init_query()
     myform.init_timer()
