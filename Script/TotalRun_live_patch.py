@@ -14,6 +14,7 @@ import win32api, win32con
 import win32gui, win32process
 
 from commutil.holiday_util import HoliDayUtil
+from commutil.FeedCodeList import FeedCodeList
 
 logger = logging.getLogger('TotalRun')
 logger.setLevel(logging.DEBUG)
@@ -309,6 +310,21 @@ def clear_liveqty_dict():
     pass
 
 
+def update_old_position_dict():
+    redis_client = redis.Redis(port=6479)
+    feedcode_list = FeedCodeList()
+    autotrader_id = 'MiniArb001'
+    feedcode_list.read_code_list()
+    futures_shortcd_lst = [feedcode_list.future_shortcd_list[0], feedcode_list.future_shortcd_list[2]]
+    position_dict = redis_client.hgetall(autotrader_id + '_position_dict')
+    for shortcd in position_dict:
+        if shortcd not in futures_shortcd_lst:
+            redis_client.hdel(autotrader_id + '_position_dict', shortcd)
+            redis_client.hdel(autotrader_id + '_liveqty_dict', shortcd)
+            logger.info('clear old shortcd: %s' % shortcd)
+    pass
+
+
 def make_miniarb_research_report():
     time.sleep(3)
     os.chdir(pjt_path + '/Script')
@@ -477,6 +493,7 @@ def main():
             cp_kill()
             clear_ordno_dict()
             clear_liveqty_dict()
+            update_old_position_dict()
 
             night_session_close_trigger = True
             day_session_trigger = False
