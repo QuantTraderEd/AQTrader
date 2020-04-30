@@ -18,6 +18,7 @@ from __future__ import print_function
 import logging
 import pprint
 import datetime
+import psutil
 import redis
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -57,12 +58,13 @@ autotrader_id = 'MiniArb001'
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
-def start(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Hi!')
+def start(bot, update, job_queue):
+    bot.sendMessage(update.message.chat_id, text='Start JobQueue')
+    job_queue.run_repeating(callback_alarm, 10, context=update.message.chat_id)
 
 
-def echo(bot, update):
-    bot.sendMessage(update.message.chat_id, text=update.message.text)
+def callback_alarm(bot, job):
+    bot.send_message(chat_id=job.context, text='Wait for another 10 Seconds')
 
 
 def report_liveqty(bot, update):
@@ -121,6 +123,29 @@ def report_live_orderbook_dict(bot, update):
     logger.info(msg)
 
 
+def report_proc_status(bot, update):
+    proc_status_dict = dict()
+    for proc in psutil.process_iter():
+        if proc.name() in ["pythonw.exe"]:
+            output = psutil.Process(pid=proc.pid).cmdline()
+            script_name = output[1].split("\\")[-1]
+            if script_name == 'ZeroFeederMainForm.pyw':
+                proc_status_dict['DataFeeder'] = proc.status()
+        elif proc.name() in ["python.exe"]:
+            output = psutil.Process(pid=proc.pid).cmdline()
+            script_name = output[1].split("\\")[-1]
+            script_name = script_name.split("/")[-1]
+            logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
+            if script_name == 'zerooms_main.py':
+                proc_status_dict['OrderManager'] = proc.status()
+            else:
+                proc_status_dict[script_name] = proc.status()
+    msg = pprint.pformat(proc_status_dict)
+    msg = '\n' + msg
+    bot.send_message(update.message.chat_id, msg)
+    logger.info(msg)
+
+
 def error(bot, update, error_msg):
     logger.warn('Update "%s" caused error "%s"' % (update, error_msg))
 
@@ -134,11 +159,12 @@ def main():
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("start", start, pass_job_queue=True))
     dp.add_handler(CommandHandler("liveqty", report_liveqty))
     dp.add_handler(CommandHandler("pnl", report_pnl))
     dp.add_handler(CommandHandler("position", report_position))
     dp.add_handler(CommandHandler("live_orderbook", report_live_orderbook_dict))
+    dp.add_handler(CommandHandler("proc_status", report_proc_status))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler([Filters.text], echo))
