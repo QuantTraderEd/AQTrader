@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import pprint
 import time
+import json
 import datetime as dt
 import zmq
 import telegram
@@ -19,8 +20,9 @@ socket.setsockopt(zmq.SUBSCRIBE, "")
 
 update_id = None
 chat_id = '49417214'
-
-bot = telegram.Bot('253529538:AAEJ3rKLtNRfkCVfphh_4XEPvb1z5G5qbO4')
+with open('.config', 'r') as f:
+    token = json.load(f)['token']
+bot = telegram.Bot(token)
 
 redis_client = redis.Redis(port=6479)
 feedcode_list = FeedCodeList()

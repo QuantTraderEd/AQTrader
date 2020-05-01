@@ -16,6 +16,7 @@ bot.
 from __future__ import print_function
 
 import logging
+import json
 import pprint
 import datetime
 import psutil
@@ -153,7 +154,9 @@ def error(bot, update, error_msg):
 def main():
     chat_id = '49417214'
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("253529538:AAEJ3rKLtNRfkCVfphh_4XEPvb1z5G5qbO4")
+    with open('.config', 'r') as f:
+        token = json.load(f)['token']
+    updater = Updater(token)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
