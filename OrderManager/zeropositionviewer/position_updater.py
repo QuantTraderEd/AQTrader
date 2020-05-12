@@ -132,3 +132,23 @@ if __name__ == '__main__':
     position_dict, tradeprice_dict = send_query(accountlist)
     print(position_dict)
     print(tradeprice_dict)
+
+    autotrader_id = "MiniArb001"
+    redis_client = redis.Redis(port=6479)
+
+    print("==================OLD====================")
+    print(redis_client.hgetall(autotrader_id + "_position_dict"))
+    print(redis_client.hgetall(autotrader_id + "_tradeprice_dict"))
+
+    redis_client.delete(autotrader_id + "_position_dict")
+    redis_client.delete(autotrader_id + "_tradeprice_dict")
+
+    redis_client.hmset(autotrader_id + "_position_dict", position_dict)
+    redis_client.hmset(autotrader_id + "_tradeprice_dict", tradeprice_dict)
+
+    redis_client.save()
+
+    print("==================NEW====================")
+    print(redis_client.hgetall(autotrader_id + "_position_dict"))
+    print(redis_client.hgetall(autotrader_id + "_tradeprice_dict"))
+
