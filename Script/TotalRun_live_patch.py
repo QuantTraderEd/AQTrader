@@ -180,14 +180,14 @@ def python_app_kill():
             script_name = output[1].split("\\")[-1]
             logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
             logger.info('kill pid: %s proc name: %s' % (proc.name(), proc.pid))
-            os.system('TASKKILL /f /im pythonw.exe')
+            os.system('TASKKILL /PID %d /F /T' % proc.pid)
         elif proc.name() in ["python.exe"]:
             output = psutil.Process(pid=proc.pid).cmdline()
             script_name = output[1].split("\\")[-1]
             logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
             if script_name == 'zerooms_main.py':
                 logger.info('kill pid: %s proc name: %s script: %s' % (proc.name(), proc.pid, script_name))
-                os.system('TASKKILL /F /PID %d' % proc.pid)
+                os.system('TASKKILL /PID %d /F /T' % proc.pid)
 
 
 def cp_kill():
