@@ -142,9 +142,9 @@ if __name__ == '__main__':
 
     redis_client.delete(autotrader_id + "_position_dict")
     redis_client.delete(autotrader_id + "_tradeprice_dict")
-
-    redis_client.hmset(autotrader_id + "_position_dict", position_dict)
-    redis_client.hmset(autotrader_id + "_tradeprice_dict", tradeprice_dict)
+    if len(position_dict) > 0:
+        redis_client.hmset(autotrader_id + "_position_dict", position_dict)
+        redis_client.hmset(autotrader_id + "_tradeprice_dict", tradeprice_dict)
 
     redis_client.save()
 
