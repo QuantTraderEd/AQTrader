@@ -13,15 +13,16 @@ import pandas as pd
 import redis
 
 from os import path
+from weakref import proxy
 from PyQt4 import QtCore, QtGui
+
+from commutil.comm_function import  read_config
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import OrderMachineNewThread
 from orderlistdlg_main import OrderListDialog
 from zerodigitviewer.zerodigitviewer_main import ZeroDigitViewer, observer_CEXAQ31100
 from zeropositionviewer.zeropositionviewer import ZeroPositionViewer
-
-from weakref import proxy
 
 import commutil.ExpireDateUtil as ExpireDateUtil
 
@@ -107,11 +108,12 @@ class MainForm(QtGui.QMainWindow):
             self.order_port = setting.value("order_port", type=int)
         if setting.value("exec_port", type=int) != 0:
             self.exec_port = setting.value("exec_port", type=int)
+        comm_config = read_config()
         auto_config = dict()
-        auto_config['id'] = str(setting.value("id", type=str))
-        auto_config['pwd'] = str(setting.value("pwd", type=str))
-        auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
-        auto_config['servertype'] = setting.value("servertype", type=int)
+        auto_config['id'] = comm_config.get('ebest_id', '')
+        auto_config['pwd'] = comm_config.get('ebest_pw', '')
+        auto_config['cetpwd'] = comm_config.get('ebest_cetpwd', '')
+        auto_config['servertype'] = comm_config.get('ebest_servertype', 1)
         auto_config['principal_amt'] = setting.value("principal_amt", type=int)
         if self.set_auto:
             logger.info("setauto: True")

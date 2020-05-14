@@ -11,7 +11,7 @@ import ctypes
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
-
+from commutil.comm_function import  read_config
 from commutil.FeedCodeList import FeedCodeList
 import pyxing as px
 import pycybos as pc
@@ -76,11 +76,12 @@ class MainForm(QtGui.QMainWindow):
         self.set_auto = setting.value("setauto", type=bool)
         if setting.value("port", type=int) != 0:
             self.port = setting.value("port", type=int)
+        comm_config = read_config()
         auto_config = dict()
-        auto_config['id'] = str(setting.value("id", type=str))
-        auto_config['pwd'] = str(setting.value("pwd", type=str))
-        auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
-        auto_config['servertype'] = setting.value("servertype", type=int)
+        auto_config['id'] = comm_config.get('ebest_id', '')
+        auto_config['pwd'] = comm_config.get('ebest_pw', '')
+        auto_config['cetpwd'] = comm_config.get('ebest_cetpwd', '')
+        auto_config['servertype'] = comm_config.get('ebest_servertype', 1)
         if self.set_auto:
             logger.info("setauto: True")
         else:
