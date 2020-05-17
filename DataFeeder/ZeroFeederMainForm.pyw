@@ -570,25 +570,21 @@ class MainForm(QtGui.QMainWindow):
 
     def autotimer_update(self):
         now_time = time.localtime()
-        close_trigger = False
         close_hour = 6
         close_minute = 5
         re_toggle_hour = 17
         re_toggle_minute = 5
         if now_time.tm_hour == close_hour and now_time.tm_min == close_minute and self.set_auto:
+            logger.info("auto trigger-off")
+            self.slot_ToggleFeed(False)
             if self.cpcybos.IsConnect():
                 self.cpcybos.PlusDisconnect()
-            close_trigger = True
+            self.close()
         elif now_time.tm_hour == re_toggle_hour and now_time.tm_min == re_toggle_minute and self.set_auto:
             if self.exchange_code == 'KRX':
                 logger.info('auto toggle feed from KRX to EUREX')
                 self.slot_ToggleFeed(False)
                 self.slot_ToggleFeed(True)
-
-        if close_trigger:
-            logger.info("close trigger")
-            self.slot_ToggleFeed(False)
-            self.close()
 
 
 class XingXASessionUpdate():

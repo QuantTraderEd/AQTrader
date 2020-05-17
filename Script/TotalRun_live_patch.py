@@ -176,11 +176,14 @@ def cp_start(input_text=''):
 def python_app_kill():
     for proc in psutil.process_iter():
         if proc.name() in ["pythonw.exe"]:
-            output = psutil.Process(pid=proc.pid).cmdline()
-            script_name = output[1].split("\\")[-1]
-            logger.info("pid:%d %s %s" % (proc.pid, proc.name(), script_name))
-            logger.info('kill pid: %s proc name: %s' % (proc.name(), proc.pid))
-            os.system('TASKKILL /PID %d /F /T' % proc.pid)
+            try:
+                logger.info("pid:%d %s" % (proc.pid, proc.name()))
+                output = psutil.Process(pid=proc.pid).cmdline()
+                script_name = output[1].split("\\")[-1]
+                logger.info('kill pid: %s proc name: %s %s' % (proc.pid, proc.name(), script_name))
+                os.system('TASKKILL /PID %d /F /T' % proc.pid)
+            except Exception as e:
+                logger.error(e, exc_info=True)
         elif proc.name() in ["python.exe"]:
             output = psutil.Process(pid=proc.pid).cmdline()
             script_name = output[1].split("\\")[-1]
