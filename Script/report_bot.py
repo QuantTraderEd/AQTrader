@@ -94,7 +94,8 @@ def report_position(bot, update):
     futures_shortcd_lst = [feedcode_list.future_shortcd_list[0],
                            feedcode_list.future_shortcd_list[2]]
     position_dict = dict()
-    for shortcd in futures_shortcd_lst:
+    position_only_dict = redis_client.hgetall(autotrader_id + '_position_dict')
+    for shortcd in position_only_dict:
         qty = int(redis_client.hget(autotrader_id + '_position_dict', shortcd) or 0)
         # logger.info('%s positon-> %s' % (shortcd, qty))
         avg_price = float(redis_client.hget(autotrader_id + '_tradeprice_dict', shortcd) or 0)
