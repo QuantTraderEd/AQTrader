@@ -22,8 +22,15 @@ class PublishThread(QtCore.QThread):
     def run(self):
         self.init_zmq()
 
-        while 1:
+        for i in range(10):
             time.sleep(1)
+            print(i)
+            self.mutex.lock()
+            if self.mt_stop:
+                break
+            if self.mt_pause:
+                self.mt_pauseCondition.wait(self.mutex)
+            self.mutex.unlock()
 
     def mtf_stop(self):
         self.mt_stop = True

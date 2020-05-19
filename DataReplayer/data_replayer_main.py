@@ -4,11 +4,12 @@ import logging
 import sqlite3
 import pandas as pd
 
-from PyQt4 impot QtGui, QtCore
+from publish_thread import PublishThread
 
 
 def main():
-
+    pub_thread = PublishThread()
+    pub_thread.run()
     pass
 
 
