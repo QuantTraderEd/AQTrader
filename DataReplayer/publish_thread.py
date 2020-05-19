@@ -4,6 +4,8 @@ import time
 import zmq
 from PyQt4 import QtCore
 
+from DataFeeder.ZMQTickSender import ZMQTickSender_New
+
 
 class PublishThread(QtCore.QThread):
     def __init__(self, parent=None):
@@ -13,6 +15,7 @@ class PublishThread(QtCore.QThread):
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pause_condition = QtCore.QWaitCondition()
+        self.zmq_tick_sender = ZMQTickSender_New()
 
     def init_zmq(self):
         context = zmq.Context()
@@ -24,6 +27,7 @@ class PublishThread(QtCore.QThread):
 
         for i in range(10):
             time.sleep(1)
+            self.socket.send_pyobj(i)
             print(i)
             self.mutex.lock()
             if self.mt_stop:
