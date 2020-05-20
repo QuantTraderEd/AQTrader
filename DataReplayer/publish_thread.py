@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import logging
 import zmq
 from PyQt4 import QtCore
 
@@ -10,6 +11,7 @@ from DataFeeder.ZMQTickSender import ZMQTickSender_New
 class PublishThread(QtCore.QThread):
     def __init__(self, parent=None):
         QtCore.QThread.__init__(self, parent)
+        self.logger = logging.getLogger('DataReplayer.Thread')
         self.pub_port = 5510
         self.mt_stop = False
         self.mt_pause = False
@@ -28,7 +30,7 @@ class PublishThread(QtCore.QThread):
         for i in range(10):
             time.sleep(1)
             self.socket.send_pyobj(i)
-            print(i)
+            self.logger.info("%d" % i)
             self.mutex.lock()
             if self.mt_stop:
                 break
