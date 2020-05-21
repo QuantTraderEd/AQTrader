@@ -3,9 +3,12 @@
 import time
 import logging
 import zmq
+import sqlite3 as lite
+import pandas as pd
 from PyQt4 import QtCore
 
 from DataFeeder.ZMQTickSender import ZMQTickSender_New
+from DataLoader.dataloader.sqlalchemy_tickdata_init import TickData, init_session
 
 
 class PublishThread(QtCore.QThread):
@@ -24,13 +27,31 @@ class PublishThread(QtCore.QThread):
         self.socket = context.socket(zmq.PUB)
         self.socket.bind("tcp://127.0.0.1:%d" % self.pub_port)
 
+    def init_data(self):
+        db_name = '../DataLoader/TAQ_Data/TAQ_20200518.db'
+        # self.session = init_session(db_name)[0]
+        conn = lite.connect(db_name)
+        sqltext = """
+        SELECT * 
+        From TickData 
+        WHERE
+        securitiestype = 'futures'
+        LIMIT 10
+        """
+        self.data = pd.read_sql(sqltext, conn)
+
     def run(self):
         self.init_zmq()
+        self.init_data()
+
+        # rows = self.session.query(TickData).filter_by(TickData.datetime.hour >= 9).limit(20)
 
         for i in range(10):
             time.sleep(1)
-            self.socket.send_pyobj(i)
-            self.logger.info("%d" % i)
+            row = self.data.iloc[i]
+            msg_dict = dict(row)
+            self.socket.send_pyobj(msg_dict)
+            self.logger.info("%s" % msg_dict)
             self.mutex.lock()
             if self.mt_stop:
                 break
