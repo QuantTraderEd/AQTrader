@@ -104,3 +104,75 @@ class ZMQTickSender_New:
         if self.securitiestype in ['futures', 'options']:
             ZMQTickSender_New.count += 1
         pass
+
+
+class ZMQTickSenderReplay:
+    count = 0
+
+    def __init__(self, zmq_socket=None, feedsource=None, taq=None, securitiestype=None):
+        self.zmq_socket = zmq_socket
+        self.feedsource = feedsource
+        self.taq = taq
+        self.securitiestype = securitiestype
+        pass
+
+    def update(self, data):
+        if type(data) != dict: return
+        shortcd = data['ShortCD']
+        now_dt = datetime.now()
+        # timestamp = datetime.strftime(now_dt,"%H:%M:%S.%f")[:-3]
+
+        msg_dict = dict()
+
+        msg_dict['ShortCD'] = shortcd
+        msg_dict['FeedSource'] = data['feedsource'] # self.feedsource
+        msg_dict['TAQ'] = data['taq']
+        msg_dict['SecuritiesType'] = data['securitiestype']  # self.securitiestype
+        # if shortcd[:3] in ['101', '105']:
+        #     self.securitiestype = 'futures'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
+        # else:
+        #     self.securitiestype = 'options'
+        #     msg_dict['SecuritiesType'] = self.securitiestype
+        msg_dict['TimeStamp'] = now_dt
+
+        if data['taq'] == 'T' and data['securitiestype'] in ['futures', 'options']:
+            msg_dict['LastPrice'] = float(data['lastprice'])
+            msg_dict['LastQty'] = int(data['lastqty'])
+            msg_dict['BuySell'] = data['buysell']
+            msg_dict['Ask1'] = float(data['ask1'])
+            msg_dict['Bid1'] = float(data['bid1'])
+
+        elif data['taq'] == 'Q' and data['securitiestype'] in ['futures', 'options']:
+            for i in xrange(1, 4):
+                msg_dict['Ask%d' % i] = float(data['ask%d' % i])
+                msg_dict['Bid%d' % i] = float(data['bid%d' % i])
+                msg_dict['AskQty%d' % i] = int(data['askqty%d' % i])
+                msg_dict['BidQty%d' % i] = int(data['bidqty%d' % i])
+
+            if 'ask4' in data and 'bid4' in data:
+                for i in xrange(4, 6):
+                    msg_dict['Ask%d' % i] = float(data['ask%d' % i])
+                    msg_dict['Bid%d' % i] = float(data['bid%d' % i])
+                    msg_dict['AskQty%d' % i] = int(data['askqty%d' % i])
+                    msg_dict['BidQty%d' % i] = int(data['bidqty%d' % i])
+
+            if 'askCnt4' in data and 'bidCnt4' in data:
+                for i in xrange(1, 6):
+                    msg_dict['AskCnt%d' % i] = int(data['askcnt%d' % i])
+                    msg_dict['BidCnt%d' % i] = int(data['bidcnt%d' % i])
+
+            msg_dict['TotalAskQty'] = int(data['totalaskqty'])
+            msg_dict['TotalBidQty'] = int(data['totalbidqty'])
+            msg_dict['TotalAskCnt'] = int(data['totalaskcnt'])
+            msg_dict['TotalBidCnt'] = int(data['totalbidcnt'])
+
+        elif data['taq'] == 'E' and data['securitiestype'] in ['futures', 'options']:
+            msg_dict['expectprice'] = float(data['expectprice'])
+        else:
+            return
+
+        self.zmq_socket.send_pyobj(msg_dict)
+        if self.securitiestype in ['futures', 'options']:
+            ZMQTickSenderReplay.count += 1
+        pass

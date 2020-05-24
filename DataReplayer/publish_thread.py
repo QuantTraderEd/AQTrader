@@ -7,7 +7,7 @@ import sqlite3 as lite
 import pandas as pd
 from PyQt4 import QtCore
 
-from DataFeeder.ZMQTickSender import ZMQTickSender_New
+from DataFeeder.ZMQTickSender import ZMQTickSenderReplay
 from DataLoader.dataloader.sqlalchemy_tickdata_init import TickData, init_session
 
 
@@ -20,12 +20,13 @@ class PublishThread(QtCore.QThread):
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pause_condition = QtCore.QWaitCondition()
-        self.zmq_tick_sender = ZMQTickSender_New()
+        self.zmq_tick_sender = ZMQTickSenderReplay()
 
     def init_zmq(self):
         context = zmq.Context()
         self.socket = context.socket(zmq.PUB)
         self.socket.bind("tcp://127.0.0.1:%d" % self.pub_port)
+        self.zmq_tick_sender.zmq_socket = self.socket
 
     def init_data(self):
         db_name = '../DataLoader/TAQ_Data/TAQ_20200518.db'
@@ -36,6 +37,7 @@ class PublishThread(QtCore.QThread):
         From TickData 
         WHERE
         securitiestype = 'futures'
+        AND datetime >= '2020-05-18 09:00:00'
         LIMIT 10
         """
         self.data = pd.read_sql(sqltext, conn)
