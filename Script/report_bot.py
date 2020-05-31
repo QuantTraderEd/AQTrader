@@ -151,7 +151,7 @@ def report_proc_status(bot, update):
 
 
 def cmd_position_update(bot, update):
-    bot.send_message(update.chat_id, "=== OLD ===")
+    bot.send_message(update.message.chat_id, "=== OLD ===")
     report_position(bot, update)
     bot.send_message(update.message.chat_id, "=== NEW ===")
     os.startfile('position_updater.py')
