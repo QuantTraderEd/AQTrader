@@ -15,7 +15,7 @@ logger = logging.getLogger('PositionUpdater')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('PositionUpdater.log')
+fh = logging.FileHandler('position_updater.log')
 # fh = logging.Handlers.RotatingFileHandler('PositionUpdater.log', maxBytes=104857, backupCount=0)
 fh.setLevel(logging.INFO)
 
