@@ -95,7 +95,7 @@ class OrderMachineThread(QtCore.QThread):
     def init_zmq(self):
         self.context = zmq.Context()
         self.socket_order = self.context.socket(zmq.REP)
-        self.socket.bind("tcp://127.0.0.1:%d" % self.order_port)
+        self.socket_order.bind("tcp://127.0.0.1:%d" % self.order_port)
         # self.socket = context.socket(zmq.DEALER)
         # self.socket.connect("tcp://127.0.0.1:6001")
 
