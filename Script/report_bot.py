@@ -16,6 +16,7 @@ bot.
 from __future__ import print_function
 
 import os
+import time
 import logging
 import json
 import pprint
@@ -155,6 +156,7 @@ def cmd_position_update(bot, update):
     report_position(bot, update)
     bot.send_message(update.message.chat_id, "=== NEW ===")
     os.startfile('position_updater.py')
+    time.sleep(5)
     report_position(bot, update)
 
 
