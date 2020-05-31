@@ -15,6 +15,7 @@ bot.
 
 from __future__ import print_function
 
+import os
 import logging
 import json
 import pprint
@@ -150,9 +151,11 @@ def report_proc_status(bot, update):
 
 
 def cmd_position_update(bot, update):
-    msg1, msg2 = position_update_main()
-    bot.send_message(update.message.chat_id, msg1)
-    bot.send_message(update.message.chat_id, msg2)
+    bot.send_message(update.chat_id, "=== OLD ===")
+    report_position(bot, update)
+    bot.send_message(update.message.chat_id, "=== NEW ===")
+    os.startfile('position_updater.py')
+    report_position(bot, update)
 
 
 def error(bot, update, error_msg):
