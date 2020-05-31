@@ -14,13 +14,14 @@ from DataLoader.dataloader.sqlalchemy_tickdata_init import TickData, init_sessio
 class PublishThread(QtCore.QThread):
     def __init__(self, parent=None):
         QtCore.QThread.__init__(self, parent)
-        self.logger = logging.getLogger('DataReplayer.Thread')
+        self.logger = logging.getLogger('DataReplayer.PubThread')
         self.pub_port = 5510
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pause_condition = QtCore.QWaitCondition()
         self.zmq_tick_sender = ZMQTickSenderReplay()
+        self.logger.info('Init Thread')
 
     def init_zmq(self):
         context = zmq.Context()
@@ -38,20 +39,27 @@ class PublishThread(QtCore.QThread):
         WHERE
         securitiestype = 'futures'
         AND datetime >= '2020-05-18 09:00:00'
-        LIMIT 10
+        LIMIT 100
         """
         self.data = pd.read_sql(sqltext, conn)
+        self.data['datetime'] = pd.to_datetime(self.data['datetime'])
 
     def run(self):
         self.init_zmq()
         self.init_data()
 
-        # rows = self.session.query(TickData).filter_by(TickData.datetime.hour >= 9).limit(20)
+        prev_datetime = self.data.iloc[0]['datetime']
 
-        for i in range(10):
-            time.sleep(1)
+        time.sleep(4)
+        self.logger.info("start publish data....")
+
+        for i in range(len(self.data)):
             row = self.data.iloc[i]
             msg_dict = dict(row)
+            now_datetime = msg_dict['datetime']
+            now_td = now_datetime - prev_datetime
+            time.sleep(now_td.seconds + now_td.microseconds * 0.000001)
+            prev_datetime = now_datetime
             self.socket.send_pyobj(msg_dict)
             self.logger.info("%s" % msg_dict)
             self.mutex.lock()

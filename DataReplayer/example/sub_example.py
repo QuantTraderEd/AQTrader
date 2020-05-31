@@ -10,7 +10,7 @@ logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('SubExample.log')
-fh = RotatingFileHandler('SubExample.log', maxBytes=5242, backupCount=3)
+fh = RotatingFileHandler('SubExample.log', maxBytes=5242, backupCount=1)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level

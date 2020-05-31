@@ -7,13 +7,14 @@ import pandas as pd
 from logging.handlers import RotatingFileHandler
 
 from publish_thread import PublishThread
+from reply_thread import ReplyThread
 
 logger = logging.getLogger('DataReplayer')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('DataReplayer.log')
-fh = RotatingFileHandler('DataReplayer.log', maxBytes=5242, backupCount=3)
+fh = RotatingFileHandler('DataReplayer.log', maxBytes=5242, backupCount=1)
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -32,7 +33,11 @@ logger.addHandler(ch)
 
 def main():
     pub_thread = PublishThread()
+    rep_thread = ReplyThread()
+
     pub_thread.run()
+    rep_thread.run()
+
     pass
 
 
