@@ -16,7 +16,7 @@ from os import path
 from weakref import proxy
 from PyQt4 import QtCore, QtGui
 
-from commutil.comm_function import  read_config
+from commutil.comm_function import read_config
 from ui_zerooms import Ui_MainWindow
 from xinglogindlg import LoginForm
 from zerooms_thread import OrderMachineNewThread

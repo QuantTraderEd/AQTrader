@@ -4,27 +4,47 @@ import sys
 import logging
 import pythoncom
 import redis
+import pprint
 import datetime as dt
-from os import path
-from PyQt4 import QtCore
 
 import pyxing as px
-from zeropositionviewer import Observer_t0441, Observer_CEXAQ31200
+from commutil.comm_function import read_config
+from OrderManager.zeropositionviewer.zeropositionviewer import Observer_t0441, Observer_CEXAQ31200
 
-xinglogindlg_dir = path.dirname(path.realpath(__file__)) + '\\..'
+logger = logging.getLogger('PositionUpdater')
+logger.setLevel(logging.DEBUG)
 
-logger = logging.getLogger('ZeroOMS.PositionUpdater')
+# create file handler which logs even debug messages
+fh = logging.FileHandler('PositionUpdater.log')
+# fh = logging.Handlers.RotatingFileHandler('PositionUpdater.log', maxBytes=104857, backupCount=0)
+fh.setLevel(logging.INFO)
+
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s '
+                              '%(filename)s %(funcName)s() %(lineno)d:\t\t'
+                              '%(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# add the handler to logger
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 
 def set_auto_config():
-    setting = QtCore.QSettings("../ZeroOMS.ini", QtCore.QSettings.IniFormat)
+    comm_config = read_config()
     auto_config = dict()
-    auto_config['id'] = str(setting.value("id", type=str))
-    auto_config['pwd'] = str(setting.value("pwd", type=str))
-    auto_config['cetpwd'] = str(setting.value("cetpwd", type=str))
-    auto_config['servertype'] = setting.value("servertype", type=int)
+    auto_config['id'] = comm_config.get('ebest_id', '')
+    auto_config['pwd'] = comm_config.get('ebest_pw', '')
+    auto_config['cetpwd'] = comm_config.get('ebest_cetpwd', '')
+    auto_config['servertype'] = comm_config.get('ebest_servertype', 1)
 
-    print auto_config
+    print(auto_config)
     return auto_config
 
 
@@ -83,7 +103,7 @@ def send_query(accountlist):
     tradeprice_dict = dict()
 
     if exchange_code == 'KRX':
-        for i in xrange(1, len(data)):
+        for i in range(1, len(data)):
             shortcd = data[i]['expcode']
             if data[i]['medocd'] == '1':
                 pos = -1 * int(data[i]['jqty'])
@@ -98,7 +118,7 @@ def send_query(accountlist):
             position_dict[shortcd] = pos
             tradeprice_dict[shortcd] = avgprc
     elif exchange_code == 'EUREX':
-        for i in xrange(2, len(data)):
+        for i in range(2, len(data)):
             shortcd = data[i]['FnoIsuNo']
             if data[i]['BnsTpCode'] == '1':
                 pos = -1 * int(data[i]['UnsttQty'])
@@ -116,7 +136,7 @@ def send_query(accountlist):
     return position_dict, tradeprice_dict
 
 
-if __name__ == '__main__':
+def main():
     auto_config = set_auto_config()
     xasession = px.XASession()
     auto_start_xing(xasession, auto_config)
@@ -124,21 +144,21 @@ if __name__ == '__main__':
     if xasession.IsConnected() and xasession.GetAccountListCount():
         accountlist = xasession.GetAccountList()
         servername = xasession.GetServerName()
-        print accountlist
-        print servername
+        logger.info("%s" % accountlist)
+        logger.info("%s" % servername)
     else:
         sys.exit()
 
     position_dict, tradeprice_dict = send_query(accountlist)
-    print(position_dict)
-    print(tradeprice_dict)
+    logger.info("%s" % pprint.pformat(position_dict))
+    logger.info("%s" % pprint.pformat(tradeprice_dict))
 
     autotrader_id = "MiniArb001"
     redis_client = redis.Redis(port=6479)
 
-    print("==================OLD====================")
-    print(redis_client.hgetall(autotrader_id + "_position_dict"))
-    print(redis_client.hgetall(autotrader_id + "_tradeprice_dict"))
+    logger.info("==================OLD====================")
+    logger.info("%s" % pprint.pformat(redis_client.hgetall(autotrader_id + "_position_dict")))
+    logger.info("%s" % pprint.pformat(redis_client.hgetall(autotrader_id + "_tradeprice_dict")))
 
     redis_client.delete(autotrader_id + "_position_dict")
     redis_client.delete(autotrader_id + "_tradeprice_dict")
@@ -148,7 +168,15 @@ if __name__ == '__main__':
 
     redis_client.save()
 
-    print("==================NEW====================")
-    print(redis_client.hgetall(autotrader_id + "_position_dict"))
-    print(redis_client.hgetall(autotrader_id + "_tradeprice_dict"))
+    msg1 = "%s" % pprint.pformat(redis_client.hgetall(autotrader_id + "_position_dict"))
+    msg2 = "%s" % pprint.pformat(redis_client.hgetall(autotrader_id + "_tradeprice_dict"))
+    logger.info("==================NEW====================")
+    logger.info(msg1)
+    logger.info(msg2)
+
+    return msg1, msg2
+
+
+if __name__ == '__main__':
+    main()
 

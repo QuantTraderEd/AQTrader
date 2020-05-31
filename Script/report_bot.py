@@ -24,6 +24,7 @@ import redis
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 from commutil.FeedCodeList import FeedCodeList
+from position_updater import main as position_update_main
 
 # Enable logging
 logger = logging.getLogger('report_bot')
@@ -148,6 +149,12 @@ def report_proc_status(bot, update):
     logger.info(msg)
 
 
+def cmd_position_update(bot, update):
+    msg1, msg2 = position_update_main()
+    bot.send_message(update.message.chat_id, msg1)
+    bot.send_message(update.message.chat_id, msg2)
+
+
 def error(bot, update, error_msg):
     logger.warn('Update "%s" caused error "%s"' % (update, error_msg))
 
@@ -169,6 +176,7 @@ def main():
     dp.add_handler(CommandHandler("position", report_position))
     dp.add_handler(CommandHandler("live_orderbook", report_live_orderbook_dict))
     dp.add_handler(CommandHandler("proc_status", report_proc_status))
+    dp.add_handler(CommandHandler("position_update", cmd_position_update))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler([Filters.text], echo))
