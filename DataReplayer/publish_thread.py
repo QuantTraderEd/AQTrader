@@ -3,6 +3,7 @@
 import time
 import logging
 import zmq
+import datetime as dt
 import sqlite3 as lite
 import pandas as pd
 from PyQt4 import QtCore
@@ -16,6 +17,7 @@ class PublishThread(QtCore.QThread):
         QtCore.QThread.__init__(self, parent)
         self.logger = logging.getLogger('DataReplayer.PubThread')
         self.pub_port = 5510
+        self.timesleep_multiple = 1
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
@@ -39,10 +41,12 @@ class PublishThread(QtCore.QThread):
         WHERE
         securitiestype = 'futures'
         AND datetime >= '2020-05-18 09:00:00'
-        LIMIT 100
+        -- LIMIT 100
         """
         self.data = pd.read_sql(sqltext, conn)
         self.data['datetime'] = pd.to_datetime(self.data['datetime'])
+        # session, engine = init_session(db_name)
+        # self.data = engine.execute(sqltext)
 
     def run(self):
         self.init_zmq()
@@ -55,10 +59,11 @@ class PublishThread(QtCore.QThread):
 
         for i in range(len(self.data)):
             row = self.data.iloc[i]
+
             msg_dict = dict(row)
             now_datetime = msg_dict['datetime']
             now_td = now_datetime - prev_datetime
-            time.sleep(now_td.seconds + now_td.microseconds * 0.000001)
+            time.sleep(now_td.seconds + now_td.microseconds * 0.000001 / self.timesleep_multiple)
             prev_datetime = now_datetime
             self.socket.send_pyobj(msg_dict)
             self.logger.info("%s" % msg_dict)

@@ -35,6 +35,8 @@ def main():
     pub_thread = PublishThread()
     rep_thread = ReplyThread()
 
+    pub_thread.timesleep_multiple = 300
+
     pub_thread.run()
     rep_thread.run()
 
