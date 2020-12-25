@@ -63,10 +63,11 @@ class PublishThread(QtCore.QThread):
             msg_dict = dict(row)
             now_datetime = msg_dict['datetime']
             now_td = now_datetime - prev_datetime
-            time.sleep(now_td.seconds + now_td.microseconds * 0.000001 / self.timesleep_multiple)
+            time.sleep((now_td.seconds + now_td.microseconds * 0.000001) / self.timesleep_multiple)
             prev_datetime = now_datetime
             self.socket.send_pyobj(msg_dict)
-            self.logger.info("%s" % msg_dict)
+            msg = "%s %s %.2f %.2f" % (msg_dict['datetime'], msg_dict['shortcd'], msg_dict['bid1'], msg_dict['ask1'])
+            self.logger.info("%s" % msg)
             self.mutex.lock()
             if self.mt_stop:
                 break

@@ -11,15 +11,15 @@ from PyQt4 import QtCore
 
 
 class ReplyThread(QtCore.QThread):
-    def __init__(self, order_port=6001, exec_report_port=7001, parent=None):
+    def __init__(self, order_port=6010, exec_report_port=7010, parent=None):
         QtCore.QThread.__init__(self, parent)
-        self.order_port = order_port
-        self.exec_report_port = exec_report_port
+        self.order_port = order_port    # real: 6001 test: 6002
+        self.exec_report_port = exec_report_port   # real: 7001 test: 7002
         self.mt_stop = False
         self.mt_pause = False
         self.mutex = QtCore.QMutex()
         self.mt_pause_condition = QtCore.QWaitCondition()
-        self.logger = logging.getLogger('DataReplayer.RepThread')
+        self.logger = logging.getLogger('replay_order_manager.RepThread')
         self.logger.info('Init Thread')
 
     def init_zmq(self):
@@ -31,6 +31,9 @@ class ReplyThread(QtCore.QThread):
 
         self.socket_execution_report = self.context.socket(zmq.PUB)
         self.socket_execution_report.bind("tcp://127.0.0.1:%d" % self.exec_report_port)
+
+        self.logger.info('order_port: %d' % self.order_port)
+        self.logger.info('exec_report_port: %d' % self.exec_report_port)
 
     def run(self):
         self.init_zmq()
@@ -48,7 +51,7 @@ class ReplyThread(QtCore.QThread):
             nowtime = dt.datetime.now()
             # strnowtime = datetime.strftime(nowtime, "%Y-%m-%d %H:%M:%S.%f")
             # strnowtime = strnowtime[:-3]
-            self.logger.info('===================' * 4)
+            self.logger.info('===================' * 2)
             self.logger.info('receive_order')
 
             newamendcancel = msg_dict.get('NewAmendCancel', ' ')  # 'N' = New, 'A' = Amend, 'C' = Cancel
@@ -68,9 +71,9 @@ class ReplyThread(QtCore.QThread):
                 continue
 
             logmsg = pprint.pformat(msg_dict)
-            self.logger.info(logmsg)
+            self.logger.info('\n' + logmsg)
 
-            if newamendcancel == 'N' and (shortcd[:3] in ['101', '201', '301', '105']):
+            if newamendcancel == 'N' and (shortcd[:3] in ['101', '105', '201', '301',]):
                 msgcode = '0000'
                 ordno = '0000'
                 msg_dict = dict()
@@ -83,7 +86,7 @@ class ReplyThread(QtCore.QThread):
                 msg_dict['BuySell'] = buysell
                 msg_dict['MsgCode'] = msgcode
 
-                self.zmq_socket_order.send_pyobj(msg_dict)
+                self.socket_order.send_pyobj(msg_dict)
 
             # elif newamendcancel == 'C' and (shortcd[:3] in ['101', '201', '301', '105']):
             #     send_dict['MsgCode'] = 'OK'
