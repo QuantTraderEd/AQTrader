@@ -35,6 +35,8 @@ def main():
     rep_thread = ReplyThread()
     rep_thread.daemon = True
 
+    rep_thread.init_zmq()
+
     rep_thread.run()
 
     pass
